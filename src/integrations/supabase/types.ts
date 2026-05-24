@@ -14,16 +14,327 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      answers: {
+        Row: {
+          created_at: string
+          duration_seconds: number | null
+          error_message: string | null
+          id: string
+          interview_id: string
+          is_followup: boolean
+          parent_answer_id: string | null
+          question_id: string | null
+          question_text: string
+          status: Database["public"]["Enums"]["answer_status"]
+          transcript: string | null
+          updated_at: string
+          video_path: string | null
+          words_json: Json | null
+        }
+        Insert: {
+          created_at?: string
+          duration_seconds?: number | null
+          error_message?: string | null
+          id?: string
+          interview_id: string
+          is_followup?: boolean
+          parent_answer_id?: string | null
+          question_id?: string | null
+          question_text: string
+          status?: Database["public"]["Enums"]["answer_status"]
+          transcript?: string | null
+          updated_at?: string
+          video_path?: string | null
+          words_json?: Json | null
+        }
+        Update: {
+          created_at?: string
+          duration_seconds?: number | null
+          error_message?: string | null
+          id?: string
+          interview_id?: string
+          is_followup?: boolean
+          parent_answer_id?: string | null
+          question_id?: string | null
+          question_text?: string
+          status?: Database["public"]["Enums"]["answer_status"]
+          transcript?: string | null
+          updated_at?: string
+          video_path?: string | null
+          words_json?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "answers_interview_id_fkey"
+            columns: ["interview_id"]
+            isOneToOne: false
+            referencedRelation: "interviews"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "answers_parent_answer_id_fkey"
+            columns: ["parent_answer_id"]
+            isOneToOne: false
+            referencedRelation: "answers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      insights: {
+        Row: {
+          created_at: string
+          evidence: Json
+          id: string
+          study_id: string
+          summary: string
+          theme: string
+        }
+        Insert: {
+          created_at?: string
+          evidence?: Json
+          id?: string
+          study_id: string
+          summary: string
+          theme: string
+        }
+        Update: {
+          created_at?: string
+          evidence?: Json
+          id?: string
+          study_id?: string
+          summary?: string
+          theme?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "insights_study_id_fkey"
+            columns: ["study_id"]
+            isOneToOne: false
+            referencedRelation: "studies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interviews: {
+        Row: {
+          created_at: string
+          finished_at: string | null
+          id: string
+          respondent_id: string
+          started_at: string
+          status: Database["public"]["Enums"]["interview_status"]
+          study_id: string
+        }
+        Insert: {
+          created_at?: string
+          finished_at?: string | null
+          id?: string
+          respondent_id: string
+          started_at?: string
+          status?: Database["public"]["Enums"]["interview_status"]
+          study_id: string
+        }
+        Update: {
+          created_at?: string
+          finished_at?: string | null
+          id?: string
+          respondent_id?: string
+          started_at?: string
+          status?: Database["public"]["Enums"]["interview_status"]
+          study_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interviews_study_id_fkey"
+            columns: ["study_id"]
+            isOneToOne: false
+            referencedRelation: "studies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      questions: {
+        Row: {
+          created_at: string
+          id: string
+          intent: string | null
+          position: number
+          study_id: string
+          text: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          intent?: string | null
+          position: number
+          study_id: string
+          text: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          intent?: string | null
+          position?: number
+          study_id?: string
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questions_study_id_fkey"
+            columns: ["study_id"]
+            isOneToOne: false
+            referencedRelation: "studies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recommendations: {
+        Row: {
+          created_at: string
+          id: string
+          priority: number | null
+          rationale: string
+          study_id: string
+          supporting_insight_ids: string[]
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          priority?: number | null
+          rationale: string
+          study_id: string
+          supporting_insight_ids?: string[]
+          title: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          priority?: number | null
+          rationale?: string
+          study_id?: string
+          supporting_insight_ids?: string[]
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recommendations_study_id_fkey"
+            columns: ["study_id"]
+            isOneToOne: false
+            referencedRelation: "studies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      studies: {
+        Row: {
+          business_goal: string | null
+          context: string | null
+          created_at: string
+          id: string
+          max_followups: number
+          owner_id: string
+          public_slug: string
+          status: Database["public"]["Enums"]["study_status"]
+          target_audience: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          business_goal?: string | null
+          context?: string | null
+          created_at?: string
+          id?: string
+          max_followups?: number
+          owner_id: string
+          public_slug?: string
+          status?: Database["public"]["Enums"]["study_status"]
+          target_audience?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          business_goal?: string | null
+          context?: string | null
+          created_at?: string
+          id?: string
+          max_followups?: number
+          owner_id?: string
+          public_slug?: string
+          status?: Database["public"]["Enums"]["study_status"]
+          target_audience?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      answer_status: "uploading" | "transcribing" | "ready" | "failed"
+      app_role: "researcher" | "respondent"
+      interview_status: "in_progress" | "completed" | "abandoned"
+      study_status: "draft" | "published" | "closed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +461,11 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      answer_status: ["uploading", "transcribing", "ready", "failed"],
+      app_role: ["researcher", "respondent"],
+      interview_status: ["in_progress", "completed", "abandoned"],
+      study_status: ["draft", "published", "closed"],
+    },
   },
 } as const
