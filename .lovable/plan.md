@@ -1,66 +1,44 @@
-# Novas formas de montar o roteiro
+## Objetivo
 
-Hoje, no editor do estudo (`/studies/$id`), o roteiro só pode ser construído pergunta por pergunta. Vou adicionar duas opções extras logo acima da lista atual, sem remover o fluxo manual.
+1. Ao importar um arquivo, identificar a estrutura real do roteiro (cabeçalho, blocos, objetivos de bloco, perguntas) — não tratar cada linha como pergunta.
+2. No popup de revisão, permitir editar a estrutura e **adicionar manualmente novas perguntas** (além das que vieram do arquivo), removendo o teto rígido de 50.
 
-## Opções na UI
+## Mudanças
 
-Na seção "Roteiro de perguntas", três botões:
-1. **+ Adicionar pergunta** (atual)
-2. **Importar de arquivo** (novo)
-3. **Gerar com IA** (novo)
+### Backend — `src/lib/script-builder.functions.ts`
 
-### 1. Importar de arquivo
-- Aceita `.txt`, `.md`, `.csv`, `.docx`, `.pdf`.
-- Parsing:
-  - `.txt`/`.md`/`.csv`: uma pergunta por linha (ignora vazias e cabeçalhos óbvios).
-  - `.docx`/`.pdf`: extração de texto via server function, depois quebra por linha/numeração (`1.`, `-`, `•`).
-- Pré-visualização das perguntas extraídas em um modal, com opção de editar/remover antes de confirmar.
-- Ao confirmar: append ao final do roteiro existente (não substitui), preservando ordem.
-- Server function `parseQuestionsFromFile` (recebe `study_id` + arquivo via FormData) → retorna `string[]` de perguntas-candidatas. Inserção continua usando o `upsertQuestion` existente em lote.
+- `parseQuestionsFromFile`: continua extraindo o texto bruto do arquivo (.txt/.md/.csv/.docx/.pdf), mas em vez de cortar linha-a-linha, manda o texto para o Lovable AI Gateway (`google/gemini-3-flash-preview`) com um tool-call estruturado pedindo:
+  ```
+  {
+    header: string,              // título/resumo do roteiro (opcional)
+    blocks: [{
+      title: string,             // nome do bloco (ex: "Aquecimento")
+      objective: string,         // objetivo do bloco (opcional)
+      questions: [{ text, intent }]
+    }]
+  }
+  ```
+  Prompt instrui o modelo a distinguir cabeçalho, objetivos de bloco e perguntas; ignorar instruções para o entrevistador; preservar a ordem original. Fallback para o split por linha atual se a IA falhar ou não retornar perguntas.
+- `bulkAddQuestions`: aceita até 200 perguntas (em vez de 50) e aceita um campo opcional `block_title` por pergunta — concatenado no `intent` final como `"[Bloco] · intenção"` para não exigir mudança de schema.
 
-### 2. Gerar com IA
-- Botão abre um modal com:
-  - Resumo do contexto atual do estudo (título, objetivo de negócio, contexto, público).
-  - Campo opcional "instruções extras" (ex: "foque em jornada de compra", "máx 8 perguntas").
-  - Slider de quantidade alvo (5–15, default 8).
-- Server function `generateQuestionScript`:
-  - Usa Lovable AI Gateway, modelo `google/gemini-3-flash-preview`.
-  - Tool calling para output estruturado: `{ questions: [{ text, intent }], clarifications: [string] }`.
-  - System prompt: pesquisador qualitativo sênior; gerar perguntas abertas, não-enviesadas, em português, ordenadas do mais amplo ao mais específico, cada uma com `intent` curta.
-  - Se o contexto for insuficiente, retorna `clarifications` com até 3 perguntas para o pesquisador antes de gerar.
-- Fluxo no modal:
-  - 1ª chamada → se vier `clarifications`, mostra inputs para responder; ao enviar, refaz a chamada incluindo as respostas no prompt.
-  - Quando vier `questions`, mostra preview editável (mesma UI do import). Confirmar → append ao roteiro.
-- Tratamento de erros 429/402 com toast amigável (rate limit / créditos).
+### Frontend — `src/components/study/ScriptBuilderActions.tsx`
 
-## Backend
+- Novo tipo `ParsedScript` com `header`, `blocks[]`. Estado do preview vira essa estrutura em vez de uma lista plana.
+- `PreviewDialog` reescrito:
+  - Campo de cabeçalho editável (apenas referência visual, não é salvo como pergunta).
+  - Cada bloco: título e objetivo editáveis, lista de perguntas (text + intent), botões "Remover pergunta", "+ Adicionar pergunta neste bloco", "Remover bloco".
+  - Botão "+ Adicionar bloco" no final.
+  - Botão "+ Adicionar pergunta avulsa" para casos sem bloco.
+  - Confirmação achata a estrutura em `{ text, intent: "Bloco · objetivo · intenção" }` e chama `bulkAddQuestions`.
+- Resultado da geração por IA (`AIGenerateDialog`) é convertido para a mesma estrutura (um único bloco "Roteiro gerado") para reusar o mesmo preview.
 
-Novos server functions em `src/lib/studies.functions.ts` (ou novo `src/lib/script-builder.functions.ts` para não inflar):
-- `parseQuestionsFromFile({ study_id, fileBase64, mimeType, fileName })` — autenticado, valida ownership do estudo.
-- `generateQuestionScript({ study_id, extraInstructions?, targetCount?, clarificationAnswers? })` — autenticado, valida ownership, chama Lovable AI.
-- `bulkAddQuestions({ study_id, questions: {text, intent?}[] })` — insere em ordem após a última `position` existente.
+### Sem mudanças
 
-Sem mudanças de schema — as tabelas `questions` e `studies` já suportam tudo.
+- Schema do banco, rotas, autenticação, fluxo de geração por IA permanecem iguais.
+- Limite de tamanho de arquivo (5MB) e formatos aceitos não mudam.
 
-## Frontend
+## Notas técnicas
 
-- Novo componente `src/components/study/ScriptBuilderActions.tsx` com os 3 botões + modais (`Dialog` do shadcn).
-- Modal de preview reutilizável `QuestionsPreviewDialog` para os dois fluxos novos (lista editável de perguntas candidatas com remover/editar/confirmar).
-- Integra no `studies.$id.tsx` substituindo o botão único atual.
-
-## Dependências
-
-- Parser `.docx`: `mammoth` (puro JS, roda no Worker).
-- Parser `.pdf`: `pdf-parse` tende a falhar no Worker; vou usar `unpdf` (edge-compatible) ou cair em mensagem "PDF não suportado, cole o texto" se houver problema. Decido na implementação após teste rápido.
-
-## Detalhes técnicos
-
-- Upload: arquivo lido no client como base64 e enviado via JSON ao server fn (limitando a ~2MB) — evita FormData multipart com TanStack server fn.
-- Toda chamada de IA é server-side; `LOVABLE_API_KEY` já está configurada.
-- Preview sempre permite edição antes de salvar — nada vai direto pro banco sem confirmação.
-
-## Fora de escopo
-
-- Não vou substituir o editor manual atual, só somar opções.
-- Não vou tocar no fluxo público de entrevista (Fase 2).
-- Não vou regenerar/sobrescrever perguntas existentes — append apenas.
+- A chamada à IA dentro de `parseQuestionsFromFile` reusa o mesmo padrão de `generateQuestionScript` (mesmo gateway, mesmo tratamento de 429/402).
+- Texto extraído é truncado em ~30k caracteres antes de mandar pra IA para evitar contexto excessivo.
+- Se o arquivo for muito simples (uma pergunta por linha), a IA ainda funciona — devolve um único bloco sem objetivo.
