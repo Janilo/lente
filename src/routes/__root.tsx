@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import {
   Outlet,
   Link,
@@ -7,26 +7,22 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { useEffect } from "react";
 
 import appCss from "../styles.css?url";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
-        </p>
-        <div className="mt-6">
-          <Link
-            to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Go home
-          </Link>
-        </div>
+        <p className="mt-4 text-muted-foreground">Página não encontrada.</p>
+        <Link to="/" className="mt-6 inline-flex rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
+          Voltar
+        </Link>
       </div>
     </div>
   );
@@ -35,33 +31,17 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
-        </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
-          <button
-            onClick={() => {
-              router.invalidate();
-              reset();
-            }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Try again
-          </button>
-          <a
-            href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-          >
-            Go home
-          </a>
-        </div>
+        <h1 className="text-xl font-semibold">Algo deu errado</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
+        <button
+          onClick={() => { router.invalidate(); reset(); }}
+          className="mt-6 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+        >
+          Tentar novamente
+        </button>
       </div>
     </div>
   );
@@ -72,20 +52,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { title: "Lente — Pesquisa qualitativa em vídeo com IA" },
+      { name: "description", content: "Conduza entrevistas em vídeo com follow-ups adaptativos, transcrição automática e síntese de insights." },
     ],
     links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "" },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" },
+      { rel: "stylesheet", href: appCss },
     ],
   }),
   shellComponent: RootShell,
@@ -96,24 +70,70 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        {children}
-        <Scripts />
-      </body>
+    <html lang="pt-BR">
+      <head><HeadContent /></head>
+      <body>{children}<Scripts /></body>
     </html>
+  );
+}
+
+function AuthInvalidator() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      router.invalidate();
+      queryClient.invalidateQueries();
+    });
+    return () => subscription.unsubscribe();
+  }, [router, queryClient]);
+  return null;
+}
+
+function Header() {
+  const { isAuthenticated, loading } = useAuth();
+  return (
+    <header className="border-b border-border bg-background/80 backdrop-blur sticky top-0 z-40">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+        <Link to="/" className="flex items-center gap-2">
+          <div className="h-7 w-7 rounded-full bg-primary" />
+          <span className="font-display text-2xl">Lente</span>
+        </Link>
+        <nav className="flex items-center gap-1 text-sm">
+          {loading ? null : isAuthenticated ? (
+            <>
+              <Link to="/dashboard" className="rounded-md px-3 py-2 text-foreground hover:bg-accent">Dashboard</Link>
+              <button
+                onClick={async () => { await supabase.auth.signOut(); }}
+                className="rounded-md px-3 py-2 text-muted-foreground hover:text-foreground"
+              >
+                Sair
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="rounded-md px-3 py-2 text-foreground hover:bg-accent">Entrar</Link>
+              <Link to="/signup" className="rounded-md bg-primary px-3 py-2 text-primary-foreground hover:opacity-90">
+                Criar conta
+              </Link>
+            </>
+          )}
+        </nav>
+      </div>
+    </header>
   );
 }
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <AuthInvalidator />
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-1"><Outlet /></main>
+      </div>
+      <Toaster />
     </QueryClientProvider>
   );
 }
