@@ -18,12 +18,14 @@ import {
 
 type Question = { text: string; intent: string };
 type Block = { title: string; objective: string; questions: Question[] };
-type Script = { header: string; blocks: Block[] };
+type Script = { header: string; blocks: Block[]; final_notes: string };
 
 const emptyScript = (): Script => ({
   header: "",
   blocks: [{ title: "Perguntas", objective: "", questions: [] }],
+  final_notes: "",
 });
+
 
 export function ScriptBuilderActions({
   studyId,
