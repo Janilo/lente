@@ -62,7 +62,7 @@ export function ScriptBuilderActions({
       });
     },
     onSuccess: (res) => {
-      setScript(res.script);
+      setScript({ ...res.script, final_notes: "" });
       setPreviewOpen(true);
     },
     onError: (e: Error) => toast.error(e.message),
@@ -79,7 +79,12 @@ export function ScriptBuilderActions({
         out.push({ text: t, intent });
       }
     }
+    const notes = s.final_notes?.trim();
+    if (notes) {
+      out.push({ text: "Observações finais", intent: notes });
+    }
     return out;
+
   };
 
   const saving = useMutation({
@@ -151,7 +156,9 @@ export function ScriptBuilderActions({
           setScript({
             header: "",
             blocks: [{ title: "Roteiro gerado", objective: "", questions: qs }],
+            final_notes: "",
           });
+
           setAiOpen(false);
           setPreviewOpen(true);
         }}
