@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { getStudy, updateStudy, upsertQuestion, deleteQuestion } from "@/lib/studies.functions";
 import { toast } from "sonner";
+import { ScriptBuilderActions } from "@/components/study/ScriptBuilderActions";
 
 export const Route = createFileRoute("/_authenticated/studies/$id")({
   head: () => ({ meta: [{ title: "Editar estudo — Lente" }] }),
