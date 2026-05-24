@@ -121,12 +121,13 @@ function StudyEditor() {
       </section>
 
       <section className="rounded-lg border border-border bg-card p-6 space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
           <h2 className="text-xl">Roteiro de perguntas</h2>
-          <button onClick={() => addQ.mutate()} disabled={addQ.isPending}
-            className="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-accent">
-            + Adicionar pergunta
-          </button>
+          <ScriptBuilderActions
+            studyId={id}
+            onAddManual={() => addQ.mutate()}
+            isAddingManual={addQ.isPending}
+          />
         </div>
         {data.questions.length === 0 ? (
           <p className="text-sm text-muted-foreground">Adicione perguntas para guiar a entrevista. A IA poderá complementar com follow-ups.</p>
