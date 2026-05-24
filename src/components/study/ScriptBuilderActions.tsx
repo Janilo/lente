@@ -18,12 +18,14 @@ import {
 
 type Question = { text: string; intent: string };
 type Block = { title: string; objective: string; questions: Question[] };
-type Script = { header: string; blocks: Block[] };
+type Script = { header: string; blocks: Block[]; final_notes: string };
 
 const emptyScript = (): Script => ({
   header: "",
   blocks: [{ title: "Perguntas", objective: "", questions: [] }],
+  final_notes: "",
 });
+
 
 export function ScriptBuilderActions({
   studyId,
@@ -60,7 +62,7 @@ export function ScriptBuilderActions({
       });
     },
     onSuccess: (res) => {
-      setScript(res.script);
+      setScript({ ...res.script, final_notes: "" });
       setPreviewOpen(true);
     },
     onError: (e: Error) => toast.error(e.message),
@@ -77,7 +79,12 @@ export function ScriptBuilderActions({
         out.push({ text: t, intent });
       }
     }
+    const notes = s.final_notes?.trim();
+    if (notes) {
+      out.push({ text: "Observações finais", intent: notes });
+    }
     return out;
+
   };
 
   const saving = useMutation({
@@ -149,7 +156,9 @@ export function ScriptBuilderActions({
           setScript({
             header: "",
             blocks: [{ title: "Roteiro gerado", objective: "", questions: qs }],
+            final_notes: "",
           });
+
           setAiOpen(false);
           setPreviewOpen(true);
         }}
@@ -296,7 +305,22 @@ function PreviewDialog({
           >
             + Adicionar bloco
           </button>
+
+          <div className="rounded-lg border border-border bg-card p-4">
+            <label className="text-sm font-medium">Observações finais</label>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Notas, instruções de encerramento ou lembretes para o entrevistador. Serão salvas como item final do roteiro.
+            </p>
+            <textarea
+              rows={3}
+              value={script.final_notes}
+              onChange={(e) => setScript({ ...script, final_notes: e.target.value })}
+              placeholder="Ex: agradecer, explicar próximos passos, perguntar se quer adicionar algo..."
+              className="mt-2 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            />
+          </div>
         </div>
+
 
         <DialogFooter className="mt-2">
           <button onClick={onClose} className="rounded-md border border-border px-3 py-2 text-sm hover:bg-accent">
