@@ -1,86 +1,66 @@
-# Plataforma de Pesquisa Qualitativa em Vídeo
+# Novas formas de montar o roteiro
 
-App onde pesquisadores criam estudos (contexto + questionário) e entrevistados respondem em vídeo, com a IA conduzindo follow-ups adaptativos. No final, o sistema transcreve, sintetiza padrões entre entrevistados, gera clipes de vídeo das citações que sustentam cada conclusão e produz recomendações de negócio.
+Hoje, no editor do estudo (`/studies/$id`), o roteiro só pode ser construído pergunta por pergunta. Vou adicionar duas opções extras logo acima da lista atual, sem remover o fluxo manual.
 
-## Stack
-- **Lovable Cloud** (auth email+senha + Google, Postgres, Storage)
-- **Lovable AI** (`google/gemini-3-flash-preview` para follow-ups; `gemini-2.5-pro` para síntese)
-- **ElevenLabs Scribe** (transcrição com diarização e timestamps por palavra → essencial para os cortes)
-- **MediaRecorder API** no navegador para gravar webcam/áudio
+## Opções na UI
 
-## Fluxo principal
+Na seção "Roteiro de perguntas", três botões:
+1. **+ Adicionar pergunta** (atual)
+2. **Importar de arquivo** (novo)
+3. **Gerar com IA** (novo)
 
-### 1. Pesquisador (área autenticada)
-- Cria um **Estudo**: título, objetivo de negócio, contexto da marca/produto, público-alvo
-- Adiciona **perguntas** do roteiro (ordem, tipo, intenção)
-- Configura nível de aprofundamento dos follow-ups (1–3 por pergunta)
-- Gera **link público** do estudo para compartilhar com entrevistados
+### 1. Importar de arquivo
+- Aceita `.txt`, `.md`, `.csv`, `.docx`, `.pdf`.
+- Parsing:
+  - `.txt`/`.md`/`.csv`: uma pergunta por linha (ignora vazias e cabeçalhos óbvios).
+  - `.docx`/`.pdf`: extração de texto via server function, depois quebra por linha/numeração (`1.`, `-`, `•`).
+- Pré-visualização das perguntas extraídas em um modal, com opção de editar/remover antes de confirmar.
+- Ao confirmar: append ao final do roteiro existente (não substitui), preservando ordem.
+- Server function `parseQuestionsFromFile` (recebe `study_id` + arquivo via FormData) → retorna `string[]` de perguntas-candidatas. Inserção continua usando o `upsertQuestion` existente em lote.
 
-### 2. Entrevistado
-- Acessa link, faz login rápido, dá consentimento de gravação
-- Teste de câmera/microfone
-- Para cada pergunta: vê a pergunta, grava resposta em vídeo
-- Ao parar a gravação: vídeo é enviado ao Storage e transcrito; IA decide se faz follow-up ou avança
-- Tela final de agradecimento
+### 2. Gerar com IA
+- Botão abre um modal com:
+  - Resumo do contexto atual do estudo (título, objetivo de negócio, contexto, público).
+  - Campo opcional "instruções extras" (ex: "foque em jornada de compra", "máx 8 perguntas").
+  - Slider de quantidade alvo (5–15, default 8).
+- Server function `generateQuestionScript`:
+  - Usa Lovable AI Gateway, modelo `google/gemini-3-flash-preview`.
+  - Tool calling para output estruturado: `{ questions: [{ text, intent }], clarifications: [string] }`.
+  - System prompt: pesquisador qualitativo sênior; gerar perguntas abertas, não-enviesadas, em português, ordenadas do mais amplo ao mais específico, cada uma com `intent` curta.
+  - Se o contexto for insuficiente, retorna `clarifications` com até 3 perguntas para o pesquisador antes de gerar.
+- Fluxo no modal:
+  - 1ª chamada → se vier `clarifications`, mostra inputs para responder; ao enviar, refaz a chamada incluindo as respostas no prompt.
+  - Quando vier `questions`, mostra preview editável (mesma UI do import). Confirmar → append ao roteiro.
+- Tratamento de erros 429/402 com toast amigável (rate limit / créditos).
 
-### 3. Análise (pesquisador)
-- Dashboard do estudo: entrevistas concluídas, status de processamento
-- Por entrevistado: transcrição completa + player do vídeo sincronizado
-- **Síntese cross-entrevistas**: temas recorrentes, divergências, citações-chave
-- **Clipes**: para cada insight, links com timestamp inicial/final apontando o trecho do vídeo
-- **Recomendações de negócio** baseadas nos achados + contexto do estudo
-- Exportação: PDF do relatório, CSV das transcrições
+## Backend
 
-## Modelo de dados (Cloud)
-- `profiles` (id, full_name, role: researcher/respondent)
-- `user_roles` (tabela separada, enum researcher/respondent — padrão de segurança)
-- `studies` (id, owner_id, title, context, business_goal, status, public_slug)
-- `questions` (id, study_id, order, text, intent, max_followups)
-- `interviews` (id, study_id, respondent_id, status, started_at, finished_at)
-- `answers` (id, interview_id, question_id, parent_answer_id [follow-up], video_path, duration, transcript, words_json [timestamps])
-- `insights` (id, study_id, theme, summary, evidence_json [referências a answers + start/end])
-- `recommendations` (id, study_id, title, rationale, supporting_insights[])
-- Storage bucket `interview-videos` (privado, signed URLs)
+Novos server functions em `src/lib/studies.functions.ts` (ou novo `src/lib/script-builder.functions.ts` para não inflar):
+- `parseQuestionsFromFile({ study_id, fileBase64, mimeType, fileName })` — autenticado, valida ownership do estudo.
+- `generateQuestionScript({ study_id, extraInstructions?, targetCount?, clarificationAnswers? })` — autenticado, valida ownership, chama Lovable AI.
+- `bulkAddQuestions({ study_id, questions: {text, intent?}[] })` — insere em ordem após a última `position` existente.
 
-## Backend (server functions TanStack)
+Sem mudanças de schema — as tabelas `questions` e `studies` já suportam tudo.
 
-- `createStudy`, `updateStudy`, `addQuestion` — autenticadas
-- `getStudyByPublicSlug` — pública (para entrevistado abrir)
-- `startInterview`, `submitAnswer` (recebe path do vídeo no Storage e dispara transcrição)
-- `transcribeAnswer` — chama ElevenLabs Scribe (`scribe_v2`, diarize+timestamps), salva `transcript` e `words_json`
-- `generateFollowup` — Lovable AI: recebe contexto + pergunta + resposta transcrita; decide próxima pergunta ou null
-- `synthesizeStudy` — Lovable AI Pro: lê todas transcrições + contexto, gera insights + evidências (com referências a answers e ranges de timestamp) + recomendações
-- `getInterviewClip` — gera URL assinada do vídeo + range de tempo
+## Frontend
 
-## Telas
-1. `/` landing
-2. `/login` / `/signup` (email+senha, Google)
-3. `/dashboard` lista de estudos do pesquisador
-4. `/studies/new` e `/studies/$id/edit` (contexto + perguntas)
-5. `/studies/$id` dashboard do estudo (entrevistas, síntese, recomendações)
-6. `/studies/$id/insights/$insightId` detalhe com player + clipes
-7. `/r/$slug` portal público do entrevistado (consentimento → teste AV → entrevista → fim)
-8. `/r/$slug/interview` tela de gravação pergunta-por-pergunta
+- Novo componente `src/components/study/ScriptBuilderActions.tsx` com os 3 botões + modais (`Dialog` do shadcn).
+- Modal de preview reutilizável `QuestionsPreviewDialog` para os dois fluxos novos (lista editável de perguntas candidatas com remover/editar/confirmar).
+- Integra no `studies.$id.tsx` substituindo o botão único atual.
 
-## Entregas faseadas
-Para evitar mudanças grandes demais de uma vez:
+## Dependências
 
-**Fase 1 — Fundação**: Cloud + auth (email+Google), schema, criação/edição de estudos e perguntas, dashboard básico.
+- Parser `.docx`: `mammoth` (puro JS, roda no Worker).
+- Parser `.pdf`: `pdf-parse` tende a falhar no Worker; vou usar `unpdf` (edge-compatible) ou cair em mensagem "PDF não suportado, cole o texto" se houver problema. Decido na implementação após teste rápido.
 
-**Fase 2 — Captura**: portal público, gravação de vídeo no navegador, upload pro Storage, transcrição via ElevenLabs, follow-ups adaptativos da IA.
+## Detalhes técnicos
 
-**Fase 3 — Análise**: síntese cross-entrevistas, clipes com timestamps, recomendações de negócio, exportação PDF/CSV.
+- Upload: arquivo lido no client como base64 e enviado via JSON ao server fn (limitando a ~2MB) — evita FormData multipart com TanStack server fn.
+- Toda chamada de IA é server-side; `LOVABLE_API_KEY` já está configurada.
+- Preview sempre permite edição antes de salvar — nada vai direto pro banco sem confirmação.
 
-## O que vou precisar do usuário
-- Confirmar nome do produto / identidade visual desejada (ou posso propor)
-- Chave **ELEVENLABS_API_KEY** (peço via formulário seguro quando chegarmos na Fase 2)
-- Google sign-in: vou habilitar via broker da Lovable, sem configuração manual
+## Fora de escopo
 
-## Notas técnicas
-- Tabela `user_roles` separada (nunca em `profiles`) com função `has_role()` SECURITY DEFINER para RLS
-- Vídeos privados; acesso apenas por signed URL gerada no backend
-- Transcrição roda em server function (chave ElevenLabs no servidor)
-- Clipes são "virtuais": player carrega vídeo completo e dá seek/loop ao range — sem reencode
-- `synthesizeStudy` é caro/lento: executar sob demanda, com status "processing" persistido
-
-Quero começar pela **Fase 1** assim que aprovado.
+- Não vou substituir o editor manual atual, só somar opções.
+- Não vou tocar no fluxo público de entrevista (Fase 2).
+- Não vou regenerar/sobrescrever perguntas existentes — append apenas.
