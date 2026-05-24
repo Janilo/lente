@@ -16,7 +16,14 @@ import {
   bulkAddQuestions,
 } from "@/lib/script-builder.functions";
 
-type Candidate = { text: string; intent: string };
+type Question = { text: string; intent: string };
+type Block = { title: string; objective: string; questions: Question[] };
+type Script = { header: string; blocks: Block[] };
+
+const emptyScript = (): Script => ({
+  header: "",
+  blocks: [{ title: "Perguntas", objective: "", questions: [] }],
+});
 
 export function ScriptBuilderActions({
   studyId,
@@ -28,7 +35,7 @@ export function ScriptBuilderActions({
   isAddingManual: boolean;
 }) {
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [script, setScript] = useState<Script>(emptyScript());
   const [aiOpen, setAiOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const qc = useQueryClient();
@@ -53,19 +60,36 @@ export function ScriptBuilderActions({
       });
     },
     onSuccess: (res) => {
-      setCandidates(res.questions.map((t: string) => ({ text: t, intent: "" })));
+      setScript(res.script);
       setPreviewOpen(true);
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const flatten = (s: Script): Question[] => {
+    const out: Question[] = [];
+    for (const b of s.blocks) {
+      const ctx = [b.title?.trim(), b.objective?.trim()].filter(Boolean).join(" · ");
+      for (const q of b.questions) {
+        const t = q.text.trim();
+        if (!t) continue;
+        const intent = [ctx, q.intent?.trim()].filter(Boolean).join(" — ");
+        out.push({ text: t, intent });
+      }
+    }
+    return out;
+  };
+
   const saving = useMutation({
-    mutationFn: async () =>
-      bulkAdd({ data: { study_id: studyId, questions: candidates.filter((c) => c.text.trim()) } }),
+    mutationFn: async () => {
+      const questions = flatten(script);
+      if (questions.length === 0) throw new Error("Adicione ao menos uma pergunta.");
+      return bulkAdd({ data: { study_id: studyId, questions } });
+    },
     onSuccess: (res) => {
       toast.success(`${res.inserted} pergunta(s) adicionada(s)`);
       setPreviewOpen(false);
-      setCandidates([]);
+      setScript(emptyScript());
       qc.invalidateQueries({ queryKey: ["study", studyId] });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -110,8 +134,9 @@ export function ScriptBuilderActions({
       <PreviewDialog
         open={previewOpen}
         onClose={() => setPreviewOpen(false)}
-        candidates={candidates}
-        setCandidates={setCandidates}
+        script={script}
+        setScript={setScript}
+        totalQuestions={flatten(script).length}
         onConfirm={() => saving.mutate()}
         saving={saving.isPending}
       />
@@ -121,7 +146,10 @@ export function ScriptBuilderActions({
         onClose={() => setAiOpen(false)}
         studyId={studyId}
         onReady={(qs) => {
-          setCandidates(qs);
+          setScript({
+            header: "",
+            blocks: [{ title: "Roteiro gerado", objective: "", questions: qs }],
+          });
           setAiOpen(false);
           setPreviewOpen(true);
         }}
@@ -133,75 +161,153 @@ export function ScriptBuilderActions({
 function PreviewDialog({
   open,
   onClose,
-  candidates,
-  setCandidates,
+  script,
+  setScript,
+  totalQuestions,
   onConfirm,
   saving,
 }: {
   open: boolean;
   onClose: () => void;
-  candidates: Candidate[];
-  setCandidates: (c: Candidate[]) => void;
+  script: Script;
+  setScript: (s: Script) => void;
+  totalQuestions: number;
   onConfirm: () => void;
   saving: boolean;
 }) {
+  const updateBlock = (bi: number, patch: Partial<Block>) => {
+    const next = { ...script, blocks: script.blocks.map((b, i) => (i === bi ? { ...b, ...patch } : b)) };
+    setScript(next);
+  };
+  const updateQuestion = (bi: number, qi: number, patch: Partial<Question>) => {
+    const blocks = script.blocks.map((b, i) =>
+      i === bi
+        ? { ...b, questions: b.questions.map((q, j) => (j === qi ? { ...q, ...patch } : q)) }
+        : b,
+    );
+    setScript({ ...script, blocks });
+  };
+  const removeQuestion = (bi: number, qi: number) => {
+    const blocks = script.blocks.map((b, i) =>
+      i === bi ? { ...b, questions: b.questions.filter((_, j) => j !== qi) } : b,
+    );
+    setScript({ ...script, blocks });
+  };
+  const addQuestion = (bi: number) => {
+    const blocks = script.blocks.map((b, i) =>
+      i === bi ? { ...b, questions: [...b.questions, { text: "", intent: "" }] } : b,
+    );
+    setScript({ ...script, blocks });
+  };
+  const removeBlock = (bi: number) => {
+    setScript({ ...script, blocks: script.blocks.filter((_, i) => i !== bi) });
+  };
+  const addBlock = () => {
+    setScript({
+      ...script,
+      blocks: [...script.blocks, { title: "Novo bloco", objective: "", questions: [{ text: "", intent: "" }] }],
+    });
+  };
+
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Revisar perguntas</DialogTitle>
+          <DialogTitle>Revisar roteiro</DialogTitle>
           <DialogDescription>
-            Edite, remova e confirme. As perguntas serão adicionadas ao final do roteiro.
+            Confira a estrutura identificada: blocos, objetivos e perguntas. Edite o que precisar antes de adicionar ao roteiro.
           </DialogDescription>
         </DialogHeader>
-        <ol className="space-y-2">
-          {candidates.map((c, idx) => (
-            <li key={idx} className="rounded-md border border-border p-3">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>Pergunta {idx + 1}</span>
+
+        <div className="space-y-5">
+          <div>
+            <label className="text-xs font-medium text-muted-foreground">Cabeçalho (referência — não é salvo)</label>
+            <input
+              value={script.header}
+              onChange={(e) => setScript({ ...script, header: e.target.value })}
+              placeholder="Título ou descrição do roteiro"
+              className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            />
+          </div>
+
+          {script.blocks.map((block, bi) => (
+            <div key={bi} className="rounded-lg border border-border bg-card p-4 space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 space-y-2">
+                  <input
+                    value={block.title}
+                    onChange={(e) => updateBlock(bi, { title: e.target.value })}
+                    placeholder="Título do bloco"
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-medium"
+                  />
+                  <input
+                    value={block.objective}
+                    onChange={(e) => updateBlock(bi, { objective: e.target.value })}
+                    placeholder="Objetivo do bloco (opcional)"
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs text-muted-foreground"
+                  />
+                </div>
                 <button
-                  onClick={() => setCandidates(candidates.filter((_, i) => i !== idx))}
-                  className="hover:text-destructive"
+                  onClick={() => removeBlock(bi)}
+                  className="text-xs text-muted-foreground hover:text-destructive"
                 >
-                  Remover
+                  Remover bloco
                 </button>
               </div>
-              <textarea
-                value={c.text}
-                rows={2}
-                onChange={(e) => {
-                  const next = [...candidates];
-                  next[idx] = { ...next[idx], text: e.target.value };
-                  setCandidates(next);
-                }}
-                className="mt-2 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              />
-              <input
-                value={c.intent}
-                placeholder="Intenção (opcional)"
-                onChange={(e) => {
-                  const next = [...candidates];
-                  next[idx] = { ...next[idx], intent: e.target.value };
-                  setCandidates(next);
-                }}
-                className="mt-2 w-full rounded-md border border-input bg-background px-3 py-2 text-xs text-muted-foreground"
-              />
-            </li>
+
+              <ol className="space-y-2">
+                {block.questions.map((q, qi) => (
+                  <li key={qi} className="rounded-md border border-border bg-background p-3">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span>Pergunta {qi + 1}</span>
+                      <button onClick={() => removeQuestion(bi, qi)} className="hover:text-destructive">
+                        Remover
+                      </button>
+                    </div>
+                    <textarea
+                      value={q.text}
+                      rows={2}
+                      onChange={(e) => updateQuestion(bi, qi, { text: e.target.value })}
+                      placeholder="Texto da pergunta"
+                      className="mt-2 w-full rounded-md border border-input bg-card px-3 py-2 text-sm"
+                    />
+                    <input
+                      value={q.intent}
+                      placeholder="Intenção (opcional)"
+                      onChange={(e) => updateQuestion(bi, qi, { intent: e.target.value })}
+                      className="mt-2 w-full rounded-md border border-input bg-card px-3 py-2 text-xs text-muted-foreground"
+                    />
+                  </li>
+                ))}
+              </ol>
+
+              <button
+                onClick={() => addQuestion(bi)}
+                className="rounded-md border border-dashed border-border px-3 py-1.5 text-xs hover:bg-accent"
+              >
+                + Adicionar pergunta neste bloco
+              </button>
+            </div>
           ))}
-          {candidates.length === 0 && (
-            <li className="text-sm text-muted-foreground">Nenhuma pergunta restante.</li>
-          )}
-        </ol>
-        <DialogFooter>
+
+          <button
+            onClick={addBlock}
+            className="w-full rounded-md border border-dashed border-border px-3 py-2 text-sm hover:bg-accent"
+          >
+            + Adicionar bloco
+          </button>
+        </div>
+
+        <DialogFooter className="mt-2">
           <button onClick={onClose} className="rounded-md border border-border px-3 py-2 text-sm hover:bg-accent">
             Cancelar
           </button>
           <button
             onClick={onConfirm}
-            disabled={saving || candidates.length === 0}
+            disabled={saving || totalQuestions === 0}
             className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
           >
-            {saving ? "Adicionando..." : `Adicionar ${candidates.length}`}
+            {saving ? "Adicionando..." : `Adicionar ${totalQuestions} pergunta(s)`}
           </button>
         </DialogFooter>
       </DialogContent>
@@ -218,7 +324,7 @@ function AIGenerateDialog({
   open: boolean;
   onClose: () => void;
   studyId: string;
-  onReady: (qs: Candidate[]) => void;
+  onReady: (qs: Question[]) => void;
 }) {
   const [extra, setExtra] = useState("");
   const [count, setCount] = useState(8);
@@ -244,7 +350,7 @@ function AIGenerateDialog({
         setClarifications(res.clarifications);
         setAnswers(new Array(res.clarifications.length).fill(""));
       } else {
-        onReady(res.questions);
+        onReady(res.questions.map((q) => ({ text: q.text, intent: q.intent ?? "" })));
         reset();
       }
     },

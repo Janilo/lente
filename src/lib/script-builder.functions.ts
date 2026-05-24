@@ -26,6 +26,122 @@ function splitLinesToQuestions(text: string): string[] {
     .filter((l) => !/^(perguntas?|roteiro|questionário)\s*:?$/i.test(l));
 }
 
+type ParsedBlock = {
+  title: string;
+  objective: string;
+  questions: { text: string; intent: string }[];
+};
+type ParsedScript = { header: string; blocks: ParsedBlock[] };
+
+async function structureWithAI(rawText: string): Promise<ParsedScript | null> {
+  const apiKey = process.env.LOVABLE_API_KEY;
+  if (!apiKey) return null;
+
+  const truncated = rawText.slice(0, 30000);
+
+  const systemPrompt = `Você analisa roteiros de entrevista qualitativa em português do Brasil e extrai a estrutura.
+Identifique:
+- "header": título ou descrição geral do roteiro (vazio se não houver).
+- "blocks": seções/blocos do roteiro. Cada bloco tem:
+  - "title": nome do bloco (ex: "Aquecimento", "Jornada de compra"). Se o roteiro não tiver blocos explícitos, use um único bloco com title "Perguntas".
+  - "objective": objetivo declarado do bloco (vazio se não houver).
+  - "questions": lista de perguntas reais que devem ser feitas ao entrevistado.
+    - "text": a pergunta exatamente como será feita.
+    - "intent": o que essa pergunta busca revelar (vazio se não houver).
+Regras:
+- Ignore instruções para o entrevistador/moderador (ex: "anotar reação", "mostrar protótipo X"), notas de tempo, agradecimentos genéricos, cabeçalhos administrativos.
+- Não invente perguntas. Use apenas o que está no texto.
+- Preserve a ordem original.
+- Se uma "pergunta" no texto for na verdade um objetivo ou instrução, coloque no campo correto, não em "questions".`;
+
+  const tool = {
+    type: "function",
+    function: {
+      name: "return_structure",
+      description: "Devolve a estrutura do roteiro.",
+      parameters: {
+        type: "object",
+        properties: {
+          header: { type: "string" },
+          blocks: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                title: { type: "string" },
+                objective: { type: "string" },
+                questions: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      text: { type: "string" },
+                      intent: { type: "string" },
+                    },
+                    required: ["text", "intent"],
+                    additionalProperties: false,
+                  },
+                },
+              },
+              required: ["title", "objective", "questions"],
+              additionalProperties: false,
+            },
+          },
+        },
+        required: ["header", "blocks"],
+        additionalProperties: false,
+      },
+    },
+  } as const;
+
+  try {
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-3-flash-preview",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: truncated },
+        ],
+        tools: [tool],
+        tool_choice: { type: "function", function: { name: "return_structure" } },
+      }),
+    });
+    if (res.status === 429) throw new Error("Limite de requisições atingido. Tente novamente em alguns instantes.");
+    if (res.status === 402) throw new Error("Créditos da IA esgotados. Adicione créditos em Configurações > Workspace.");
+    if (!res.ok) {
+      console.error("AI structure error", res.status, await res.text());
+      return null;
+    }
+    const json = await res.json();
+    const args = json?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
+    if (!args) return null;
+    const parsed = typeof args === "string" ? JSON.parse(args) : args;
+    const blocks: ParsedBlock[] = (parsed.blocks ?? [])
+      .map((b: any) => ({
+        title: (b.title ?? "").toString().trim() || "Perguntas",
+        objective: (b.objective ?? "").toString().trim(),
+        questions: (b.questions ?? [])
+          .map((q: any) => ({
+            text: (q.text ?? "").toString().trim(),
+            intent: (q.intent ?? "").toString().trim(),
+          }))
+          .filter((q: any) => q.text),
+      }))
+      .filter((b: ParsedBlock) => b.questions.length > 0);
+    if (blocks.length === 0) return null;
+    return { header: (parsed.header ?? "").toString().trim(), blocks };
+  } catch (e) {
+    if (e instanceof Error && /Limite|Créditos/.test(e.message)) throw e;
+    console.error("structureWithAI failed", e);
+    return null;
+  }
+}
+
 export const parseQuestionsFromFile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
@@ -70,11 +186,30 @@ export const parseQuestionsFromFile = createServerFn({ method: "POST" })
       throw new Error("Formato não suportado. Use .txt, .md, .csv, .docx ou .pdf.");
     }
 
-    const questions = splitLinesToQuestions(rawText).slice(0, 50);
-    if (questions.length === 0) {
-      throw new Error("Não encontrei perguntas no arquivo. Verifique se há uma pergunta por linha.");
+    if (!rawText.trim()) {
+      throw new Error("Arquivo vazio ou sem texto legível.");
     }
-    return { questions };
+
+    const structured = await structureWithAI(rawText);
+    if (structured) return { script: structured };
+
+    // Fallback: linha-a-linha
+    const lines = splitLinesToQuestions(rawText).slice(0, 100);
+    if (lines.length === 0) {
+      throw new Error("Não encontrei perguntas no arquivo.");
+    }
+    return {
+      script: {
+        header: "",
+        blocks: [
+          {
+            title: "Perguntas",
+            objective: "",
+            questions: lines.map((t) => ({ text: t, intent: "" })),
+          },
+        ],
+      } as ParsedScript,
+    };
   });
 
 type GenSchema = {
@@ -221,7 +356,7 @@ export const bulkAddQuestions = createServerFn({ method: "POST" })
             }),
           )
           .min(1)
-          .max(50),
+          .max(200),
       })
       .parse(input),
   )
