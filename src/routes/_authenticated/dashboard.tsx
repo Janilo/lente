@@ -38,8 +38,8 @@ function Dashboard() {
     <div className="mx-auto max-w-5xl px-6 py-12">
       <div className="flex items-end justify-between">
         <div>
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">Pesquisas</p>
-          <h1 className="mt-1 text-4xl">Meus estudos</h1>
+          <p className="jps-eyebrow">Pesquisas</p>
+          <h1 className="mt-2 text-4xl">Meus estudos</h1>
         </div>
         <button onClick={() => setOpen(true)} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
           Novo estudo
