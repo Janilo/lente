@@ -23,8 +23,8 @@ function PublicStudyPage() {
   });
 
   const start = useMutation({
-    mutationFn: () => startFn({ data: { slug } }),
-    onSuccess: (r) => navigate({ to: "/r/$slug/run", params: { slug } }),
+    mutationFn: () => startFn({ data: { slug, consent_version: LGPD_VERSION, user_agent: navigator.userAgent } }),
+    onSuccess: () => navigate({ to: "/r_/$slug/run", params: { slug } }),
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -33,7 +33,7 @@ function PublicStudyPage() {
   if (!data) return null;
 
   const { study, questionCount } = data;
-  const returnTo = `/r/${slug}/run`;
+  const returnTo = `/r_/${slug}/run`;
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-16">
