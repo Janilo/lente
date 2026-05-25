@@ -8,7 +8,7 @@ import { startInterview, getNextStep, createAnswer, processAnswer, finishIntervi
 import { PipelineStatus } from "@/components/interview/PipelineStatus";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/r/$slug/run")({
+export const Route = createFileRoute("/r_/$slug/run")({
   head: () => ({ meta: [{ title: "Entrevista — Lente" }] }),
   component: RunPage,
 });
