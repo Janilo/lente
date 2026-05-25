@@ -15,14 +15,27 @@ import { useAuth } from "@/hooks/useAuth";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
+  const pathname = typeof window !== "undefined" ? window.location.pathname : "";
+  const match = pathname.match(/^\/r_?\/([^/]+)/);
+  const slug = match?.[1];
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
         <p className="mt-4 text-muted-foreground">Página não encontrada.</p>
-        <Link to="/" className="mt-6 inline-flex rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
-          Voltar
-        </Link>
+        {slug ? (
+          <Link
+            to="/r/$slug"
+            params={{ slug }}
+            className="mt-6 inline-flex rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+          >
+            Voltar à entrevista
+          </Link>
+        ) : (
+          <Link to="/" className="mt-6 inline-flex rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
+            Voltar
+          </Link>
+        )}
       </div>
     </div>
   );
