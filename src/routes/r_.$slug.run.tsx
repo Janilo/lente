@@ -194,6 +194,8 @@ function RunInner({ slug }: { slug: string }) {
   );
 }
 
+const PREROLL_SECONDS = 3;
+
 function Recorder({
   questionKey,
   videoRef,
@@ -212,46 +214,9 @@ function Recorder({
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [state, setState] = useState<"idle" | "recording" | "uploading">("idle");
+  const [state, setState] = useState<"idle" | "preroll" | "recording" | "uploading">("idle");
   const [elapsed, setElapsed] = useState(0);
-
-  // Reset recording state when the question changes (but keep the camera stream alive)
-  useEffect(() => {
-    chunksRef.current = [];
-    setState("idle");
-    setElapsed(0);
-  }, [questionKey]);
-
-  useEffect(() => {
-    let timer: ReturnType<typeof setInterval> | null = null;
-    if (state === "recording") {
-      const t0 = Date.now();
-      timer = setInterval(() => setElapsed(Math.floor((Date.now() - t0) / 1000)), 250);
-    }
-    return () => { if (timer) clearInterval(timer); };
-  }, [state]);
-
-  const handleFilePick = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-    if (!file.type.startsWith("video/")) {
-      toast.error("Selecione um arquivo de vídeo válido.");
-      return;
-    }
-    const MAX = 500 * 1024 * 1024;
-    if (file.size > MAX) {
-      toast.error("Arquivo muito grande (máx. 500MB).");
-      return;
-    }
-    setState("uploading");
-    try {
-      await onRecorded(file);
-    } catch (err) {
-      toast.error((err as Error).message);
-      setState("idle");
-    }
-  };
+  const [preroll, setPreroll] = useState(PREROLL_SECONDS);
 
   const start = () => {
     if (!stream) return;
@@ -277,18 +242,113 @@ function Recorder({
     setState("recording");
   };
 
-  const stop = () => {
+  // Reset and auto-start preroll whenever the question changes (camera must be ready).
+  useEffect(() => {
+    chunksRef.current = [];
+    setElapsed(0);
+    if (camState === "ready" && stream) {
+      setPreroll(PREROLL_SECONDS);
+      setState("preroll");
+    } else {
+      setState("idle");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [questionKey]);
+
+  // When the camera becomes ready on the very first question, kick off the preroll.
+  useEffect(() => {
+    if (state === "idle" && camState === "ready" && stream) {
+      setPreroll(PREROLL_SECONDS);
+      setState("preroll");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [camState, stream]);
+
+  // Preroll countdown
+  useEffect(() => {
+    if (state !== "preroll") return;
+    if (preroll <= 0) {
+      start();
+      return;
+    }
+    const t = setTimeout(() => setPreroll((p) => p - 1), 1000);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state, preroll]);
+
+  // Recording timer
+  useEffect(() => {
+    let timer: ReturnType<typeof setInterval> | null = null;
+    if (state === "recording") {
+      const t0 = Date.now();
+      timer = setInterval(() => setElapsed(Math.floor((Date.now() - t0) / 1000)), 250);
+    }
+    return () => { if (timer) clearInterval(timer); };
+  }, [state]);
+
+  const handleFilePick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("video/")) {
+      toast.error("Selecione um arquivo de vídeo válido.");
+      return;
+    }
+    const MAX = 500 * 1024 * 1024;
+    if (file.size > MAX) {
+      toast.error("Arquivo muito grande (máx. 500MB).");
+      return;
+    }
+    // Abort any in-flight recording before uploading a file.
+    if (recorderRef.current && recorderRef.current.state !== "inactive") {
+      recorderRef.current.ondataavailable = null;
+      recorderRef.current.onstop = null;
+      recorderRef.current.stop();
+    }
+    setState("uploading");
+    try {
+      await onRecorded(file);
+    } catch (err) {
+      toast.error((err as Error).message);
+      setState("idle");
+    }
+  };
+
+  const finish = () => {
     recorderRef.current?.stop();
+  };
+
+  const fmt = (s: number) => {
+    const m = Math.floor(s / 60);
+    const r = s % 60;
+    return `${m}:${r.toString().padStart(2, "0")}`;
   };
 
   return (
     <div className="rounded-lg border border-border bg-card p-4">
-      <video ref={videoRef} className="aspect-video w-full rounded-md bg-black" playsInline autoPlay muted />
-      <div className="mt-4 flex items-center justify-between">
+      <div className="relative">
+        <video ref={videoRef} className="aspect-video w-full rounded-md bg-black" playsInline autoPlay muted />
+        {state === "recording" && (
+          <div className="absolute left-3 top-3 flex items-center gap-2 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white">
+            <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-red-500" />
+            Gravando · {fmt(elapsed)}
+          </div>
+        )}
+        {state === "preroll" && (
+          <div className="absolute inset-0 flex items-center justify-center rounded-md bg-black/50">
+            <div className="text-center text-white">
+              <p className="text-sm uppercase tracking-widest opacity-80">Gravando em</p>
+              <p className="text-6xl font-semibold tabular-nums">{preroll}</p>
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="mt-4 flex items-center justify-between gap-3">
         <div className="text-xs text-muted-foreground">
-          {state === "recording" && `Gravando · ${elapsed}s`}
-          {state === "idle" && camState === "ready" && "Pronto. Clique em Gravar quando estiver pronto."}
-          {state === "idle" && camState === "idle" && "Conceda acesso à câmera e microfone."}
+          {state === "idle" && camState === "idle" && "Conceda acesso à câmera e microfone para começar."}
+          {state === "idle" && camState === "ready" && "Preparando próxima pergunta…"}
+          {state === "preroll" && "Prepare-se para responder. A gravação começa em instantes."}
+          {state === "recording" && "Responda quando estiver pronto e clique em Concluir resposta."}
           {state === "uploading" && "Enviando…"}
         </div>
         <div className="flex gap-2">
@@ -299,7 +359,7 @@ function Recorder({
             className="hidden"
             onChange={handleFilePick}
           />
-          {state === "idle" && (
+          {(state === "idle" || state === "preroll") && (
             <button
               onClick={() => fileInputRef.current?.click()}
               className="rounded-md border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-accent"
@@ -312,14 +372,9 @@ function Recorder({
               Ativar câmera
             </button>
           )}
-          {state === "idle" && camState === "ready" && (
-            <button onClick={start} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
-              Gravar
-            </button>
-          )}
           {state === "recording" && (
-            <button onClick={stop} className="rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground">
-              Parar
+            <button onClick={finish} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
+              Concluir resposta
             </button>
           )}
         </div>

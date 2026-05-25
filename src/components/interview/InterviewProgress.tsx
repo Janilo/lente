@@ -16,34 +16,54 @@ export function InterviewProgress({
   processing?: boolean;
 }) {
   const total = totals?.question_count ?? 0;
-  const pos = totals?.current_position ?? (processing ? total : 0);
-  const completedQuestions = Math.max(0, (pos ?? 0) - 1);
-  const value =
-    total > 0
-      ? Math.min(100, Math.round(((completedQuestions + (processing ? 1 : 0)) / total) * 100))
-      : 0;
+  const pos = totals?.current_position ?? null;
 
-  const label =
+  // Primary bar: progress across main questions.
+  // Does NOT advance during followups of the current question.
+  const completed = Math.max(0, (pos ?? (processing ? total : 0)) - 1);
+  const primaryValue =
+    total > 0 ? Math.min(100, Math.round((completed / total) * 100)) : 0;
+
+  const primaryLabel =
     total === 0
       ? "Preparando entrevista…"
-      : processing
-        ? "Processando sua resposta…"
+      : processing && pos == null
+        ? "Processando…"
         : `Pergunta ${pos ?? "—"} de ${total}`;
 
-  const sub =
-    totals?.is_followup
-      ? `Aprofundamento ${totals.followups_done_for_current + 1} (até ${totals.max_followups})`
-      : totals && totals.followups_done_for_current > 0
-        ? `Após ${totals.followups_done_for_current} aprofundamento${totals.followups_done_for_current === 1 ? "" : "s"}`
-        : null;
+  // Secondary bar: followups for the current main question.
+  const maxFu = totals?.max_followups ?? 0;
+  const doneFu = totals?.followups_done_for_current ?? 0;
+  const showSecondary = maxFu > 0 && pos != null && !processing;
+  const currentFuIndex = totals?.is_followup ? doneFu + 1 : doneFu;
+  const secondaryValue =
+    maxFu > 0 ? Math.min(100, Math.round((currentFuIndex / maxFu) * 100)) : 0;
+  const secondaryLabel = totals?.is_followup
+    ? `Aprofundamento ${currentFuIndex} de ${maxFu}`
+    : doneFu > 0
+      ? `${doneFu} de ${maxFu} aprofundamentos`
+      : `Sem aprofundamento (até ${maxFu})`;
 
   return (
-    <div className="rounded-lg border border-border bg-card p-4">
-      <div className="flex items-baseline justify-between gap-3">
-        <p className="text-sm font-medium">{label}</p>
-        {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
+    <div className="rounded-lg border border-border bg-card p-4 space-y-4">
+      <div>
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="text-sm font-medium">{primaryLabel}</p>
+          {processing && pos != null && (
+            <p className="text-xs text-muted-foreground">Processando resposta…</p>
+          )}
+        </div>
+        <Progress value={primaryValue} className="mt-2 h-2" />
       </div>
-      <Progress value={value} className="mt-3 h-1.5" />
+
+      {showSecondary && (
+        <div>
+          <div className="flex items-baseline justify-between gap-3">
+            <p className="text-xs text-muted-foreground">{secondaryLabel}</p>
+          </div>
+          <Progress value={secondaryValue} className="mt-1.5 h-1 bg-muted" />
+        </div>
+      )}
     </div>
   );
 }
