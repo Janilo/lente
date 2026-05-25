@@ -69,7 +69,7 @@ function SignupPage() {
         </button>
       </form>
       <p className="mt-6 text-sm text-muted-foreground">
-        Já tem conta? <Link to="/login" className="text-primary underline">Entrar</Link>
+        Já tem conta? <Link to="/login" search={{ returnTo }} className="text-primary underline">Entrar</Link>
       </p>
     </div>
   );
