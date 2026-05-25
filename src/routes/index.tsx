@@ -62,7 +62,7 @@ function Landing() {
         </div>
       </section>
 
-      <BrandFooter />
+      
     </div>
   );
 }
