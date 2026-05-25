@@ -2,7 +2,6 @@
 // Provider is selected via the STT_PROVIDER env var:
 //   - "elevenlabs" (default) → requires ELEVENLABS_API_KEY
 //   - "assemblyai"           → requires ASSEMBLYAI_API_KEY
-//   - "google"               → requires GOOGLE_SPEECH_API_KEY (Google Cloud API key with Speech-to-Text enabled)
 
 export type SttResult = { transcript: string; words: unknown | null };
 
@@ -11,15 +10,11 @@ export async function transcribeAudio(file: Blob): Promise<SttResult> {
   switch (provider) {
     case "assemblyai":
       return transcribeAssemblyAI(file);
-    case "google":
-    case "google-speech":
-    case "gcp":
-      return transcribeGoogle(file);
     case "elevenlabs":
     case "":
       return transcribeElevenLabs(file);
     default:
-      throw new Error(`STT_PROVIDER inválido: "${provider}". Use elevenlabs, assemblyai ou google.`);
+      throw new Error(`STT_PROVIDER inválido: "${provider}". Use elevenlabs ou assemblyai.`);
   }
 }
 
@@ -84,53 +79,4 @@ async function transcribeAssemblyAI(file: Blob): Promise<SttResult> {
     if (t.status === "error") throw new Error(`AssemblyAI: ${t.error ?? "erro desconhecido"}`);
   }
   throw new Error("AssemblyAI: timeout aguardando transcrição.");
-}
-
-// ───────────────────────────── Google Cloud Speech-to-Text ─────────────────────────────
-// Uses the synchronous recognize endpoint with an API key. Requires audio
-// under ~10MB / ~1min. For longer audio, switch to longRunningRecognize +
-// GCS upload (não implementado aqui).
-async function transcribeGoogle(file: Blob): Promise<SttResult> {
-  const apiKey = process.env.GOOGLE_SPEECH_API_KEY;
-  if (!apiKey) throw new Error("GOOGLE_SPEECH_API_KEY não configurada.");
-
-  const buf = new Uint8Array(await file.arrayBuffer());
-  // Base64 encode in chunks to avoid stack overflow on large buffers.
-  let bin = "";
-  const CHUNK = 0x8000;
-  for (let i = 0; i < buf.length; i += CHUNK) {
-    bin += String.fromCharCode(...buf.subarray(i, i + CHUNK));
-  }
-  const audioB64 = btoa(bin);
-
-  const body = {
-    config: {
-      encoding: "WEBM_OPUS",
-      sampleRateHertz: 48000,
-      languageCode: "pt-BR",
-      enableAutomaticPunctuation: true,
-      enableWordTimeOffsets: true,
-    },
-    audio: { content: audioB64 },
-  };
-
-  const res = await fetch(`https://speech.googleapis.com/v1/speech:recognize?key=${apiKey}`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const txt = await res.text();
-    throw new Error(`Google Speech: ${res.status} ${txt.slice(0, 200)}`);
-  }
-  const json = (await res.json()) as {
-    results?: Array<{ alternatives?: Array<{ transcript?: string; words?: unknown }> }>;
-  };
-  const results = json.results ?? [];
-  const transcript = results
-    .map((r) => r.alternatives?.[0]?.transcript ?? "")
-    .join(" ")
-    .trim();
-  const words = results.flatMap((r) => (r.alternatives?.[0]?.words as unknown[]) ?? []);
-  return { transcript, words: words.length ? words : null };
 }
