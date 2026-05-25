@@ -101,14 +101,28 @@ async function computeNextStep(interview_id: string) {
   const ans = answers ?? [];
 
   for (const q of qs) {
-    const forQ = ans.filter((a) => a.question_id === q.id);
+    // Ignore failed answers: respondent will be prompted again for the same question/followup.
+    const forQ = ans.filter((a) => a.question_id === q.id && a.status !== "failed");
     if (forQ.length === 0) {
       return { type: "question" as const, question_id: q.id, text: q.text, intent: q.intent ?? "", position: q.position };
     }
     const ready = forQ.filter((a) => a.status === "ready" && a.transcript);
     if (ready.length < forQ.length) {
-      // still processing
+      // still processing (uploading/transcribing — not failed)
       return { type: "processing" as const };
+    }
+    // If the latest answer for this question was a failed followup, re-ask it.
+    const allForQ = ans.filter((a) => a.question_id === q.id);
+    const lastForQ = allForQ[allForQ.length - 1];
+    if (lastForQ && lastForQ.status === "failed" && lastForQ.is_followup) {
+      return {
+        type: "followup" as const,
+        question_id: q.id,
+        text: lastForQ.question_text,
+        intent: q.intent ?? "",
+        parent_answer_id: lastForQ.parent_answer_id ?? null,
+        position: q.position,
+      };
     }
     const followups = forQ.filter((a) => a.is_followup);
     if (followups.length < maxFollowups) {
