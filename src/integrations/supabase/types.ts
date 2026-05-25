@@ -296,6 +296,72 @@ export type Database = {
           },
         ]
       }
+      screener_questions: {
+        Row: {
+          created_at: string
+          id: string
+          options: Json
+          position: number
+          qualifies: boolean
+          qualifying_options: Json
+          study_id: string
+          text: string
+          type: Database["public"]["Enums"]["screener_question_type"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          options?: Json
+          position: number
+          qualifies?: boolean
+          qualifying_options?: Json
+          study_id: string
+          text: string
+          type?: Database["public"]["Enums"]["screener_question_type"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          options?: Json
+          position?: number
+          qualifies?: boolean
+          qualifying_options?: Json
+          study_id?: string
+          text?: string
+          type?: Database["public"]["Enums"]["screener_question_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      screener_submissions: {
+        Row: {
+          created_at: string
+          id: string
+          qualified: boolean
+          responses: Json
+          study_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          qualified: boolean
+          responses?: Json
+          study_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          qualified?: boolean
+          responses?: Json
+          study_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       studies: {
         Row: {
           business_goal: string | null
@@ -380,6 +446,7 @@ export type Database = {
       answer_status: "uploading" | "transcribing" | "ready" | "failed"
       app_role: "researcher" | "respondent"
       interview_status: "in_progress" | "completed" | "abandoned"
+      screener_question_type: "single_choice" | "multi_choice" | "short_text"
       study_status: "draft" | "published" | "closed"
     }
     CompositeTypes: {
@@ -511,6 +578,7 @@ export const Constants = {
       answer_status: ["uploading", "transcribing", "ready", "failed"],
       app_role: ["researcher", "respondent"],
       interview_status: ["in_progress", "completed", "abandoned"],
+      screener_question_type: ["single_choice", "multi_choice", "short_text"],
       study_status: ["draft", "published", "closed"],
     },
   },
