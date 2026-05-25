@@ -148,6 +148,8 @@ function StudyEditor() {
         </div>
       </section>
 
+      <ScreenerBuilder studyId={id} />
+
       <section className="rounded-lg border border-border bg-card p-6 space-y-4">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <h2 className="text-xl">Roteiro de perguntas</h2>
