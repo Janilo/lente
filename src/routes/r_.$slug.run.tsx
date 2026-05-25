@@ -203,7 +203,7 @@ function Recorder({
   onRecorded,
 }: {
   questionKey: string;
-  videoRef: React.RefObject<HTMLVideoElement>;
+  videoRef: React.RefObject<HTMLVideoElement | null>;
   stream: MediaStream | null;
   camState: "idle" | "ready";
   onAskCamera: () => void;
