@@ -62,7 +62,6 @@ function LoginPage() {
       <p className="mt-6 text-sm text-muted-foreground">
         Não tem conta? <Link to="/signup" className="text-primary underline">Criar conta</Link>
       </p>
-      </div>
     </div>
   );
 }
