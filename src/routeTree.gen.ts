@@ -15,7 +15,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RSlugRouteImport } from './routes/r_.$slug'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as RSlugRunRouteImport } from './routes/r.$slug.run'
+import { Route as RSlugRunRouteImport } from './routes/r_.$slug.run'
 import { Route as AuthenticatedStudiesIdRouteImport } from './routes/_authenticated/studies.$id'
 import { Route as AuthenticatedStudiesIdSynthesisRouteImport } from './routes/_authenticated/studies.$id.synthesis'
 import { Route as AuthenticatedStudiesIdInterviewsRouteImport } from './routes/_authenticated/studies.$id.interviews'
@@ -51,9 +51,9 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const RSlugRunRoute = RSlugRunRouteImport.update({
-  id: '/r/$slug/run',
-  path: '/r/$slug/run',
-  getParentRoute: () => rootRouteImport,
+  id: '/run',
+  path: '/run',
+  getParentRoute: () => RSlugRoute,
 } as any)
 const AuthenticatedStudiesIdRoute = AuthenticatedStudiesIdRouteImport.update({
   id: '/studies/$id',
@@ -84,7 +84,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/r/$slug': typeof RSlugRoute
+  '/r/$slug': typeof RSlugRouteWithChildren
   '/studies/$id': typeof AuthenticatedStudiesIdRouteWithChildren
   '/r/$slug/run': typeof RSlugRunRoute
   '/studies/$id/interviews': typeof AuthenticatedStudiesIdInterviewsRouteWithChildren
@@ -96,7 +96,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/r/$slug': typeof RSlugRoute
+  '/r/$slug': typeof RSlugRouteWithChildren
   '/studies/$id': typeof AuthenticatedStudiesIdRouteWithChildren
   '/r/$slug/run': typeof RSlugRunRoute
   '/studies/$id/interviews': typeof AuthenticatedStudiesIdInterviewsRouteWithChildren
@@ -110,9 +110,9 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/r_/$slug': typeof RSlugRoute
+  '/r_/$slug': typeof RSlugRouteWithChildren
   '/_authenticated/studies/$id': typeof AuthenticatedStudiesIdRouteWithChildren
-  '/r/$slug/run': typeof RSlugRunRoute
+  '/r_/$slug/run': typeof RSlugRunRoute
   '/_authenticated/studies/$id/interviews': typeof AuthenticatedStudiesIdInterviewsRouteWithChildren
   '/_authenticated/studies/$id/synthesis': typeof AuthenticatedStudiesIdSynthesisRoute
   '/_authenticated/studies/$id/interviews/$interviewId': typeof AuthenticatedStudiesIdInterviewsInterviewIdRoute
@@ -151,7 +151,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/r_/$slug'
     | '/_authenticated/studies/$id'
-    | '/r/$slug/run'
+    | '/r_/$slug/run'
     | '/_authenticated/studies/$id/interviews'
     | '/_authenticated/studies/$id/synthesis'
     | '/_authenticated/studies/$id/interviews/$interviewId'
@@ -162,8 +162,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
-  RSlugRoute: typeof RSlugRoute
-  RSlugRunRoute: typeof RSlugRunRoute
+  RSlugRoute: typeof RSlugRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -210,12 +209,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/r/$slug/run': {
-      id: '/r/$slug/run'
-      path: '/r/$slug/run'
+    '/r_/$slug/run': {
+      id: '/r_/$slug/run'
+      path: '/run'
       fullPath: '/r/$slug/run'
       preLoaderRoute: typeof RSlugRunRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof RSlugRoute
     }
     '/_authenticated/studies/$id': {
       id: '/_authenticated/studies/$id'
@@ -294,14 +293,33 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface RSlugRouteChildren {
+  RSlugRunRoute: typeof RSlugRunRoute
+}
+
+const RSlugRouteChildren: RSlugRouteChildren = {
+  RSlugRunRoute: RSlugRunRoute,
+}
+
+const RSlugRouteWithChildren = RSlugRoute._addFileChildren(RSlugRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
-  RSlugRoute: RSlugRoute,
-  RSlugRunRoute: RSlugRunRoute,
+  RSlugRoute: RSlugRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
