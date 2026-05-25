@@ -37,6 +37,8 @@ function InterviewDetail() {
         </p>
       </div>
 
+      <PipelineStatus interviewId={interviewId} variant="researcher" />
+
       {data.answers.length === 0 ? (
         <div className="rounded-lg border border-border bg-card p-8 text-center text-sm text-muted-foreground">
           Nenhuma resposta gravada ainda.
