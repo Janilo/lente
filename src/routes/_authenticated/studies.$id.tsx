@@ -125,13 +125,13 @@ function StudyEditor() {
           <input value={form.target_audience} onChange={(e) => setForm({ ...form, target_audience: e.target.value })}
             className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
         </Field>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2 md:items-start">
           <Field label="Profundidade dos follow-ups" hint="Quantas perguntas de aprofundamento a IA pode fazer por pergunta (0–5).">
             <input type="number" min={0} max={5} value={form.max_followups}
               onChange={(e) => setForm({ ...form, max_followups: Math.max(0, Math.min(5, Number(e.target.value))) })}
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
           </Field>
-          <Field label="Status">
+          <Field label="Status" hint="Controla se o link da entrevista está ativo para os respondentes.">
             <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as typeof form.status })}
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
               <option value="draft">Rascunho</option>
