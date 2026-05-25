@@ -1,11 +1,10 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { startInterview, getNextStep, createAnswer, processAnswer, finishInterview } from "@/lib/interview.functions";
-import { PipelineStatus } from "@/components/interview/PipelineStatus";
+import { startInterview, getNextStep, createAnswer, processAnswer } from "@/lib/interview.functions";
+import { InterviewProgress } from "@/components/interview/InterviewProgress";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/r_/$slug/run")({
@@ -30,17 +29,53 @@ function RunPage() {
   return <RunInner slug={slug} />;
 }
 
+type Totals = {
+  question_count: number;
+  current_position: number | null;
+  followups_done_for_current: number;
+  max_followups: number;
+  is_followup: boolean;
+};
+
 function RunInner({ slug }: { slug: string }) {
-  const qc = useQueryClient();
   const startFn = useServerFn(startInterview);
   const nextFn = useServerFn(getNextStep);
   const createAns = useServerFn(createAnswer);
   const processAns = useServerFn(processAnswer);
-  const finishFn = useServerFn(finishInterview);
 
   const [interviewId, setInterviewId] = useState<string | null>(null);
   const [step, setStep] = useState<any>(null);
+  const [totals, setTotals] = useState<Totals | null>(null);
   const [stepLoading, setStepLoading] = useState(false);
+
+  // Persistent camera stream across questions
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const [camState, setCamState] = useState<"idle" | "ready">("idle");
+
+  const stopStream = () => {
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
+    if (videoRef.current) videoRef.current.srcObject = null;
+    setCamState("idle");
+  };
+
+  const askCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.muted = true;
+        await videoRef.current.play().catch(() => {});
+      }
+      setCamState("ready");
+    } catch {
+      toast.error("Não foi possível acessar câmera/microfone.");
+    }
+  };
+
+  useEffect(() => () => stopStream(), []);
 
   useEffect(() => {
     (async () => {
@@ -60,14 +95,26 @@ function RunInner({ slug }: { slug: string }) {
     try {
       const r = await nextFn({ data: { interview_id: id } });
       setStep(r.next);
+      setTotals(r.totals as Totals);
       if (r.next.type === "processing") {
-        // poll once after 2s
         setTimeout(() => loadNext(id), 2500);
+      }
+      if (r.next.type === "done") {
+        stopStream();
       }
     } finally {
       setStepLoading(false);
     }
   };
+
+  // Re-attach stream to video element whenever it remounts (e.g. step type changes)
+  useEffect(() => {
+    if (videoRef.current && streamRef.current && !videoRef.current.srcObject) {
+      videoRef.current.srcObject = streamRef.current;
+      videoRef.current.muted = true;
+      videoRef.current.play().catch(() => {});
+    }
+  }, [step]);
 
   const handleRecorded = async (blob: Blob) => {
     if (!interviewId || !step) return;
@@ -88,7 +135,13 @@ function RunInner({ slug }: { slug: string }) {
       if (upErr) throw new Error(upErr.message);
       const r = await processAns({ data: { answer_id: created.answer_id } });
       setStep(r.next);
-      if (r.next.type === "done") toast.success("Entrevista concluída.");
+      if (r.next.type === "done") {
+        stopStream();
+        toast.success("Entrevista concluída.");
+      } else {
+        // refresh totals after a new answer
+        await loadNext(interviewId);
+      }
     } catch (e) {
       toast.error((e as Error).message);
     }
@@ -111,7 +164,7 @@ function RunInner({ slug }: { slug: string }) {
   if (step.type === "processing") {
     return (
       <div className="mx-auto max-w-2xl px-6 py-12 space-y-6">
-        <PipelineStatus interviewId={interviewId} variant="respondent" />
+        <InterviewProgress totals={totals} processing />
         <div className="text-sm text-muted-foreground">Processando última resposta…</div>
       </div>
     );
@@ -119,7 +172,7 @@ function RunInner({ slug }: { slug: string }) {
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-12 space-y-6">
-      <PipelineStatus interviewId={interviewId} variant="respondent" />
+      <InterviewProgress totals={totals} />
       <div>
         {step.type === "followup" && (
           <p className="text-xs uppercase tracking-widest text-primary">Pergunta de aprofundamento</p>
@@ -127,45 +180,47 @@ function RunInner({ slug }: { slug: string }) {
         <h2 className="mt-3 text-2xl font-semibold leading-snug">{step.text}</h2>
         {step.intent && <p className="mt-2 text-sm text-muted-foreground">{step.intent}</p>}
         <div className="mt-8">
-          <Recorder key={`${step.question_id}-${step.type}-${step.parent_answer_id ?? "root"}`} onRecorded={handleRecorded} />
+          <Recorder
+            questionKey={`${step.question_id}-${step.type}-${step.parent_answer_id ?? "root"}`}
+            videoRef={videoRef}
+            stream={streamRef.current}
+            camState={camState}
+            onAskCamera={askCamera}
+            onRecorded={handleRecorded}
+          />
         </div>
       </div>
     </div>
   );
 }
 
-function Recorder({ onRecorded }: { onRecorded: (b: Blob) => void | Promise<void> }) {
-  const videoRef = useRef<HTMLVideoElement>(null);
+function Recorder({
+  questionKey,
+  videoRef,
+  stream,
+  camState,
+  onAskCamera,
+  onRecorded,
+}: {
+  questionKey: string;
+  videoRef: React.RefObject<HTMLVideoElement | null>;
+  stream: MediaStream | null;
+  camState: "idle" | "ready";
+  onAskCamera: () => void;
+  onRecorded: (b: Blob) => void | Promise<void>;
+}) {
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
-  const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [state, setState] = useState<"idle" | "ready" | "recording" | "uploading">("idle");
+  const [state, setState] = useState<"idle" | "recording" | "uploading">("idle");
   const [elapsed, setElapsed] = useState(0);
 
-  const handleFilePick = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-    if (!file.type.startsWith("video/")) {
-      toast.error("Selecione um arquivo de vídeo válido.");
-      return;
-    }
-    const MAX = 500 * 1024 * 1024; // 500MB
-    if (file.size > MAX) {
-      toast.error("Arquivo muito grande (máx. 500MB).");
-      return;
-    }
-    streamRef.current?.getTracks().forEach((t) => t.stop());
-    streamRef.current = null;
-    setState("uploading");
-    try {
-      await onRecorded(file);
-    } catch (err) {
-      toast.error((err as Error).message);
-      setState("idle");
-    }
-  };
+  // Reset recording state when the question changes (but keep the camera stream alive)
+  useEffect(() => {
+    chunksRef.current = [];
+    setState("idle");
+    setElapsed(0);
+  }, [questionKey]);
 
   useEffect(() => {
     let timer: ReturnType<typeof setInterval> | null = null;
@@ -176,40 +231,45 @@ function Recorder({ onRecorded }: { onRecorded: (b: Blob) => void | Promise<void
     return () => { if (timer) clearInterval(timer); };
   }, [state]);
 
-  useEffect(() => () => {
-    streamRef.current?.getTracks().forEach((t) => t.stop());
-  }, []);
-
-  const askCamera = async () => {
+  const handleFilePick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("video/")) {
+      toast.error("Selecione um arquivo de vídeo válido.");
+      return;
+    }
+    const MAX = 500 * 1024 * 1024;
+    if (file.size > MAX) {
+      toast.error("Arquivo muito grande (máx. 500MB).");
+      return;
+    }
+    setState("uploading");
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.muted = true;
-        await videoRef.current.play();
-      }
-      setState("ready");
-    } catch (e) {
-      toast.error("Não foi possível acessar câmera/microfone.");
+      await onRecorded(file);
+    } catch (err) {
+      toast.error((err as Error).message);
+      setState("idle");
     }
   };
 
   const start = () => {
-    if (!streamRef.current) return;
+    if (!stream) return;
     chunksRef.current = [];
     const mime = MediaRecorder.isTypeSupported("video/webm;codecs=vp9,opus")
       ? "video/webm;codecs=vp9,opus"
       : "video/webm";
-    const rec = new MediaRecorder(streamRef.current, { mimeType: mime });
+    const rec = new MediaRecorder(stream, { mimeType: mime });
     rec.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
     rec.onstop = async () => {
       const blob = new Blob(chunksRef.current, { type: "video/webm" });
+      chunksRef.current = [];
       setState("uploading");
-      try { await onRecorded(blob); } finally {
-        streamRef.current?.getTracks().forEach((t) => t.stop());
-        streamRef.current = null;
+      try { await onRecorded(blob); } catch (err) {
+        toast.error((err as Error).message);
+        setState("idle");
       }
+      // NOTE: do NOT stop the stream — keep the camera alive across questions.
     };
     rec.start(500);
     recorderRef.current = rec;
@@ -223,12 +283,12 @@ function Recorder({ onRecorded }: { onRecorded: (b: Blob) => void | Promise<void
 
   return (
     <div className="rounded-lg border border-border bg-card p-4">
-      <video ref={videoRef} className="aspect-video w-full rounded-md bg-black" playsInline />
+      <video ref={videoRef} className="aspect-video w-full rounded-md bg-black" playsInline autoPlay muted />
       <div className="mt-4 flex items-center justify-between">
         <div className="text-xs text-muted-foreground">
           {state === "recording" && `Gravando · ${elapsed}s`}
-          {state === "ready" && "Pronto. Clique em Gravar quando estiver pronto."}
-          {state === "idle" && "Conceda acesso à câmera e microfone."}
+          {state === "idle" && camState === "ready" && "Pronto. Clique em Gravar quando estiver pronto."}
+          {state === "idle" && camState === "idle" && "Conceda acesso à câmera e microfone."}
           {state === "uploading" && "Enviando…"}
         </div>
         <div className="flex gap-2">
@@ -239,7 +299,7 @@ function Recorder({ onRecorded }: { onRecorded: (b: Blob) => void | Promise<void
             className="hidden"
             onChange={handleFilePick}
           />
-          {(state === "idle" || state === "ready") && (
+          {state === "idle" && (
             <button
               onClick={() => fileInputRef.current?.click()}
               className="rounded-md border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-accent"
@@ -247,12 +307,12 @@ function Recorder({ onRecorded }: { onRecorded: (b: Blob) => void | Promise<void
               Enviar vídeo
             </button>
           )}
-          {state === "idle" && (
-            <button onClick={askCamera} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
+          {state === "idle" && camState === "idle" && (
+            <button onClick={onAskCamera} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
               Ativar câmera
             </button>
           )}
-          {state === "ready" && (
+          {state === "idle" && camState === "ready" && (
             <button onClick={start} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
               Gravar
             </button>
