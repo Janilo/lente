@@ -259,7 +259,7 @@ export const processAnswer = createServerFn({ method: "POST" })
       await supabaseAdmin.from("answers").update({
         status: "ready",
         transcript,
-        words_json: words,
+        words_json: words as any,
       }).eq("id", ans.id);
 
 
