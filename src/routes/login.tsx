@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,19 +8,22 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/login")({
   head: () => ({ meta: [{ title: "Entrar — Lente" }] }),
+  validateSearch: z.object({ returnTo: z.string().optional() }),
   component: LoginPage,
 });
 
 function LoginPage() {
   const navigate = useNavigate();
+  const { returnTo } = Route.useSearch();
+  const target = returnTo || "/dashboard";
   const { isAuthenticated, loading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!loading && isAuthenticated) navigate({ to: "/dashboard" });
-  }, [loading, isAuthenticated, navigate]);
+    if (!loading && isAuthenticated) navigate({ to: target });
+  }, [loading, isAuthenticated, navigate, target]);
 
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,11 +31,11 @@ function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
     if (error) { toast.error(error.message); return; }
-    navigate({ to: "/dashboard" });
+    navigate({ to: target });
   };
 
   const handleGoogle = async () => {
-    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + "/dashboard" });
+    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + target });
     if (result.error) toast.error(result.error.message);
   };
 
