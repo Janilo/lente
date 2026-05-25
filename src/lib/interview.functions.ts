@@ -225,7 +225,7 @@ export const processAnswer = createServerFn({ method: "POST" })
     const path = `${ans.interview_id}/${ans.id}.webm`;
     const { data: file, error: dlErr } = await supabaseAdmin.storage.from(BUCKET).download(path);
     if (dlErr || !file) {
-      await supabaseAdmin.from("answers").update({ status: "error", error_message: dlErr?.message ?? "Falha ao baixar vídeo" }).eq("id", ans.id);
+      await supabaseAdmin.from("answers").update({ status: "failed", error_message: dlErr?.message ?? "Falha ao baixar vídeo" }).eq("id", ans.id);
       throw new Error("Falha ao recuperar gravação.");
     }
 
@@ -257,7 +257,7 @@ export const processAnswer = createServerFn({ method: "POST" })
       }).eq("id", ans.id);
     } catch (e) {
       await supabaseAdmin.from("answers").update({
-        status: "error",
+        status: "failed",
         error_message: e instanceof Error ? e.message : "Erro desconhecido",
       }).eq("id", ans.id);
       throw e;
