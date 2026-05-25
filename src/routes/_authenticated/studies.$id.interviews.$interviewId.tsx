@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getInterviewDetail } from "@/lib/interview.functions";
+import { PipelineStatus } from "@/components/interview/PipelineStatus";
 
 export const Route = createFileRoute("/_authenticated/studies/$id/interviews/$interviewId")({
   head: () => ({ meta: [{ title: "Entrevista — Lente" }] }),
