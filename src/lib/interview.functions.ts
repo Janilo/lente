@@ -280,3 +280,77 @@ export const finishInterview = createServerFn({ method: "POST" })
     await supabase.from("interviews").update({ status: "completed", finished_at: new Date().toISOString() }).eq("id", data.interview_id);
     return { ok: true };
   });
+
+// Researcher: list interviews for a study
+export const listStudyInterviews = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ study_id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: study } = await supabase.from("studies").select("id, owner_id, title").eq("id", data.study_id).maybeSingle();
+    if (!study || study.owner_id !== userId) throw new Error("Acesso negado.");
+    const { data: interviews, error } = await supabase
+      .from("interviews")
+      .select("id, status, started_at, finished_at, respondent_id")
+      .eq("study_id", data.study_id)
+      .order("started_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    const ids = (interviews ?? []).map((i) => i.id);
+    let counts: Record<string, { total: number; ready: number }> = {};
+    if (ids.length > 0) {
+      const { data: ans } = await supabaseAdmin
+        .from("answers").select("interview_id, status").in("interview_id", ids);
+      counts = (ans ?? []).reduce((acc, a) => {
+        const c = acc[a.interview_id] ?? { total: 0, ready: 0 };
+        c.total += 1;
+        if (a.status === "ready") c.ready += 1;
+        acc[a.interview_id] = c;
+        return acc;
+      }, {} as Record<string, { total: number; ready: number }>);
+    }
+    return {
+      study: { id: study.id, title: study.title },
+      interviews: (interviews ?? []).map((i) => ({ ...i, answer_count: counts[i.id]?.total ?? 0, ready_count: counts[i.id]?.ready ?? 0 })),
+    };
+  });
+
+// Researcher: full interview detail (answers + signed video urls)
+export const getInterviewDetail = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ interview_id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: iv, error: ivErr } = await supabase
+      .from("interviews")
+      .select("id, study_id, status, started_at, finished_at, respondent_id, studies:study_id(id, title, owner_id)")
+      .eq("id", data.interview_id)
+      .maybeSingle() as { data: { id: string; study_id: string; status: string; started_at: string; finished_at: string | null; respondent_id: string; studies: { id: string; title: string; owner_id: string } | null } | null; error: { message: string } | null };
+    if (ivErr) throw new Error(ivErr.message);
+    if (!iv || iv.studies?.owner_id !== userId) throw new Error("Acesso negado.");
+
+    const { data: answers } = await supabaseAdmin
+      .from("answers")
+      .select("id, question_id, question_text, transcript, is_followup, parent_answer_id, status, error_message, duration_seconds, created_at, video_path")
+      .eq("interview_id", data.interview_id)
+      .order("created_at", { ascending: true });
+
+    const enriched = await Promise.all(
+      (answers ?? []).map(async (a) => {
+        const path = `${data.interview_id}/${a.id}.webm`;
+        const { data: signed } = await supabaseAdmin.storage.from(BUCKET).createSignedUrl(path, 60 * 60);
+        return { ...a, video_url: signed?.signedUrl ?? null };
+      }),
+    );
+
+    return {
+      interview: {
+        id: iv.id,
+        study_id: iv.study_id,
+        study_title: iv.studies?.title ?? "",
+        status: iv.status,
+        started_at: iv.started_at,
+        finished_at: iv.finished_at,
+      },
+      answers: enriched,
+    };
+  });
