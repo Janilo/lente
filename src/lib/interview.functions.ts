@@ -208,12 +208,39 @@ export const getNextStep = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ interview_id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
-    // verify respondent
     const { supabase, userId } = context;
-    const { data: iv } = await supabase.from("interviews").select("id, respondent_id").eq("id", data.interview_id).maybeSingle();
+    const { data: iv } = await supabase.from("interviews").select("id, study_id, respondent_id").eq("id", data.interview_id).maybeSingle();
     if (!iv || iv.respondent_id !== userId) throw new Error("Acesso negado.");
     const next = await computeNextStep(data.interview_id);
-    return { next };
+
+    const { count: question_count } = await supabaseAdmin
+      .from("questions").select("id", { count: "exact", head: true }).eq("study_id", (iv as any).study_id);
+    const { data: study } = await supabaseAdmin
+      .from("studies").select("max_followups").eq("id", (iv as any).study_id).single();
+    const max_followups = study?.max_followups ?? 2;
+
+    let current_position: number | null = null;
+    let followups_done_for_current = 0;
+    if (next.type === "question" || next.type === "followup") {
+      current_position = (next as any).position ?? null;
+      const { data: ansForQ } = await supabaseAdmin
+        .from("answers")
+        .select("id, is_followup, status")
+        .eq("interview_id", data.interview_id)
+        .eq("question_id", (next as any).question_id);
+      followups_done_for_current = (ansForQ ?? []).filter((a) => a.is_followup && a.status !== "failed").length;
+    }
+
+    return {
+      next,
+      totals: {
+        question_count: question_count ?? 0,
+        current_position,
+        followups_done_for_current,
+        max_followups,
+        is_followup: next.type === "followup",
+      },
+    };
   });
 
 // Create an answer row (uploading), returns ID + storage path
