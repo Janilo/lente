@@ -279,6 +279,9 @@ export const processAnswer = createServerFn({ method: "POST" })
         transcript,
         words_json: json.words ?? null,
       }).eq("id", ans.id);
+
+      // Best-effort auto quality scoring (does not block the pipeline).
+      try { await scoreAnswerInternal(ans.id, transcript); } catch (err) { console.error("quality score failed", err); }
     } catch (e) {
       await supabaseAdmin.from("answers").update({
         status: "failed",
