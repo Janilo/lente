@@ -1,30 +1,29 @@
 /**
- * BrandFooter — small JPS signature footer.
+ * BrandFooter — JPS signature footer, pereirasaraiva.com style.
  */
 export function BrandFooter() {
   return (
-    <footer className="mt-24 border-t border-border">
-      <div className="mx-auto max-w-5xl px-6 py-8">
-        <div className="flex flex-col items-start gap-2 border-b border-border/60 pb-6 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
-          <div className="flex flex-col gap-1">
-            <p className="jps-eyebrow">Participe</p>
-            <p className="text-sm text-foreground">
-              Quer participar como respondente?
-            </p>
-          </div>
+    <footer className="mt-24">
+      <div className="mx-auto max-w-6xl px-6">
+        <div className="flex flex-col items-start justify-between gap-3 border-t border-border/70 py-6 sm:flex-row sm:items-center">
+          <p className="text-sm font-light text-muted-foreground">
+            Quer participar como respondente de pesquisas?
+          </p>
           <a
             href="https://pereirasaraiva.com/respondentes"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+            className="text-xs font-medium uppercase tracking-[0.18em] text-foreground transition-opacity hover:opacity-70"
           >
-            Cadastre-se aqui →
+            Cadastre-se aqui&nbsp;→
           </a>
         </div>
-        <div className="flex flex-col items-start justify-between gap-3 pt-6 sm:flex-row sm:items-center">
-          <p className="jps-eyebrow">Lente · J P Saraiva</p>
-          <p className="text-xs text-muted-foreground">
-            Pesquisa qualitativa em vídeo · {new Date().getFullYear()}
+        <div className="flex flex-col items-start justify-between gap-2 border-t border-border/70 py-6 sm:flex-row sm:items-center">
+          <p className="text-xs uppercase tracking-[0.32em] text-muted-foreground">
+            J P Saraiva
+          </p>
+          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+            © {new Date().getFullYear()}
           </p>
         </div>
       </div>
