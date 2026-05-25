@@ -37,7 +37,7 @@ function PublicStudyPage() {
           user_agent: typeof navigator !== "undefined" ? navigator.userAgent : "",
         },
       }),
-    onSuccess: () => navigate({ to: "/r_/$slug/run", params: { slug } }),
+    onSuccess: () => navigate({ to: "/r/$slug/run", params: { slug } }),
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -46,7 +46,7 @@ function PublicStudyPage() {
   if (!data) return null;
 
   const { study, questionCount } = data;
-  const returnTo = `/r_/${slug}/run`;
+  const returnTo = `/r/${slug}/run`;
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-16">
