@@ -72,7 +72,6 @@ function RunInner({ slug }: { slug: string }) {
   const handleRecorded = async (blob: Blob) => {
     if (!interviewId || !step) return;
     try {
-      toast.info("Enviando gravação…");
       const created = await createAns({
         data: {
           interview_id: interviewId,
@@ -87,7 +86,6 @@ function RunInner({ slug }: { slug: string }) {
         upsert: true,
       });
       if (upErr) throw new Error(upErr.message);
-      toast.info("Transcrevendo…");
       const r = await processAns({ data: { answer_id: created.answer_id } });
       setStep(r.next);
       if (r.next.type === "done") toast.success("Entrevista concluída.");
