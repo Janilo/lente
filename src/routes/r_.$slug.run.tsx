@@ -82,7 +82,7 @@ function RunInner({ slug }: { slug: string }) {
         },
       });
       const { error: upErr } = await supabase.storage.from("interview-videos").upload(created.path, blob, {
-        contentType: "video/webm",
+        contentType: blob.type || "video/webm",
         upsert: true,
       });
       if (upErr) throw new Error(upErr.message);
@@ -139,8 +139,33 @@ function Recorder({ onRecorded }: { onRecorded: (b: Blob) => void | Promise<void
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [state, setState] = useState<"idle" | "ready" | "recording" | "uploading">("idle");
   const [elapsed, setElapsed] = useState(0);
+
+  const handleFilePick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("video/")) {
+      toast.error("Selecione um arquivo de vídeo válido.");
+      return;
+    }
+    const MAX = 500 * 1024 * 1024; // 500MB
+    if (file.size > MAX) {
+      toast.error("Arquivo muito grande (máx. 500MB).");
+      return;
+    }
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
+    setState("uploading");
+    try {
+      await onRecorded(file);
+    } catch (err) {
+      toast.error((err as Error).message);
+      setState("idle");
+    }
+  };
 
   useEffect(() => {
     let timer: ReturnType<typeof setInterval> | null = null;
@@ -207,6 +232,21 @@ function Recorder({ onRecorded }: { onRecorded: (b: Blob) => void | Promise<void
           {state === "uploading" && "Enviando…"}
         </div>
         <div className="flex gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="video/*"
+            className="hidden"
+            onChange={handleFilePick}
+          />
+          {(state === "idle" || state === "ready") && (
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="rounded-md border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-accent"
+            >
+              Enviar vídeo
+            </button>
+          )}
           {state === "idle" && (
             <button onClick={askCamera} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
               Ativar câmera
