@@ -74,10 +74,17 @@ function StudyEditor() {
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-12 space-y-10">
-      <div>
-        <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground">← Meus estudos</Link>
-        <h1 className="mt-3 text-4xl">{form.title || "Sem título"}</h1>
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground">← Meus estudos</Link>
+          <h1 className="mt-3 text-4xl">{form.title || "Sem título"}</h1>
+        </div>
+        <Link to="/studies/$id/interviews" params={{ id }}
+          className="mt-8 rounded-md border border-border px-3 py-2 text-sm hover:bg-accent">
+          Ver entrevistas
+        </Link>
       </div>
+
 
       <section className="rounded-lg border border-border bg-card p-6 space-y-4">
         <h2 className="text-xl">Contexto do estudo</h2>
