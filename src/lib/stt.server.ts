@@ -61,7 +61,7 @@ async function transcribeAssemblyAI(file: Blob): Promise<SttResult> {
   const createRes = await fetch("https://api.assemblyai.com/v2/transcript", {
     method: "POST",
     headers: { authorization: apiKey, "content-type": "application/json" },
-    body: JSON.stringify({ audio_url: upload_url, language_code: "pt", speech_model: "universal" }),
+    body: JSON.stringify({ audio_url: upload_url, language_code: "pt", speech_models: ["universal-3-pro"] }),
   });
   if (!createRes.ok) throw new Error(`AssemblyAI create: ${createRes.status} ${(await createRes.text()).slice(0, 200)}`);
   const created = (await createRes.json()) as { id: string };
