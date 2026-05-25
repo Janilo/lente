@@ -83,7 +83,12 @@ function StudyEditor() {
           className="mt-8 rounded-md border border-border px-3 py-2 text-sm hover:bg-accent">
           Ver entrevistas
         </Link>
+        <Link to="/studies/$id/synthesis" params={{ id }}
+          className="mt-8 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:opacity-90">
+          Síntese e recomendações
+        </Link>
       </div>
+
 
 
       <section className="rounded-lg border border-border bg-card p-6 space-y-4">
