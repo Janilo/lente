@@ -53,22 +53,22 @@ export function ScreenerForm({
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const existing = submissionQuery.data?.submission;
+  const hasNoQuestions = !screenerQuery.isLoading && questions.length === 0;
+  const alreadyQualified = !!existing?.qualified;
+
+  useEffect(() => {
+    if (hasNoQuestions || alreadyQualified) onQualified();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasNoQuestions, alreadyQualified]);
+
   if (screenerQuery.isLoading || submissionQuery.isLoading) {
     return <p className="text-sm text-muted-foreground">Carregando triagem…</p>;
   }
 
-  if (questions.length === 0) {
-    // No screener configured → bypass
-    onQualified();
-    return null;
-  }
+  if (hasNoQuestions || alreadyQualified) return null;
 
-  const existing = submissionQuery.data?.submission;
-  if (existing) {
-    if (existing.qualified) {
-      onQualified();
-      return null;
-    }
+  if (existing && !existing.qualified) {
     return (
       <div className="rounded-md border border-border bg-card p-6 space-y-3">
         <h2 className="text-lg font-medium">Obrigado pelo interesse</h2>
