@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { startInterview, getNextStep, createAnswer, processAnswer, finishInterview } from "@/lib/interview.functions";
+import { PipelineStatus } from "@/components/interview/PipelineStatus";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/r/$slug/run")({
