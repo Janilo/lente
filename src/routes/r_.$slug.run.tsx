@@ -20,7 +20,7 @@ function RunPage() {
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
-      navigate({ to: "/login", search: { returnTo: `/r_/${slug}/run` } });
+      navigate({ to: "/login", search: { returnTo: `/r/${slug}/run` } });
     }
   }, [loading, isAuthenticated, navigate, slug]);
 
@@ -103,7 +103,7 @@ function RunInner({ slug }: { slug: string }) {
       <div className="mx-auto max-w-2xl px-6 py-20 text-center">
         <h1 className="text-3xl font-semibold">Obrigado!</h1>
         <p className="mt-3 text-sm text-muted-foreground">Sua entrevista foi concluída. Você pode fechar esta página.</p>
-        <Link to="/" className="mt-8 inline-block text-sm text-primary underline">Voltar</Link>
+        <Link to="/r/$slug" params={{ slug }} className="mt-8 inline-block text-sm text-primary underline">Voltar</Link>
       </div>
     );
   }
