@@ -1,9 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useState } from "react";
 import { getStudyBySlug, startInterview } from "@/lib/interview.functions";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { ConsentCheckbox } from "@/components/interview/ConsentCheckbox";
+import { LGPD_VERSION } from "@/lib/lgpd";
 
 export const Route = createFileRoute("/r_/$slug")({
   head: () => ({ meta: [{ title: "Entrevista — Lente" }] }),
@@ -16,6 +19,7 @@ function PublicStudyPage() {
   const { isAuthenticated, loading } = useAuth();
   const fetchStudy = useServerFn(getStudyBySlug);
   const startFn = useServerFn(startInterview);
+  const [consent, setConsent] = useState(false);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["public-study", slug],
@@ -23,7 +27,14 @@ function PublicStudyPage() {
   });
 
   const start = useMutation({
-    mutationFn: () => startFn({ data: { slug, consent_version: LGPD_VERSION, user_agent: navigator.userAgent } }),
+    mutationFn: () =>
+      startFn({
+        data: {
+          slug,
+          consent_version: LGPD_VERSION,
+          user_agent: typeof navigator !== "undefined" ? navigator.userAgent : "",
+        },
+      }),
     onSuccess: () => navigate({ to: "/r_/$slug/run", params: { slug } }),
     onError: (e: Error) => toast.error(e.message),
   });
@@ -45,17 +56,20 @@ function PublicStudyPage() {
       )}
       <p className="mt-6 text-sm text-muted-foreground">{questionCount} pergunta(s). Suas respostas serão gravadas em vídeo.</p>
 
-      <div className="mt-10">
+      <div className="mt-10 space-y-6">
         {loading ? (
           <div className="text-sm text-muted-foreground">…</div>
         ) : isAuthenticated ? (
-          <button
-            disabled={start.isPending}
-            onClick={() => start.mutate()}
-            className="rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground disabled:opacity-50"
-          >
-            {start.isPending ? "Iniciando…" : "Iniciar entrevista"}
-          </button>
+          <>
+            <ConsentCheckbox checked={consent} onChange={setConsent} />
+            <button
+              disabled={start.isPending || !consent}
+              onClick={() => start.mutate()}
+              className="rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground disabled:opacity-50"
+            >
+              {start.isPending ? "Iniciando…" : "Iniciar entrevista"}
+            </button>
+          </>
         ) : (
           <div className="flex flex-col gap-3">
             <p className="text-sm text-muted-foreground">Crie uma conta ou entre para participar.</p>

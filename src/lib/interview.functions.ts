@@ -27,7 +27,13 @@ export const getStudyBySlug = createServerFn({ method: "GET" })
 // Start or resume an interview
 export const startInterview = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ slug: z.string().min(1).max(100) }).parse(input))
+  .inputValidator((input) =>
+    z.object({
+      slug: z.string().min(1).max(100),
+      consent_version: z.string().min(1).max(50).optional(),
+      user_agent: z.string().max(500).optional(),
+    }).parse(input),
+  )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { data: study, error: sErr } = await supabaseAdmin
@@ -44,16 +50,34 @@ export const startInterview = createServerFn({ method: "POST" })
       .limit(1)
       .maybeSingle();
 
+    let interviewId: string;
     if (existing && existing.status === "in_progress") {
-      return { interview_id: existing.id };
+      interviewId = existing.id;
+    } else {
+      const { data: created, error } = await supabase
+        .from("interviews")
+        .insert({ study_id: study.id, respondent_id: userId })
+        .select("id")
+        .single();
+      if (error) throw new Error(error.message);
+      interviewId = created.id;
     }
-    const { data: created, error } = await supabase
-      .from("interviews")
-      .insert({ study_id: study.id, respondent_id: userId })
-      .select("id")
-      .single();
-    if (error) throw new Error(error.message);
-    return { interview_id: created.id };
+
+    // Record LGPD consent if provided (idempotent via UNIQUE(interview_id,user_id))
+    if (data.consent_version) {
+      await supabaseAdmin.from("consents").upsert(
+        {
+          interview_id: interviewId,
+          user_id: userId,
+          study_id: study.id,
+          consent_version: data.consent_version,
+          user_agent: data.user_agent ?? null,
+        },
+        { onConflict: "interview_id,user_id", ignoreDuplicates: true },
+      );
+    }
+
+    return { interview_id: interviewId };
   });
 
 // Decide what the next step is for an interview
