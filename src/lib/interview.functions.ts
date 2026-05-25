@@ -457,3 +457,50 @@ export const getInterviewPipelineStatus = createServerFn({ method: "GET" })
       },
     };
   });
+
+// ===== Quality scoring helper (shared with respondents.functions) =====
+export async function scoreAnswerInternal(answer_id: string, transcript?: string) {
+  const apiKey = process.env.LOVABLE_API_KEY;
+  if (!apiKey) return;
+
+  const { data: ans } = await supabaseAdmin
+    .from("answers")
+    .select("id, transcript, question_text, question_id")
+    .eq("id", answer_id)
+    .maybeSingle();
+  if (!ans) return;
+  const text = (transcript ?? ans.transcript ?? "").trim();
+  if (!text) return;
+
+  let intent = "";
+  if (ans.question_id) {
+    const { data: q } = await supabaseAdmin.from("questions").select("intent").eq("id", ans.question_id).maybeSingle();
+    intent = q?.intent ?? "";
+  }
+
+  const system = `Você avalia a qualidade de respostas de entrevistas qualitativas. Retorne SOMENTE JSON válido no formato: {"score": <inteiro 0-100>, "reasoning": "<frase curta em PT-BR>"}.
+Critérios: relevância à pergunta (40%), profundidade/especificidade (30%), clareza (20%), aderência à intenção declarada (10%).`;
+  const user = `Pergunta: ${ans.question_text}
+${intent ? `Intenção da pergunta: ${intent}\n` : ""}Resposta transcrita: ${text}`;
+
+  try {
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [{ role: "system", content: system }, { role: "user", content: user }],
+        response_format: { type: "json_object" },
+      }),
+    });
+    if (!res.ok) return;
+    const json = await res.json();
+    const raw = json.choices?.[0]?.message?.content ?? "{}";
+    const parsed = JSON.parse(raw);
+    const score = Math.max(0, Math.min(100, Math.round(Number(parsed.score) || 0)));
+    const reasoning = String(parsed.reasoning ?? "").slice(0, 500);
+    await supabaseAdmin.from("answers").update({ quality_score: score, quality_reasoning: reasoning }).eq("id", answer_id);
+  } catch (e) {
+    console.error("scoreAnswerInternal", e);
+  }
+}
