@@ -17,10 +17,12 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RSlugRouteImport } from './routes/r_.$slug'
 import { Route as RSlugRouteImport } from './routes/r.$slug'
+import { Route as AuthenticatedMyPrivacyRouteImport } from './routes/_authenticated/my-privacy'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as RSlugRunRouteImport } from './routes/r_.$slug.run'
 import { Route as AuthenticatedStudiesIdRouteImport } from './routes/_authenticated/studies.$id'
 import { Route as AuthenticatedStudiesIdSynthesisRouteImport } from './routes/_authenticated/studies.$id.synthesis'
+import { Route as AuthenticatedStudiesIdRespondentsRouteImport } from './routes/_authenticated/studies.$id.respondents'
 import { Route as AuthenticatedStudiesIdInterviewsRouteImport } from './routes/_authenticated/studies.$id.interviews'
 import { Route as AuthenticatedStudiesIdInterviewsInterviewIdRouteImport } from './routes/_authenticated/studies.$id.interviews.$interviewId'
 
@@ -63,6 +65,11 @@ const RSlugRoute = RSlugRouteImport.update({
   path: '/r/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedMyPrivacyRoute = AuthenticatedMyPrivacyRouteImport.update({
+  id: '/my-privacy',
+  path: '/my-privacy',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -82,6 +89,12 @@ const AuthenticatedStudiesIdSynthesisRoute =
   AuthenticatedStudiesIdSynthesisRouteImport.update({
     id: '/synthesis',
     path: '/synthesis',
+    getParentRoute: () => AuthenticatedStudiesIdRoute,
+  } as any)
+const AuthenticatedStudiesIdRespondentsRoute =
+  AuthenticatedStudiesIdRespondentsRouteImport.update({
+    id: '/respondents',
+    path: '/respondents',
     getParentRoute: () => AuthenticatedStudiesIdRoute,
   } as any)
 const AuthenticatedStudiesIdInterviewsRoute =
@@ -104,10 +117,12 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/my-privacy': typeof AuthenticatedMyPrivacyRoute
   '/r/$slug': typeof RSlugRouteWithChildren
   '/studies/$id': typeof AuthenticatedStudiesIdRouteWithChildren
   '/r/$slug/run': typeof RSlugRunRoute
   '/studies/$id/interviews': typeof AuthenticatedStudiesIdInterviewsRouteWithChildren
+  '/studies/$id/respondents': typeof AuthenticatedStudiesIdRespondentsRoute
   '/studies/$id/synthesis': typeof AuthenticatedStudiesIdSynthesisRoute
   '/studies/$id/interviews/$interviewId': typeof AuthenticatedStudiesIdInterviewsInterviewIdRoute
 }
@@ -118,10 +133,12 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/my-privacy': typeof AuthenticatedMyPrivacyRoute
   '/r/$slug': typeof RSlugRouteWithChildren
   '/studies/$id': typeof AuthenticatedStudiesIdRouteWithChildren
   '/r/$slug/run': typeof RSlugRunRoute
   '/studies/$id/interviews': typeof AuthenticatedStudiesIdInterviewsRouteWithChildren
+  '/studies/$id/respondents': typeof AuthenticatedStudiesIdRespondentsRoute
   '/studies/$id/synthesis': typeof AuthenticatedStudiesIdSynthesisRoute
   '/studies/$id/interviews/$interviewId': typeof AuthenticatedStudiesIdInterviewsInterviewIdRoute
 }
@@ -134,11 +151,13 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/my-privacy': typeof AuthenticatedMyPrivacyRoute
   '/r/$slug': typeof RSlugRoute
   '/r_/$slug': typeof RSlugRouteWithChildren
   '/_authenticated/studies/$id': typeof AuthenticatedStudiesIdRouteWithChildren
   '/r_/$slug/run': typeof RSlugRunRoute
   '/_authenticated/studies/$id/interviews': typeof AuthenticatedStudiesIdInterviewsRouteWithChildren
+  '/_authenticated/studies/$id/respondents': typeof AuthenticatedStudiesIdRespondentsRoute
   '/_authenticated/studies/$id/synthesis': typeof AuthenticatedStudiesIdSynthesisRoute
   '/_authenticated/studies/$id/interviews/$interviewId': typeof AuthenticatedStudiesIdInterviewsInterviewIdRoute
 }
@@ -151,10 +170,12 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/dashboard'
+    | '/my-privacy'
     | '/r/$slug'
     | '/studies/$id'
     | '/r/$slug/run'
     | '/studies/$id/interviews'
+    | '/studies/$id/respondents'
     | '/studies/$id/synthesis'
     | '/studies/$id/interviews/$interviewId'
   fileRoutesByTo: FileRoutesByTo
@@ -165,10 +186,12 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/dashboard'
+    | '/my-privacy'
     | '/r/$slug'
     | '/studies/$id'
     | '/r/$slug/run'
     | '/studies/$id/interviews'
+    | '/studies/$id/respondents'
     | '/studies/$id/synthesis'
     | '/studies/$id/interviews/$interviewId'
   id:
@@ -180,11 +203,13 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/_authenticated/dashboard'
+    | '/_authenticated/my-privacy'
     | '/r/$slug'
     | '/r_/$slug'
     | '/_authenticated/studies/$id'
     | '/r_/$slug/run'
     | '/_authenticated/studies/$id/interviews'
+    | '/_authenticated/studies/$id/respondents'
     | '/_authenticated/studies/$id/synthesis'
     | '/_authenticated/studies/$id/interviews/$interviewId'
   fileRoutesById: FileRoutesById
@@ -258,6 +283,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/my-privacy': {
+      id: '/_authenticated/my-privacy'
+      path: '/my-privacy'
+      fullPath: '/my-privacy'
+      preLoaderRoute: typeof AuthenticatedMyPrivacyRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -284,6 +316,13 @@ declare module '@tanstack/react-router' {
       path: '/synthesis'
       fullPath: '/studies/$id/synthesis'
       preLoaderRoute: typeof AuthenticatedStudiesIdSynthesisRouteImport
+      parentRoute: typeof AuthenticatedStudiesIdRoute
+    }
+    '/_authenticated/studies/$id/respondents': {
+      id: '/_authenticated/studies/$id/respondents'
+      path: '/respondents'
+      fullPath: '/studies/$id/respondents'
+      preLoaderRoute: typeof AuthenticatedStudiesIdRespondentsRouteImport
       parentRoute: typeof AuthenticatedStudiesIdRoute
     }
     '/_authenticated/studies/$id/interviews': {
@@ -320,6 +359,7 @@ const AuthenticatedStudiesIdInterviewsRouteWithChildren =
 
 interface AuthenticatedStudiesIdRouteChildren {
   AuthenticatedStudiesIdInterviewsRoute: typeof AuthenticatedStudiesIdInterviewsRouteWithChildren
+  AuthenticatedStudiesIdRespondentsRoute: typeof AuthenticatedStudiesIdRespondentsRoute
   AuthenticatedStudiesIdSynthesisRoute: typeof AuthenticatedStudiesIdSynthesisRoute
 }
 
@@ -327,6 +367,8 @@ const AuthenticatedStudiesIdRouteChildren: AuthenticatedStudiesIdRouteChildren =
   {
     AuthenticatedStudiesIdInterviewsRoute:
       AuthenticatedStudiesIdInterviewsRouteWithChildren,
+    AuthenticatedStudiesIdRespondentsRoute:
+      AuthenticatedStudiesIdRespondentsRoute,
     AuthenticatedStudiesIdSynthesisRoute: AuthenticatedStudiesIdSynthesisRoute,
   }
 
@@ -337,11 +379,13 @@ const AuthenticatedStudiesIdRouteWithChildren =
 
 interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedMyPrivacyRoute: typeof AuthenticatedMyPrivacyRoute
   AuthenticatedStudiesIdRoute: typeof AuthenticatedStudiesIdRouteWithChildren
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedMyPrivacyRoute: AuthenticatedMyPrivacyRoute,
   AuthenticatedStudiesIdRoute: AuthenticatedStudiesIdRouteWithChildren,
 }
 
@@ -372,3 +416,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
