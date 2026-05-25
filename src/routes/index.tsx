@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { BrandFooter } from "@/components/brand/BrandFooter";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -62,7 +62,7 @@ function Landing() {
         </div>
       </section>
 
-      <BrandFooter />
+      
     </div>
   );
 }
