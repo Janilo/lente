@@ -1,5 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { BrandHeader } from "@/components/brand/BrandHeader";
 import { BrandFooter } from "@/components/brand/BrandFooter";
 
 export const Route = createFileRoute("/")({
@@ -15,22 +14,6 @@ export const Route = createFileRoute("/")({
 function Landing() {
   return (
     <div>
-      <BrandHeader
-        right={
-          <>
-            <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground">
-              Entrar
-            </Link>
-            <Link
-              to="/signup"
-              className="rounded-md bg-primary px-3.5 py-1.5 text-sm font-medium text-primary-foreground"
-            >
-              Criar conta
-            </Link>
-          </>
-        }
-      />
-
       <section className="mx-auto max-w-5xl px-6 pt-24 pb-20">
         <div className="max-w-3xl">
           <p className="jps-eyebrow">Pesquisa qualitativa · IA</p>
