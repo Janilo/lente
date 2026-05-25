@@ -1,22 +1,23 @@
-# Correção do 404 ao iniciar entrevista
+## Correção do erro AssemblyAI
 
-## Causa
-As rotas estão nomeadas `r_.$slug.tsx` e `r_.$slug.run.tsx`. A convenção `_` do TanStack significa "não aninhar no layout", então as URLs reais são `/r/$slug` e `/r/$slug/run` (sem underscore). Porém, vários pontos do código navegam para strings literais com `/r_/...`, que o TanStack trata como URL crua e não casa com nenhuma rota → 404.
+A API do AssemblyAI está rejeitando a requisição porque o campo `speech_models` está sendo enviado vazio (ou ausente). Hoje, em `src/lib/stt.server.ts`, o body da chamada `POST /v2/transcript` é:
 
-Além disso, o `NotFoundComponent` no `__root.tsx` tem um `<Link to="/">` fixo, levando qualquer 404 para a home do entrevistador.
+```json
+{ "audio_url": "...", "language_code": "pt" }
+```
 
-## Mudanças
+### Mudança
 
-**1. `src/routes/r_.$slug.tsx`**
-- Trocar `to: "/r_/$slug/run"` por `to: "/r/$slug/run"` no `onSuccess` do `useMutation`.
-- Trocar `returnTo = \`/r_/${slug}/run\`` por `\`/r/${slug}/run\``.
+Adicionar `speech_model: "universal"` ao body (campo singular aceito pela API do AssemblyAI, equivalente ao modelo `universal-2`/`universal-3-pro`).
 
-**2. `src/routes/r_.$slug.run.tsx`**
-- Trocar `returnTo: \`/r_/${slug}/run\`` por `\`/r/${slug}/run\`` no redirect de login.
-- Na tela de "Obrigado!" (fim da entrevista), trocar o `<Link to="/">` por `<Link to="/r/$slug" params={{ slug }}>` para manter o respondente em contexto.
+Arquivo: `src/lib/stt.server.ts`, função `transcribeAssemblyAI`, passo 2 (create transcript):
 
-**3. `src/routes/__root.tsx`**
-- Melhorar o `NotFoundComponent`: detectar se a URL atual começa com `/r/` ou `/r_/`, extrair o slug, e renderizar um botão "Voltar à entrevista" apontando para `/r/$slug`. Caso contrário, manter o link para `/`.
+```ts
+body: JSON.stringify({
+  audio_url: upload_url,
+  language_code: "pt",
+  speech_model: "universal",
+}),
+```
 
-## Fora de escopo
-Apenas correção de navegação. Sem mudanças em schema, server functions ou lógica de negócio.
+Isso resolve o 400 sem alterar mais nada do fluxo. As respostas que ficaram com `status = failed` continuarão sendo re-perguntadas automaticamente graças à lógica de recuperação já implementada em `computeNextStep`.
