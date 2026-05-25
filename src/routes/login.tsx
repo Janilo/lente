@@ -55,15 +55,33 @@ function LoginPage() {
       <form onSubmit={handleEmail} className="space-y-3">
         <input type="email" required placeholder="email@exemplo.com" value={email} onChange={(e) => setEmail(e.target.value)}
           className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
-        <input type="password" required placeholder="senha" value={password} onChange={(e) => setPassword(e.target.value)}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
+        <div className="relative">
+          <input
+            type={showPassword ? "text" : "password"}
+            required
+            placeholder="senha"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full rounded-md border border-input bg-background px-3 py-2 pr-10 text-sm"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+            className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
+          >
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        </div>
+        <div className="flex justify-end">
+          <Link to="/forgot-password" className="text-xs text-muted-foreground hover:text-foreground underline">
+            Esqueci a senha
+          </Link>
+        </div>
         <button disabled={busy} type="submit" className="w-full rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground disabled:opacity-50">
           {busy ? "Entrando..." : "Entrar"}
         </button>
       </form>
-      <p className="mt-4 text-right text-sm">
-        <Link to="/forgot-password" className="text-muted-foreground hover:text-foreground underline">Esqueci a senha</Link>
-      </p>
       <p className="mt-6 text-sm text-muted-foreground">
         Não tem conta? <Link to="/signup" search={{ returnTo }} className="text-primary underline">Criar conta</Link>
       </p>
