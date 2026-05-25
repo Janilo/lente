@@ -92,10 +92,15 @@ function Header() {
   const { isAuthenticated, loading } = useAuth();
   return (
     <header className="border-b border-border bg-background/80 backdrop-blur sticky top-0 z-40">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="h-7 w-7 rounded-full bg-primary" />
-          <span className="font-display text-2xl">Lente</span>
+      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-6">
+        <Link to="/" className="group inline-flex items-baseline gap-3">
+          <span
+            className="font-display text-3xl leading-none text-foreground"
+            style={{ fontVariationSettings: '"opsz" 144, "SOFT" 0, "WONK" 0' }}
+          >
+            Lente
+          </span>
+          <span className="jps-eyebrow hidden sm:inline">por J P Saraiva</span>
         </Link>
         <nav className="flex items-center gap-1 text-sm">
           {loading ? null : isAuthenticated ? (
@@ -111,7 +116,7 @@ function Header() {
           ) : (
             <>
               <Link to="/login" className="rounded-md px-3 py-2 text-foreground hover:bg-accent">Entrar</Link>
-              <Link to="/signup" className="rounded-md bg-primary px-3 py-2 text-primary-foreground hover:opacity-90">
+              <Link to="/signup" className="rounded-md bg-primary px-3.5 py-1.5 text-primary-foreground hover:opacity-90">
                 Criar conta
               </Link>
             </>
