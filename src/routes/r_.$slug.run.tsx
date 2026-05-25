@@ -134,6 +134,11 @@ function RunInner({ slug }: { slug: string }) {
       });
       if (upErr) throw new Error(upErr.message);
       const r = await processAns({ data: { answer_id: created.answer_id } });
+      if ((r as any).empty) {
+        toast.warning("Não captamos nenhuma fala. Por favor, repita a resposta.");
+        await loadNext(interviewId);
+        return;
+      }
       setStep(r.next);
       if (r.next.type === "done") {
         stopStream();
@@ -146,6 +151,7 @@ function RunInner({ slug }: { slug: string }) {
       toast.error((e as Error).message);
     }
   };
+
 
   if (!interviewId || !step || stepLoading) {
     return <div className="mx-auto max-w-2xl px-6 py-20 text-sm text-muted-foreground">Preparando…</div>;
