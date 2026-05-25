@@ -15,6 +15,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RSlugRouteImport } from './routes/r.$slug'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as RSlugRunRouteImport } from './routes/r.$slug.run'
 import { Route as AuthenticatedStudiesIdRouteImport } from './routes/_authenticated/studies.$id'
 
 const SignupRoute = SignupRouteImport.update({
@@ -46,6 +47,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const RSlugRunRoute = RSlugRunRouteImport.update({
+  id: '/run',
+  path: '/run',
+  getParentRoute: () => RSlugRoute,
+} as any)
 const AuthenticatedStudiesIdRoute = AuthenticatedStudiesIdRouteImport.update({
   id: '/studies/$id',
   path: '/studies/$id',
@@ -57,16 +63,18 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/r/$slug': typeof RSlugRoute
+  '/r/$slug': typeof RSlugRouteWithChildren
   '/studies/$id': typeof AuthenticatedStudiesIdRoute
+  '/r/$slug/run': typeof RSlugRunRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/r/$slug': typeof RSlugRoute
+  '/r/$slug': typeof RSlugRouteWithChildren
   '/studies/$id': typeof AuthenticatedStudiesIdRoute
+  '/r/$slug/run': typeof RSlugRunRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -75,8 +83,9 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/r/$slug': typeof RSlugRoute
+  '/r/$slug': typeof RSlugRouteWithChildren
   '/_authenticated/studies/$id': typeof AuthenticatedStudiesIdRoute
+  '/r/$slug/run': typeof RSlugRunRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -87,8 +96,16 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/r/$slug'
     | '/studies/$id'
+    | '/r/$slug/run'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/signup' | '/dashboard' | '/r/$slug' | '/studies/$id'
+  to:
+    | '/'
+    | '/login'
+    | '/signup'
+    | '/dashboard'
+    | '/r/$slug'
+    | '/studies/$id'
+    | '/r/$slug/run'
   id:
     | '__root__'
     | '/'
@@ -98,6 +115,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/r/$slug'
     | '/_authenticated/studies/$id'
+    | '/r/$slug/run'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -105,7 +123,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
-  RSlugRoute: typeof RSlugRoute
+  RSlugRoute: typeof RSlugRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -152,6 +170,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/r/$slug/run': {
+      id: '/r/$slug/run'
+      path: '/run'
+      fullPath: '/r/$slug/run'
+      preLoaderRoute: typeof RSlugRunRouteImport
+      parentRoute: typeof RSlugRoute
+    }
     '/_authenticated/studies/$id': {
       id: '/_authenticated/studies/$id'
       path: '/studies/$id'
@@ -176,13 +201,33 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface RSlugRouteChildren {
+  RSlugRunRoute: typeof RSlugRunRoute
+}
+
+const RSlugRouteChildren: RSlugRouteChildren = {
+  RSlugRunRoute: RSlugRunRoute,
+}
+
+const RSlugRouteWithChildren = RSlugRoute._addFileChildren(RSlugRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
-  RSlugRoute: RSlugRoute,
+  RSlugRoute: RSlugRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
