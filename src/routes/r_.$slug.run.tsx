@@ -201,6 +201,8 @@ function RunInner({ slug }: { slug: string }) {
 }
 
 const PREROLL_SECONDS = 3;
+const MIN_RECORDING_SECONDS = 2;
+
 
 function Recorder({
   questionKey,
