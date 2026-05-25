@@ -381,10 +381,16 @@ function Recorder({
             </button>
           )}
           {state === "recording" && (
-            <button onClick={finish} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
+            <button
+              onClick={finish}
+              disabled={elapsed < MIN_RECORDING_SECONDS}
+              title={elapsed < MIN_RECORDING_SECONDS ? "Aguarde alguns segundos…" : undefined}
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
+            >
               Concluir resposta
             </button>
           )}
+
         </div>
       </div>
     </div>
