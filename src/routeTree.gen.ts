@@ -17,6 +17,8 @@ import { Route as RSlugRouteImport } from './routes/r.$slug'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as RSlugRunRouteImport } from './routes/r.$slug.run'
 import { Route as AuthenticatedStudiesIdRouteImport } from './routes/_authenticated/studies.$id'
+import { Route as AuthenticatedStudiesIdInterviewsRouteImport } from './routes/_authenticated/studies.$id.interviews'
+import { Route as AuthenticatedStudiesIdInterviewsInterviewIdRouteImport } from './routes/_authenticated/studies.$id.interviews.$interviewId'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -57,6 +59,18 @@ const AuthenticatedStudiesIdRoute = AuthenticatedStudiesIdRouteImport.update({
   path: '/studies/$id',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedStudiesIdInterviewsRoute =
+  AuthenticatedStudiesIdInterviewsRouteImport.update({
+    id: '/interviews',
+    path: '/interviews',
+    getParentRoute: () => AuthenticatedStudiesIdRoute,
+  } as any)
+const AuthenticatedStudiesIdInterviewsInterviewIdRoute =
+  AuthenticatedStudiesIdInterviewsInterviewIdRouteImport.update({
+    id: '/$interviewId',
+    path: '/$interviewId',
+    getParentRoute: () => AuthenticatedStudiesIdInterviewsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -64,8 +78,10 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/r/$slug': typeof RSlugRouteWithChildren
-  '/studies/$id': typeof AuthenticatedStudiesIdRoute
+  '/studies/$id': typeof AuthenticatedStudiesIdRouteWithChildren
   '/r/$slug/run': typeof RSlugRunRoute
+  '/studies/$id/interviews': typeof AuthenticatedStudiesIdInterviewsRouteWithChildren
+  '/studies/$id/interviews/$interviewId': typeof AuthenticatedStudiesIdInterviewsInterviewIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -73,8 +89,10 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/r/$slug': typeof RSlugRouteWithChildren
-  '/studies/$id': typeof AuthenticatedStudiesIdRoute
+  '/studies/$id': typeof AuthenticatedStudiesIdRouteWithChildren
   '/r/$slug/run': typeof RSlugRunRoute
+  '/studies/$id/interviews': typeof AuthenticatedStudiesIdInterviewsRouteWithChildren
+  '/studies/$id/interviews/$interviewId': typeof AuthenticatedStudiesIdInterviewsInterviewIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -84,8 +102,10 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/r/$slug': typeof RSlugRouteWithChildren
-  '/_authenticated/studies/$id': typeof AuthenticatedStudiesIdRoute
+  '/_authenticated/studies/$id': typeof AuthenticatedStudiesIdRouteWithChildren
   '/r/$slug/run': typeof RSlugRunRoute
+  '/_authenticated/studies/$id/interviews': typeof AuthenticatedStudiesIdInterviewsRouteWithChildren
+  '/_authenticated/studies/$id/interviews/$interviewId': typeof AuthenticatedStudiesIdInterviewsInterviewIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -97,6 +117,8 @@ export interface FileRouteTypes {
     | '/r/$slug'
     | '/studies/$id'
     | '/r/$slug/run'
+    | '/studies/$id/interviews'
+    | '/studies/$id/interviews/$interviewId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -106,6 +128,8 @@ export interface FileRouteTypes {
     | '/r/$slug'
     | '/studies/$id'
     | '/r/$slug/run'
+    | '/studies/$id/interviews'
+    | '/studies/$id/interviews/$interviewId'
   id:
     | '__root__'
     | '/'
@@ -116,6 +140,8 @@ export interface FileRouteTypes {
     | '/r/$slug'
     | '/_authenticated/studies/$id'
     | '/r/$slug/run'
+    | '/_authenticated/studies/$id/interviews'
+    | '/_authenticated/studies/$id/interviews/$interviewId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -184,17 +210,61 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStudiesIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/studies/$id/interviews': {
+      id: '/_authenticated/studies/$id/interviews'
+      path: '/interviews'
+      fullPath: '/studies/$id/interviews'
+      preLoaderRoute: typeof AuthenticatedStudiesIdInterviewsRouteImport
+      parentRoute: typeof AuthenticatedStudiesIdRoute
+    }
+    '/_authenticated/studies/$id/interviews/$interviewId': {
+      id: '/_authenticated/studies/$id/interviews/$interviewId'
+      path: '/$interviewId'
+      fullPath: '/studies/$id/interviews/$interviewId'
+      preLoaderRoute: typeof AuthenticatedStudiesIdInterviewsInterviewIdRouteImport
+      parentRoute: typeof AuthenticatedStudiesIdInterviewsRoute
+    }
   }
 }
 
+interface AuthenticatedStudiesIdInterviewsRouteChildren {
+  AuthenticatedStudiesIdInterviewsInterviewIdRoute: typeof AuthenticatedStudiesIdInterviewsInterviewIdRoute
+}
+
+const AuthenticatedStudiesIdInterviewsRouteChildren: AuthenticatedStudiesIdInterviewsRouteChildren =
+  {
+    AuthenticatedStudiesIdInterviewsInterviewIdRoute:
+      AuthenticatedStudiesIdInterviewsInterviewIdRoute,
+  }
+
+const AuthenticatedStudiesIdInterviewsRouteWithChildren =
+  AuthenticatedStudiesIdInterviewsRoute._addFileChildren(
+    AuthenticatedStudiesIdInterviewsRouteChildren,
+  )
+
+interface AuthenticatedStudiesIdRouteChildren {
+  AuthenticatedStudiesIdInterviewsRoute: typeof AuthenticatedStudiesIdInterviewsRouteWithChildren
+}
+
+const AuthenticatedStudiesIdRouteChildren: AuthenticatedStudiesIdRouteChildren =
+  {
+    AuthenticatedStudiesIdInterviewsRoute:
+      AuthenticatedStudiesIdInterviewsRouteWithChildren,
+  }
+
+const AuthenticatedStudiesIdRouteWithChildren =
+  AuthenticatedStudiesIdRoute._addFileChildren(
+    AuthenticatedStudiesIdRouteChildren,
+  )
+
 interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedStudiesIdRoute: typeof AuthenticatedStudiesIdRoute
+  AuthenticatedStudiesIdRoute: typeof AuthenticatedStudiesIdRouteWithChildren
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedStudiesIdRoute: AuthenticatedStudiesIdRoute,
+  AuthenticatedStudiesIdRoute: AuthenticatedStudiesIdRouteWithChildren,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
@@ -221,3 +291,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
