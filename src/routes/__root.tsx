@@ -114,6 +114,7 @@ function Header() {
           {loading ? null : isAuthenticated ? (
             <>
               <Link to="/dashboard" className="rounded-md px-3 py-2 text-foreground hover:bg-accent">Dashboard</Link>
+              <Link to="/my-privacy" className="rounded-md px-3 py-2 text-muted-foreground hover:text-foreground">Minha privacidade</Link>
               <button
                 onClick={async () => { await supabase.auth.signOut(); }}
                 className="rounded-md px-3 py-2 text-muted-foreground hover:text-foreground"
