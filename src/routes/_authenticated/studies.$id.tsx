@@ -164,7 +164,7 @@ function StudyEditor() {
             className="rounded-md border border-border px-3 py-2 text-sm hover:bg-accent">Copiar</button>
         </div>
         <p className="mt-4 text-xs text-muted-foreground">
-          A captura em vídeo e a transcrição entram na próxima fase.
+          O respondente acessa o link, cria conta, grava as respostas em vídeo e a IA transcreve e faz follow-ups automaticamente.
         </p>
       </section>
     </div>
