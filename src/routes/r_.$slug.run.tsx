@@ -139,8 +139,33 @@ function Recorder({ onRecorded }: { onRecorded: (b: Blob) => void | Promise<void
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [state, setState] = useState<"idle" | "ready" | "recording" | "uploading">("idle");
   const [elapsed, setElapsed] = useState(0);
+
+  const handleFilePick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("video/")) {
+      toast.error("Selecione um arquivo de vídeo válido.");
+      return;
+    }
+    const MAX = 500 * 1024 * 1024; // 500MB
+    if (file.size > MAX) {
+      toast.error("Arquivo muito grande (máx. 500MB).");
+      return;
+    }
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
+    setState("uploading");
+    try {
+      await onRecorded(file);
+    } catch (err) {
+      toast.error((err as Error).message);
+      setState("idle");
+    }
+  };
 
   useEffect(() => {
     let timer: ReturnType<typeof setInterval> | null = null;
