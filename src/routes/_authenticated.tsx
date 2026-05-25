@@ -1,8 +1,6 @@
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
-import { BrandHeader } from "@/components/brand/BrandHeader";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthGate,
@@ -19,23 +17,5 @@ function AuthGate() {
     return <div className="mx-auto max-w-5xl px-6 py-20 text-sm text-muted-foreground">Carregando…</div>;
   }
   if (!isAuthenticated) return null;
-
-  return (
-    <div className="min-h-screen">
-      <BrandHeader
-        right={
-          <button
-            onClick={async () => {
-              await supabase.auth.signOut();
-              navigate({ to: "/login" });
-            }}
-            className="text-sm text-muted-foreground hover:text-foreground"
-          >
-            Sair
-          </button>
-        }
-      />
-      <Outlet />
-    </div>
-  );
+  return <Outlet />;
 }
