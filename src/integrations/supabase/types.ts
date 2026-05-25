@@ -129,6 +129,33 @@ export type Database = {
         }
         Relationships: []
       }
+      cta_click_events: {
+        Row: {
+          created_at: string
+          cta_id: string
+          href: string
+          id: string
+          referrer: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          cta_id: string
+          href: string
+          id?: string
+          referrer?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          cta_id?: string
+          href?: string
+          id?: string
+          referrer?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       insights: {
         Row: {
           created_at: string
