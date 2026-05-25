@@ -20,7 +20,7 @@ function RunPage() {
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
-      navigate({ to: "/login", search: { returnTo: `/r/${slug}/run` } });
+      navigate({ to: "/login", search: { returnTo: `/r_/${slug}/run` } });
     }
   }, [loading, isAuthenticated, navigate, slug]);
 
