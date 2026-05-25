@@ -16,7 +16,6 @@ import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RSlugRouteImport } from './routes/r_.$slug'
-import { Route as RSlugRouteImport } from './routes/r.$slug'
 import { Route as AuthenticatedMyPrivacyRouteImport } from './routes/_authenticated/my-privacy'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as RSlugRunRouteImport } from './routes/r_.$slug.run'
@@ -57,11 +56,6 @@ const IndexRoute = IndexRouteImport.update({
 } as any)
 const RSlugRoute = RSlugRouteImport.update({
   id: '/r_/$slug',
-  path: '/r/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RSlugRoute = RSlugRouteImport.update({
-  id: '/r/$slug',
   path: '/r/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
@@ -152,7 +146,6 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/my-privacy': typeof AuthenticatedMyPrivacyRoute
-  '/r/$slug': typeof RSlugRoute
   '/r_/$slug': typeof RSlugRouteWithChildren
   '/_authenticated/studies/$id': typeof AuthenticatedStudiesIdRouteWithChildren
   '/r_/$slug/run': typeof RSlugRunRoute
@@ -204,7 +197,6 @@ export interface FileRouteTypes {
     | '/signup'
     | '/_authenticated/dashboard'
     | '/_authenticated/my-privacy'
-    | '/r/$slug'
     | '/r_/$slug'
     | '/_authenticated/studies/$id'
     | '/r_/$slug/run'
@@ -221,7 +213,6 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
-  RSlugRoute: typeof RSlugRoute
   RSlugRoute: typeof RSlugRouteWithChildren
 }
 
@@ -271,13 +262,6 @@ declare module '@tanstack/react-router' {
     }
     '/r_/$slug': {
       id: '/r_/$slug'
-      path: '/r/$slug'
-      fullPath: '/r/$slug'
-      preLoaderRoute: typeof RSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/r/$slug': {
-      id: '/r/$slug'
       path: '/r/$slug'
       fullPath: '/r/$slug'
       preLoaderRoute: typeof RSlugRouteImport
@@ -410,9 +394,18 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
-  RSlugRoute: RSlugRoute,
   RSlugRoute: RSlugRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
