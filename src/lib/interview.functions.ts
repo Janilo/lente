@@ -253,32 +253,15 @@ export const processAnswer = createServerFn({ method: "POST" })
       throw new Error("Falha ao recuperar gravação.");
     }
 
-    const apiKey = process.env.ELEVENLABS_API_KEY;
-    if (!apiKey) throw new Error("ELEVENLABS_API_KEY não configurada.");
-
     try {
-      const form = new FormData();
-      form.append("file", file, "answer.webm");
-      form.append("model_id", "scribe_v2");
-      form.append("language_code", "por");
-      form.append("diarize", "false");
-
-      const res = await fetch("https://api.elevenlabs.io/v1/speech-to-text", {
-        method: "POST",
-        headers: { "xi-api-key": apiKey },
-        body: form,
-      });
-      if (!res.ok) {
-        const txt = await res.text();
-        throw new Error(`ElevenLabs: ${res.status} ${txt.slice(0, 200)}`);
-      }
-      const json = await res.json();
-      const transcript = (json.text ?? "").trim();
+      const { transcribeAudio } = await import("./stt.server");
+      const { transcript, words } = await transcribeAudio(file);
       await supabaseAdmin.from("answers").update({
         status: "ready",
         transcript,
-        words_json: json.words ?? null,
+        words_json: words,
       }).eq("id", ans.id);
+
 
       // Best-effort auto quality scoring (does not block the pipeline).
       try { await scoreAnswerInternal(ans.id, transcript); } catch (err) { console.error("quality score failed", err); }
