@@ -1,38 +1,50 @@
+## Problema
 
-## 1) Barra de progresso dividida
+Quando o entrevistado clica em "Concluir resposta" sem ter falado, o áudio é enviado mas a transcrição volta vazia. O `processAnswer` salva o answer como `status: "ready"` com `transcript: ""`. Em seguida, `computeNextStep` faz o filtro `a.status === "ready" && a.transcript` — como o transcript é string vazia (falsy), considera que ainda está em processamento e devolve `{ type: "processing" }`. O front fica re-polando a cada 2.5s e oscilando entre "Processando…" e a próxima tela, sem nunca avançar.
 
-Reescrever `src/components/interview/InterviewProgress.tsx` para mostrar **duas barras empilhadas**:
+Além disso, hoje nada impede o usuário de finalizar com 0–1s de gravação.
 
-- **Barra primária (perguntas principais)** — mais grossa (`h-2`).
-  - Rótulo: `Pergunta X de N`.
-  - Valor: `((X − 1) / N) * 100`. **Não avança** durante os aprofundamentos da pergunta X — só muda quando a entrevista passa para a pergunta principal X+1.
-- **Barra secundária (aprofundamentos)** — mais fina (`h-1`, tom mais suave).
-  - Só aparece quando `max_followups > 0`.
-  - Rótulo: `Aprofundamento k de M` (ou `Sem aprofundamento` quando `k = 0`).
-  - Valor: `(followups_done_for_current / max_followups) * 100`. Reseta a cada nova pergunta principal.
+## Solução
 
-Ajuste em `src/lib/interview.functions.ts` no objeto `totals` devolvido por `getNextStep` para garantir que `current_position` aponte sempre para a pergunta raiz em curso (não incrementa em follow-ups) e que `followups_done_for_current` zere quando a raiz muda.
+Tratar resposta vazia como falha recuperável e avisar o entrevistado para repetir a pergunta. Sem mudar o pipeline de STT nem o esquema.
 
-Nenhuma mudança no contrato `next`, nem em `PipelineStatus`.
+### 1) Backend — `src/lib/interview.functions.ts`
 
-## 2) Gravação contínua sem clicar a cada pergunta
+No `processAnswer`, após `transcribeAudio`:
+- Se `transcript.trim()` estiver vazio (ou abaixo de ~2 caracteres), **não** salvar como `ready`. Marcar como:
+  ```
+  status: "failed",
+  error_message: "Nenhuma fala detectada no vídeo."
+  ```
+  e **não** disparar `scoreAnswerInternal`.
+- Retornar `{ next, empty: true }` para o cliente saber que precisa avisar e re-perguntar.
 
-Hoje, a cada pergunta, o respondente precisa clicar **Gravar** e depois **Parar/Enviar**. Vou unificar isso em `src/routes/r_.$slug.run.tsx` (componente `Recorder` + `RunInner`):
+Isso já se encaixa no `computeNextStep` atual:
+- Para **pergunta principal** falhada: `forQ` (que filtra `status !== "failed"`) fica vazio → devolve a mesma pergunta novamente.
+- Para **follow-up** falhado: já existe o branch que detecta `lastForQ.status === "failed" && lastForQ.is_followup` e re-pergunta o mesmo follow-up. 
 
-- Quando uma nova pergunta aparece e a câmera já está ativa, **iniciar a gravação automaticamente** após um pequeno preroll visual (contagem regressiva de 2–3s mostrando "Gravando em 3… 2… 1…"). Isso dá tempo do respondente ler a pergunta antes da fala.
-- Substituir os dois botões por um único botão **"Concluir resposta"** (ou "Próxima pergunta") visível durante a gravação. Ao clicar, o `MediaRecorder` para, o blob é enviado e a próxima pergunta carrega.
-- Assim que a próxima pergunta chega (`step` muda e não é `processing`/`done`), o ciclo recomeça: preroll → gravação automática → botão "Concluir resposta".
-- Manter o botão **"Enviar vídeo"** (upload de arquivo) como alternativa, visível apenas durante o preroll/idle.
-- Na **primeira pergunta**, manter o fluxo atual de "Ativar câmera" — só depois que o stream é concedido o preroll inicia.
-- O stream da câmera continua persistente entre perguntas (já implementado).
-- Indicador visual: badge vermelho "● Gravando · 0:12" no canto do vídeo durante a gravação; barra do preroll antes.
+Nenhuma migração necessária — `failed` já é estado válido.
 
-Sem auto-stop por silêncio nesta iteração — o respondente decide quando terminar. Se você quiser auto-stop por X segundos de silêncio, posso adicionar depois.
+### 2) Frontend — `src/routes/r_.$slug.run.tsx`
 
-## Arquivos tocados
+**a)** Em `handleRecorded`, após `processAns`, se `r.empty === true`:
+- `toast.warning("Não captamos nenhuma fala. Por favor, repita a resposta.")`
+- Não exibir "Entrevista concluída".
+- Chamar `loadNext(interviewId)` normalmente (que vai trazer a mesma pergunta de volta, com `totals` consistentes pois a tentativa falhou não conta como follow-up feito — `getNextStep` já filtra `a.status !== "failed"` em `followups_done_for_current`).
 
-- `src/components/interview/InterviewProgress.tsx` (reescrita do JSX, mesmas props).
-- `src/lib/interview.functions.ts` (ajuste fino em `totals`).
-- `src/routes/r_.$slug.run.tsx` (auto-start com preroll, botão único "Concluir resposta", indicador de gravação).
+**b)** Prevenção no `Recorder`:
+- Definir `MIN_RECORDING_SECONDS = 2`.
+- O botão "Concluir resposta" fica desabilitado (com tooltip "Aguarde alguns segundos…") enquanto `elapsed < MIN_RECORDING_SECONDS`.
+- Após esse limite, fica habilitado normalmente. (Não bloqueia gravação silenciosa, só clique-acidental imediato — a detecção real de "falou nada" continua sendo a do STT no backend.)
 
-Fora de escopo: STT, autenticação, `PipelineStatus`, câmera persistente (já feito).
+### 3) Sem alterações em
+
+- `InterviewProgress.tsx` (já lida bem com re-tentativa pois totals são recomputados).
+- `stt.server.ts`.
+- Pipeline de câmera persistente.
+- Auth / RLS / migrations.
+
+## Arquivos a editar
+
+- `src/lib/interview.functions.ts` — branch de transcript vazio em `processAnswer`, devolver `empty` no retorno.
+- `src/routes/r_.$slug.run.tsx` — toast + re-load em `empty`, gate de 2s no botão "Concluir resposta".

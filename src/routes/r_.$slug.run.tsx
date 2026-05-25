@@ -134,6 +134,11 @@ function RunInner({ slug }: { slug: string }) {
       });
       if (upErr) throw new Error(upErr.message);
       const r = await processAns({ data: { answer_id: created.answer_id } });
+      if ((r as any).empty) {
+        toast.warning("Não captamos nenhuma fala. Por favor, repita a resposta.");
+        await loadNext(interviewId);
+        return;
+      }
       setStep(r.next);
       if (r.next.type === "done") {
         stopStream();
@@ -146,6 +151,7 @@ function RunInner({ slug }: { slug: string }) {
       toast.error((e as Error).message);
     }
   };
+
 
   if (!interviewId || !step || stepLoading) {
     return <div className="mx-auto max-w-2xl px-6 py-20 text-sm text-muted-foreground">Preparando…</div>;
@@ -195,6 +201,8 @@ function RunInner({ slug }: { slug: string }) {
 }
 
 const PREROLL_SECONDS = 3;
+const MIN_RECORDING_SECONDS = 2;
+
 
 function Recorder({
   questionKey,
@@ -373,10 +381,16 @@ function Recorder({
             </button>
           )}
           {state === "recording" && (
-            <button onClick={finish} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
+            <button
+              onClick={finish}
+              disabled={elapsed < MIN_RECORDING_SECONDS}
+              title={elapsed < MIN_RECORDING_SECONDS ? "Aguarde alguns segundos…" : undefined}
+              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
+            >
               Concluir resposta
             </button>
           )}
+
         </div>
       </div>
     </div>
