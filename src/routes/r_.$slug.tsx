@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useState } from "react";
@@ -11,11 +11,20 @@ import { LGPD_VERSION } from "@/lib/lgpd";
 
 export const Route = createFileRoute("/r_/$slug")({
   head: () => ({ meta: [{ title: "Entrevista — Lente" }] }),
-  component: PublicStudyPage,
+  component: PublicStudyRoute,
 });
 
-function PublicStudyPage() {
+function PublicStudyRoute() {
   const { slug } = Route.useParams();
+  const pathname = useRouterState({ select: (state) => state.location.pathname.replace(/\/$/, "") });
+  const runPath = `/r/${slug}/run`;
+
+  if (pathname === runPath) return <Outlet />;
+
+  return <PublicStudyPage slug={slug} />;
+}
+
+function PublicStudyPage({ slug }: { slug: string }) {
   const navigate = useNavigate();
   const { isAuthenticated, loading } = useAuth();
   const fetchStudy = useServerFn(getStudyBySlug);
