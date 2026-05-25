@@ -6,6 +6,17 @@ import { getStudy, updateStudy, upsertQuestion, deleteQuestion } from "@/lib/stu
 import { toast } from "sonner";
 import { ScriptBuilderActions } from "@/components/study/ScriptBuilderActions";
 
+const PUBLISHED_ORIGIN = "https://lentejps.lovable.app";
+
+function getRespondentOrigin() {
+  if (typeof window === "undefined") return PUBLISHED_ORIGIN;
+  const host = window.location.hostname;
+  if (host.includes("lovableproject.com") || host.includes("id-preview--") || host.includes("-preview--")) {
+    return PUBLISHED_ORIGIN;
+  }
+  return window.location.origin;
+}
+
 export const Route = createFileRoute("/_authenticated/studies/$id")({
   head: () => ({ meta: [{ title: "Editar estudo — Lente" }] }),
   component: StudyEditor,
@@ -70,7 +81,7 @@ function StudyEditor() {
   if (isLoading) return <div className="mx-auto max-w-4xl px-6 py-12 text-sm text-muted-foreground">Carregando…</div>;
   if (!data?.study) return <div className="mx-auto max-w-4xl px-6 py-12">Estudo não encontrado.</div>;
 
-  const publicLink = typeof window !== "undefined" ? `${window.location.origin}/r/${data.study.public_slug}` : "";
+  const publicLink = `${getRespondentOrigin()}/r/${data.study.public_slug}`;
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-12 space-y-10">
@@ -176,7 +187,7 @@ function StudyEditor() {
             className="rounded-md border border-border px-3 py-2 text-sm hover:bg-accent">Copiar</button>
         </div>
         <p className="mt-4 text-xs text-muted-foreground">
-          O respondente acessa o link, cria conta, grava as respostas em vídeo e a IA transcreve e faz follow-ups automaticamente.
+          O respondente acessa o link publicado, cria conta ou entra, grava as respostas em vídeo e a IA transcreve e faz follow-ups automaticamente.
         </p>
       </section>
     </div>
