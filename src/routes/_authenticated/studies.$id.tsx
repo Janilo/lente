@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { getStudy, updateStudy, upsertQuestion, deleteQuestion } from "@/lib/studies.functions";
 import { toast } from "sonner";
 import { ScriptBuilderActions } from "@/components/study/ScriptBuilderActions";
+import { ScreenerBuilder } from "@/components/study/ScreenerBuilder";
 
 const PUBLISHED_ORIGIN = "https://lentejps.lovable.app";
 
@@ -146,6 +147,8 @@ function StudyEditor() {
           </button>
         </div>
       </section>
+
+      <ScreenerBuilder studyId={id} />
 
       <section className="rounded-lg border border-border bg-card p-6 space-y-4">
         <div className="flex items-center justify-between gap-3 flex-wrap">

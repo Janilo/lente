@@ -6,6 +6,7 @@ import { getStudyBySlug, startInterview } from "@/lib/interview.functions";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { ConsentCheckbox } from "@/components/interview/ConsentCheckbox";
+import { ScreenerForm } from "@/components/interview/ScreenerForm";
 import { LGPD_VERSION } from "@/lib/lgpd";
 
 export const Route = createFileRoute("/r_/$slug")({
@@ -20,6 +21,7 @@ function PublicStudyPage() {
   const fetchStudy = useServerFn(getStudyBySlug);
   const startFn = useServerFn(startInterview);
   const [consent, setConsent] = useState(false);
+  const [qualified, setQualified] = useState(false);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["public-study", slug],
@@ -59,7 +61,21 @@ function PublicStudyPage() {
       <div className="mt-10 space-y-6">
         {loading ? (
           <div className="text-sm text-muted-foreground">…</div>
-        ) : isAuthenticated ? (
+        ) : !isAuthenticated ? (
+          <div className="flex flex-col gap-3">
+            <p className="text-sm text-muted-foreground">Crie uma conta ou entre para participar.</p>
+            <div className="flex gap-3">
+              <Link to="/signup" search={{ returnTo }} className="rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground">
+                Criar conta
+              </Link>
+              <Link to="/login" search={{ returnTo }} className="rounded-md border border-border bg-card px-6 py-3 text-sm font-medium hover:bg-accent">
+                Entrar
+              </Link>
+            </div>
+          </div>
+        ) : !qualified ? (
+          <ScreenerForm slug={slug} onQualified={() => setQualified(true)} />
+        ) : (
           <>
             <ConsentCheckbox checked={consent} onChange={setConsent} />
             <button
@@ -70,26 +86,6 @@ function PublicStudyPage() {
               {start.isPending ? "Iniciando…" : "Iniciar entrevista"}
             </button>
           </>
-        ) : (
-          <div className="flex flex-col gap-3">
-            <p className="text-sm text-muted-foreground">Crie uma conta ou entre para participar.</p>
-            <div className="flex gap-3">
-              <Link
-                to="/signup"
-                search={{ returnTo }}
-                className="rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground"
-              >
-                Criar conta
-              </Link>
-              <Link
-                to="/login"
-                search={{ returnTo }}
-                className="rounded-md border border-border bg-card px-6 py-3 text-sm font-medium hover:bg-accent"
-              >
-                Entrar
-              </Link>
-            </div>
-          </div>
         )}
       </div>
     </div>
