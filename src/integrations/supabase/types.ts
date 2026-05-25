@@ -23,6 +23,8 @@ export type Database = {
           interview_id: string
           is_followup: boolean
           parent_answer_id: string | null
+          quality_reasoning: string | null
+          quality_score: number | null
           question_id: string | null
           question_text: string
           status: Database["public"]["Enums"]["answer_status"]
@@ -39,6 +41,8 @@ export type Database = {
           interview_id: string
           is_followup?: boolean
           parent_answer_id?: string | null
+          quality_reasoning?: string | null
+          quality_score?: number | null
           question_id?: string | null
           question_text: string
           status?: Database["public"]["Enums"]["answer_status"]
@@ -55,6 +59,8 @@ export type Database = {
           interview_id?: string
           is_followup?: boolean
           parent_answer_id?: string | null
+          quality_reasoning?: string | null
+          quality_score?: number | null
           question_id?: string | null
           question_text?: string
           status?: Database["public"]["Enums"]["answer_status"]
@@ -86,6 +92,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      consents: {
+        Row: {
+          accepted_at: string
+          consent_version: string
+          created_at: string
+          id: string
+          interview_id: string
+          ip_address: string | null
+          study_id: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          accepted_at?: string
+          consent_version: string
+          created_at?: string
+          id?: string
+          interview_id: string
+          ip_address?: string | null
+          study_id: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          accepted_at?: string
+          consent_version?: string
+          created_at?: string
+          id?: string
+          interview_id?: string
+          ip_address?: string | null
+          study_id?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       insights: {
         Row: {
@@ -322,6 +364,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      delete_respondent_data: {
+        Args: { p_interview_id: string }
+        Returns: undefined
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

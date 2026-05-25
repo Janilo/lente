@@ -51,9 +51,9 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const RSlugRunRoute = RSlugRunRouteImport.update({
-  id: '/run',
-  path: '/run',
-  getParentRoute: () => RSlugRoute,
+  id: '/r/$slug/run',
+  path: '/r/$slug/run',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedStudiesIdRoute = AuthenticatedStudiesIdRouteImport.update({
   id: '/studies/$id',
@@ -163,6 +163,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
   RSlugRoute: typeof RSlugRoute
+  RSlugRunRoute: typeof RSlugRunRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -211,10 +212,10 @@ declare module '@tanstack/react-router' {
     }
     '/r/$slug/run': {
       id: '/r/$slug/run'
-      path: '/run'
+      path: '/r/$slug/run'
       fullPath: '/r/$slug/run'
       preLoaderRoute: typeof RSlugRunRouteImport
-      parentRoute: typeof RSlugRoute
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/studies/$id': {
       id: '/_authenticated/studies/$id'
@@ -299,17 +300,8 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
   RSlugRoute: RSlugRoute,
+  RSlugRunRoute: RSlugRunRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
