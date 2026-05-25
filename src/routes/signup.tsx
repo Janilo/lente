@@ -74,6 +74,7 @@ function SignupPage() {
       <p className="mt-6 text-sm text-muted-foreground">
         Já tem conta? <Link to="/login" className="text-primary underline">Entrar</Link>
       </p>
+      </div>
     </div>
   );
 }
