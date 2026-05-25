@@ -1,55 +1,38 @@
 
-## 1) Substituir "Status do pipeline" por barra de progresso (lado respondente)
+## 1) Barra de progresso dividida
 
-Hoje `src/routes/r_.$slug.run.tsx` mostra o `PipelineStatus` (4 etapas técnicas: upload → transcrição → follow-up → síntese) — informação operacional que faz sentido para o pesquisador, não para quem está respondendo.
+Reescrever `src/components/interview/InterviewProgress.tsx` para mostrar **duas barras empilhadas**:
 
-Mudanças:
+- **Barra primária (perguntas principais)** — mais grossa (`h-2`).
+  - Rótulo: `Pergunta X de N`.
+  - Valor: `((X − 1) / N) * 100`. **Não avança** durante os aprofundamentos da pergunta X — só muda quando a entrevista passa para a pergunta principal X+1.
+- **Barra secundária (aprofundamentos)** — mais fina (`h-1`, tom mais suave).
+  - Só aparece quando `max_followups > 0`.
+  - Rótulo: `Aprofundamento k de M` (ou `Sem aprofundamento` quando `k = 0`).
+  - Valor: `(followups_done_for_current / max_followups) * 100`. Reseta a cada nova pergunta principal.
 
-- Criar `src/components/interview/InterviewProgress.tsx`: uma barra fina (componente `Progress` do shadcn) + rótulo "Pergunta X de N · M de aprofundamento" e marcador discreto quando a etapa atual é follow-up.
-- Em `r_.$slug.run.tsx`, substituir os dois usos de `<PipelineStatus variant="respondent" />` (telas de pergunta e de processing) por `<InterviewProgress />`.
-- Manter `PipelineStatus` intacto para o pesquisador (`studies.$id.interviews.$interviewId.tsx`).
+Ajuste em `src/lib/interview.functions.ts` no objeto `totals` devolvido por `getNextStep` para garantir que `current_position` aponte sempre para a pergunta raiz em curso (não incrementa em follow-ups) e que `followups_done_for_current` zere quando a raiz muda.
 
-Fonte dos números: o `next` já devolve `position` da pergunta atual; o total de perguntas pode vir de uma extensão pequena em `getNextStep` (devolver `{ next, totals: { question_count, current_position, followups_for_current, max_followups } }`) ou via um campo adicional em `getInterviewPipelineStatus`. Vou estender `getNextStep` — é o que o run page já chama.
+Nenhuma mudança no contrato `next`, nem em `PipelineStatus`.
 
-## 2) Pedir câmera apenas na primeira pergunta
+## 2) Gravação contínua sem clicar a cada pergunta
 
-Hoje `Recorder` é re-montado a cada pergunta (graças à `key={...}` em `r_.$slug.run.tsx`), o que descarta o `MediaStream` e força "Ativar câmera" toda vez. Além disso, no fim de cada gravação o `onstop` faz `streamRef.current?.getTracks().forEach(t => t.stop())`.
+Hoje, a cada pergunta, o respondente precisa clicar **Gravar** e depois **Parar/Enviar**. Vou unificar isso em `src/routes/r_.$slug.run.tsx` (componente `Recorder` + `RunInner`):
 
-Mudanças em `r_.$slug.run.tsx`:
+- Quando uma nova pergunta aparece e a câmera já está ativa, **iniciar a gravação automaticamente** após um pequeno preroll visual (contagem regressiva de 2–3s mostrando "Gravando em 3… 2… 1…"). Isso dá tempo do respondente ler a pergunta antes da fala.
+- Substituir os dois botões por um único botão **"Concluir resposta"** (ou "Próxima pergunta") visível durante a gravação. Ao clicar, o `MediaRecorder` para, o blob é enviado e a próxima pergunta carrega.
+- Assim que a próxima pergunta chega (`step` muda e não é `processing`/`done`), o ciclo recomeça: preroll → gravação automática → botão "Concluir resposta".
+- Manter o botão **"Enviar vídeo"** (upload de arquivo) como alternativa, visível apenas durante o preroll/idle.
+- Na **primeira pergunta**, manter o fluxo atual de "Ativar câmera" — só depois que o stream é concedido o preroll inicia.
+- O stream da câmera continua persistente entre perguntas (já implementado).
+- Indicador visual: badge vermelho "● Gravando · 0:12" no canto do vídeo durante a gravação; barra do preroll antes.
 
-- Içar o `MediaStream` para o componente pai (`RunInner`) num `useRef`, junto com um único `<video>` preview persistente.
-- Remover a `key` que força remount do Recorder; em vez disso, passar a pergunta atual como prop e resetar só o estado de gravação (`chunks`, `elapsed`, `state`) quando a pergunta muda.
-- No `onstop` do `MediaRecorder`, NÃO parar as tracks; apenas zerar `chunksRef` e voltar `state` para `ready`.
-- Parar as tracks só no unmount do `RunInner` (fim da entrevista ou saída da página) e quando `step.type === "done"`.
-- Continuar oferecendo o botão "Enviar vídeo" (upload de arquivo) como alternativa; nesse caso a câmera continua ativa para a próxima pergunta de vídeo.
-
-Resultado: o respondente concede permissão uma única vez e o preview da câmera fica visível durante toda a entrevista.
-
-## 3) Erro da API de transcrição — diagnóstico
-
-O painel mostra "3 de 5 transcritas · 2 com falha". Olhando o histórico:
-
-- Originalmente o STT era ElevenLabs e quebrou por falta de crédito.
-- Mudamos para AssemblyAI. A primeira tentativa foi com `speech_model: "universal"` (singular) → a AssemblyAI rejeitou com 400 `"speech_models" must be a non-empty list containing one or more of: "universal-3-pro", "universal-2"`.
-- A correção atual em `src/lib/stt.server.ts` já envia `speech_models: ["universal-3-pro"]` no corpo (forma de lista, como a API exige).
-
-Conclusão: as 2 falhas registradas são das tentativas anteriores à correção (a coluna `answers.error_message` guarda a última mensagem). Nada está quebrado agora — basta:
-
-- Confirmar que a chave `ASSEMBLYAI_API_KEY` está setada (já estava, pois a chamada chegou a retornar 400, não 401).
-- "Re-tentar" as 2 respostas falhas: o `computeNextStep` já trata `status='failed'` re-pedindo a pergunta ao respondente. Na próxima visita à entrevista o respondente é convidado a regravar essas 2 perguntas e a transcrição roda no modelo correto.
-
-Se quiser, posso adicionar um botão "Tentar transcrever novamente" no painel do pesquisador (reprocessa o vídeo já gravado em vez de pedir nova gravação) — me confirma e incluo no escopo.
-
-## Detalhes técnicos
-
-- `getNextStep` passa a retornar também `totals` (consulta `questions` count + `answers` para a pergunta atual). Sem mudança no contrato `next`.
-- `InterviewProgress` usa `Progress` (`src/components/ui/progress.tsx`) com `value = (current_position - 1 + done_fraction) / total * 100`.
-- Tracks da câmera: ciclo de vida controlado por `useEffect(() => () => stopStream(), [])` no `RunInner`.
+Sem auto-stop por silêncio nesta iteração — o respondente decide quando terminar. Se você quiser auto-stop por X segundos de silêncio, posso adicionar depois.
 
 ## Arquivos tocados
 
-- `src/components/interview/InterviewProgress.tsx` (novo)
-- `src/routes/r_.$slug.run.tsx` (substituir status + içar stream)
-- `src/lib/interview.functions.ts` (adicionar `totals` ao retorno de `getNextStep`)
+- `src/components/interview/InterviewProgress.tsx` (reescrita do JSX, mesmas props).
+- `src/lib/interview.functions.ts` (ajuste fino em `totals`).
+- `src/routes/r_.$slug.run.tsx` (auto-start com preroll, botão único "Concluir resposta", indicador de gravação).
 
-Nenhuma mudança em `stt.server.ts` (já corrigido), nem na variante "researcher" do `PipelineStatus`.
+Fora de escopo: STT, autenticação, `PipelineStatus`, câmera persistente (já feito).
