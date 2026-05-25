@@ -5,7 +5,7 @@ import { getStudyBySlug, startInterview } from "@/lib/interview.functions";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/r/$slug")({
+export const Route = createFileRoute("/r_/$slug")({
   head: () => ({ meta: [{ title: "Entrevista — Lente" }] }),
   component: PublicStudyPage,
 });
