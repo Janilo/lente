@@ -2,8 +2,11 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { listMyStudies, createStudy } from "@/lib/studies.functions";
+import { createTestInterview } from "@/lib/test-interview.functions";
+import { generateSynthesis } from "@/lib/synthesis.functions";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Meus estudos — Lente" }] }),
@@ -13,6 +16,8 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 function Dashboard() {
   const fetchStudies = useServerFn(listMyStudies);
   const createFn = useServerFn(createStudy);
+  const testFn = useServerFn(createTestInterview);
+  const synthFn = useServerFn(generateSynthesis);
   const navigate = useNavigate();
   const qc = useQueryClient();
 
@@ -34,17 +39,48 @@ function Dashboard() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const runTest = useMutation({
+    mutationFn: async () => {
+      const seed = await testFn();
+      const t = toast.loading("Validando síntese com IA…");
+      try {
+        const result = await synthFn({ data: { study_id: seed.study_id } });
+        toast.success(`Pipeline OK: ${result.insight_count} insights e ${result.recommendation_count} recomendações.`, { id: t });
+      } catch (e) {
+        toast.error(`Síntese falhou: ${(e as Error).message}`, { id: t });
+      }
+      return seed;
+    },
+    onSuccess: (seed) => {
+      qc.invalidateQueries({ queryKey: ["studies"] });
+      navigate({ to: "/studies/$id/synthesis", params: { id: seed.study_id } });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
     <div className="mx-auto max-w-5xl px-6 py-12">
-      <div className="flex items-end justify-between">
+      <div className="flex items-end justify-between gap-3 flex-wrap">
         <div>
           <p className="jps-eyebrow">Pesquisas</p>
           <h1 className="mt-2 text-4xl">Meus estudos</h1>
         </div>
-        <button onClick={() => setOpen(true)} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
-          Novo estudo
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => runTest.mutate()}
+            disabled={runTest.isPending}
+            title="Cria um estudo demo com entrevista simulada e roda a síntese completa."
+            className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-sm hover:bg-accent disabled:opacity-50"
+          >
+            <Sparkles className="h-4 w-4" />
+            {runTest.isPending ? "Gerando…" : "Entrevista de teste"}
+          </button>
+          <button onClick={() => setOpen(true)} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
+            Novo estudo
+          </button>
+        </div>
       </div>
+
 
       {open && (
         <div className="mt-8 rounded-lg border border-border bg-card p-6">
