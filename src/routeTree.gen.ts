@@ -10,14 +10,19 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RSlugRouteImport } from './routes/r_.$slug'
+import { Route as RSlugRouteImport } from './routes/r.$slug'
+import { Route as AuthenticatedMyPrivacyRouteImport } from './routes/_authenticated/my-privacy'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as RSlugRunRouteImport } from './routes/r.$slug.run'
+import { Route as RSlugRunRouteImport } from './routes/r_.$slug.run'
 import { Route as AuthenticatedStudiesIdRouteImport } from './routes/_authenticated/studies.$id'
 import { Route as AuthenticatedStudiesIdSynthesisRouteImport } from './routes/_authenticated/studies.$id.synthesis'
+import { Route as AuthenticatedStudiesIdRespondentsRouteImport } from './routes/_authenticated/studies.$id.respondents'
 import { Route as AuthenticatedStudiesIdInterviewsRouteImport } from './routes/_authenticated/studies.$id.interviews'
 import { Route as AuthenticatedStudiesIdInterviewsInterviewIdRouteImport } from './routes/_authenticated/studies.$id.interviews.$interviewId'
 
@@ -26,9 +31,19 @@ const SignupRoute = SignupRouteImport.update({
   path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
@@ -44,6 +59,16 @@ const RSlugRoute = RSlugRouteImport.update({
   id: '/r_/$slug',
   path: '/r/$slug',
   getParentRoute: () => rootRouteImport,
+} as any)
+const RSlugRoute = RSlugRouteImport.update({
+  id: '/r/$slug',
+  path: '/r/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedMyPrivacyRoute = AuthenticatedMyPrivacyRouteImport.update({
+  id: '/my-privacy',
+  path: '/my-privacy',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
@@ -66,6 +91,12 @@ const AuthenticatedStudiesIdSynthesisRoute =
     path: '/synthesis',
     getParentRoute: () => AuthenticatedStudiesIdRoute,
   } as any)
+const AuthenticatedStudiesIdRespondentsRoute =
+  AuthenticatedStudiesIdRespondentsRouteImport.update({
+    id: '/respondents',
+    path: '/respondents',
+    getParentRoute: () => AuthenticatedStudiesIdRoute,
+  } as any)
 const AuthenticatedStudiesIdInterviewsRoute =
   AuthenticatedStudiesIdInterviewsRouteImport.update({
     id: '/interviews',
@@ -81,25 +112,33 @@ const AuthenticatedStudiesIdInterviewsInterviewIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/r/$slug': typeof RSlugRoute
+  '/my-privacy': typeof AuthenticatedMyPrivacyRoute
+  '/r/$slug': typeof RSlugRouteWithChildren
   '/studies/$id': typeof AuthenticatedStudiesIdRouteWithChildren
   '/r/$slug/run': typeof RSlugRunRoute
   '/studies/$id/interviews': typeof AuthenticatedStudiesIdInterviewsRouteWithChildren
+  '/studies/$id/respondents': typeof AuthenticatedStudiesIdRespondentsRoute
   '/studies/$id/synthesis': typeof AuthenticatedStudiesIdSynthesisRoute
   '/studies/$id/interviews/$interviewId': typeof AuthenticatedStudiesIdInterviewsInterviewIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/r/$slug': typeof RSlugRoute
+  '/my-privacy': typeof AuthenticatedMyPrivacyRoute
+  '/r/$slug': typeof RSlugRouteWithChildren
   '/studies/$id': typeof AuthenticatedStudiesIdRouteWithChildren
   '/r/$slug/run': typeof RSlugRunRoute
   '/studies/$id/interviews': typeof AuthenticatedStudiesIdInterviewsRouteWithChildren
+  '/studies/$id/respondents': typeof AuthenticatedStudiesIdRespondentsRoute
   '/studies/$id/synthesis': typeof AuthenticatedStudiesIdSynthesisRoute
   '/studies/$id/interviews/$interviewId': typeof AuthenticatedStudiesIdInterviewsInterviewIdRoute
 }
@@ -107,13 +146,18 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/r_/$slug': typeof RSlugRoute
+  '/_authenticated/my-privacy': typeof AuthenticatedMyPrivacyRoute
+  '/r/$slug': typeof RSlugRoute
+  '/r_/$slug': typeof RSlugRouteWithChildren
   '/_authenticated/studies/$id': typeof AuthenticatedStudiesIdRouteWithChildren
-  '/r/$slug/run': typeof RSlugRunRoute
+  '/r_/$slug/run': typeof RSlugRunRoute
   '/_authenticated/studies/$id/interviews': typeof AuthenticatedStudiesIdInterviewsRouteWithChildren
+  '/_authenticated/studies/$id/respondents': typeof AuthenticatedStudiesIdRespondentsRoute
   '/_authenticated/studies/$id/synthesis': typeof AuthenticatedStudiesIdSynthesisRoute
   '/_authenticated/studies/$id/interviews/$interviewId': typeof AuthenticatedStudiesIdInterviewsInterviewIdRoute
 }
@@ -121,38 +165,51 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/forgot-password'
     | '/login'
+    | '/reset-password'
     | '/signup'
     | '/dashboard'
+    | '/my-privacy'
     | '/r/$slug'
     | '/studies/$id'
     | '/r/$slug/run'
     | '/studies/$id/interviews'
+    | '/studies/$id/respondents'
     | '/studies/$id/synthesis'
     | '/studies/$id/interviews/$interviewId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/forgot-password'
     | '/login'
+    | '/reset-password'
     | '/signup'
     | '/dashboard'
+    | '/my-privacy'
     | '/r/$slug'
     | '/studies/$id'
     | '/r/$slug/run'
     | '/studies/$id/interviews'
+    | '/studies/$id/respondents'
     | '/studies/$id/synthesis'
     | '/studies/$id/interviews/$interviewId'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/forgot-password'
     | '/login'
+    | '/reset-password'
     | '/signup'
     | '/_authenticated/dashboard'
+    | '/_authenticated/my-privacy'
+    | '/r/$slug'
     | '/r_/$slug'
     | '/_authenticated/studies/$id'
-    | '/r/$slug/run'
+    | '/r_/$slug/run'
     | '/_authenticated/studies/$id/interviews'
+    | '/_authenticated/studies/$id/respondents'
     | '/_authenticated/studies/$id/synthesis'
     | '/_authenticated/studies/$id/interviews/$interviewId'
   fileRoutesById: FileRoutesById
@@ -160,9 +217,12 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
   RSlugRoute: typeof RSlugRoute
+  RSlugRoute: typeof RSlugRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -174,11 +234,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -202,6 +276,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/r/$slug': {
+      id: '/r/$slug'
+      path: '/r/$slug'
+      fullPath: '/r/$slug'
+      preLoaderRoute: typeof RSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/my-privacy': {
+      id: '/_authenticated/my-privacy'
+      path: '/my-privacy'
+      fullPath: '/my-privacy'
+      preLoaderRoute: typeof AuthenticatedMyPrivacyRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -209,8 +297,8 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/r/$slug/run': {
-      id: '/r/$slug/run'
+    '/r_/$slug/run': {
+      id: '/r_/$slug/run'
       path: '/run'
       fullPath: '/r/$slug/run'
       preLoaderRoute: typeof RSlugRunRouteImport
@@ -228,6 +316,13 @@ declare module '@tanstack/react-router' {
       path: '/synthesis'
       fullPath: '/studies/$id/synthesis'
       preLoaderRoute: typeof AuthenticatedStudiesIdSynthesisRouteImport
+      parentRoute: typeof AuthenticatedStudiesIdRoute
+    }
+    '/_authenticated/studies/$id/respondents': {
+      id: '/_authenticated/studies/$id/respondents'
+      path: '/respondents'
+      fullPath: '/studies/$id/respondents'
+      preLoaderRoute: typeof AuthenticatedStudiesIdRespondentsRouteImport
       parentRoute: typeof AuthenticatedStudiesIdRoute
     }
     '/_authenticated/studies/$id/interviews': {
@@ -264,6 +359,7 @@ const AuthenticatedStudiesIdInterviewsRouteWithChildren =
 
 interface AuthenticatedStudiesIdRouteChildren {
   AuthenticatedStudiesIdInterviewsRoute: typeof AuthenticatedStudiesIdInterviewsRouteWithChildren
+  AuthenticatedStudiesIdRespondentsRoute: typeof AuthenticatedStudiesIdRespondentsRoute
   AuthenticatedStudiesIdSynthesisRoute: typeof AuthenticatedStudiesIdSynthesisRoute
 }
 
@@ -271,6 +367,8 @@ const AuthenticatedStudiesIdRouteChildren: AuthenticatedStudiesIdRouteChildren =
   {
     AuthenticatedStudiesIdInterviewsRoute:
       AuthenticatedStudiesIdInterviewsRouteWithChildren,
+    AuthenticatedStudiesIdRespondentsRoute:
+      AuthenticatedStudiesIdRespondentsRoute,
     AuthenticatedStudiesIdSynthesisRoute: AuthenticatedStudiesIdSynthesisRoute,
   }
 
@@ -281,11 +379,13 @@ const AuthenticatedStudiesIdRouteWithChildren =
 
 interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedMyPrivacyRoute: typeof AuthenticatedMyPrivacyRoute
   AuthenticatedStudiesIdRoute: typeof AuthenticatedStudiesIdRouteWithChildren
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedMyPrivacyRoute: AuthenticatedMyPrivacyRoute,
   AuthenticatedStudiesIdRoute: AuthenticatedStudiesIdRouteWithChildren,
 }
 
@@ -293,23 +393,26 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface RSlugRouteChildren {
+  RSlugRunRoute: typeof RSlugRunRoute
+}
+
+const RSlugRouteChildren: RSlugRouteChildren = {
+  RSlugRunRoute: RSlugRunRoute,
+}
+
+const RSlugRouteWithChildren = RSlugRoute._addFileChildren(RSlugRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
   RSlugRoute: RSlugRoute,
+  RSlugRoute: RSlugRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

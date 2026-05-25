@@ -27,7 +27,13 @@ export const getStudyBySlug = createServerFn({ method: "GET" })
 // Start or resume an interview
 export const startInterview = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ slug: z.string().min(1).max(100) }).parse(input))
+  .inputValidator((input) =>
+    z.object({
+      slug: z.string().min(1).max(100),
+      consent_version: z.string().min(1).max(50).optional(),
+      user_agent: z.string().max(500).optional(),
+    }).parse(input),
+  )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { data: study, error: sErr } = await supabaseAdmin
@@ -44,16 +50,34 @@ export const startInterview = createServerFn({ method: "POST" })
       .limit(1)
       .maybeSingle();
 
+    let interviewId: string;
     if (existing && existing.status === "in_progress") {
-      return { interview_id: existing.id };
+      interviewId = existing.id;
+    } else {
+      const { data: created, error } = await supabase
+        .from("interviews")
+        .insert({ study_id: study.id, respondent_id: userId })
+        .select("id")
+        .single();
+      if (error) throw new Error(error.message);
+      interviewId = created.id;
     }
-    const { data: created, error } = await supabase
-      .from("interviews")
-      .insert({ study_id: study.id, respondent_id: userId })
-      .select("id")
-      .single();
-    if (error) throw new Error(error.message);
-    return { interview_id: created.id };
+
+    // Record LGPD consent if provided (idempotent via UNIQUE(interview_id,user_id))
+    if (data.consent_version) {
+      await supabaseAdmin.from("consents").upsert(
+        {
+          interview_id: interviewId,
+          user_id: userId,
+          study_id: study.id,
+          consent_version: data.consent_version,
+          user_agent: data.user_agent ?? null,
+        },
+        { onConflict: "interview_id,user_id", ignoreDuplicates: true },
+      );
+    }
+
+    return { interview_id: interviewId };
   });
 
 // Decide what the next step is for an interview
@@ -255,6 +279,9 @@ export const processAnswer = createServerFn({ method: "POST" })
         transcript,
         words_json: json.words ?? null,
       }).eq("id", ans.id);
+
+      // Best-effort auto quality scoring (does not block the pipeline).
+      try { await scoreAnswerInternal(ans.id, transcript); } catch (err) { console.error("quality score failed", err); }
     } catch (e) {
       await supabaseAdmin.from("answers").update({
         status: "failed",
@@ -430,3 +457,50 @@ export const getInterviewPipelineStatus = createServerFn({ method: "GET" })
       },
     };
   });
+
+// ===== Quality scoring helper (shared with respondents.functions) =====
+export async function scoreAnswerInternal(answer_id: string, transcript?: string) {
+  const apiKey = process.env.LOVABLE_API_KEY;
+  if (!apiKey) return;
+
+  const { data: ans } = await supabaseAdmin
+    .from("answers")
+    .select("id, transcript, question_text, question_id")
+    .eq("id", answer_id)
+    .maybeSingle();
+  if (!ans) return;
+  const text = (transcript ?? ans.transcript ?? "").trim();
+  if (!text) return;
+
+  let intent = "";
+  if (ans.question_id) {
+    const { data: q } = await supabaseAdmin.from("questions").select("intent").eq("id", ans.question_id).maybeSingle();
+    intent = q?.intent ?? "";
+  }
+
+  const system = `Você avalia a qualidade de respostas de entrevistas qualitativas. Retorne SOMENTE JSON válido no formato: {"score": <inteiro 0-100>, "reasoning": "<frase curta em PT-BR>"}.
+Critérios: relevância à pergunta (40%), profundidade/especificidade (30%), clareza (20%), aderência à intenção declarada (10%).`;
+  const user = `Pergunta: ${ans.question_text}
+${intent ? `Intenção da pergunta: ${intent}\n` : ""}Resposta transcrita: ${text}`;
+
+  try {
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [{ role: "system", content: system }, { role: "user", content: user }],
+        response_format: { type: "json_object" },
+      }),
+    });
+    if (!res.ok) return;
+    const json = await res.json();
+    const raw = json.choices?.[0]?.message?.content ?? "{}";
+    const parsed = JSON.parse(raw);
+    const score = Math.max(0, Math.min(100, Math.round(Number(parsed.score) || 0)));
+    const reasoning = String(parsed.reasoning ?? "").slice(0, 500);
+    await supabaseAdmin.from("answers").update({ quality_score: score, quality_reasoning: reasoning }).eq("id", answer_id);
+  } catch (e) {
+    console.error("scoreAnswerInternal", e);
+  }
+}
