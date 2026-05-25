@@ -82,7 +82,7 @@ function RunInner({ slug }: { slug: string }) {
         },
       });
       const { error: upErr } = await supabase.storage.from("interview-videos").upload(created.path, blob, {
-        contentType: "video/webm",
+        contentType: blob.type || "video/webm",
         upsert: true,
       });
       if (upErr) throw new Error(upErr.message);
