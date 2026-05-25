@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { startInterview, getNextStep, createAnswer, processAnswer, finishInterview } from "@/lib/interview.functions";
+import { PipelineStatus } from "@/components/interview/PipelineStatus";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/r/$slug/run")({
@@ -71,7 +72,6 @@ function RunInner({ slug }: { slug: string }) {
   const handleRecorded = async (blob: Blob) => {
     if (!interviewId || !step) return;
     try {
-      toast.info("Enviando gravação…");
       const created = await createAns({
         data: {
           interview_id: interviewId,
@@ -86,7 +86,6 @@ function RunInner({ slug }: { slug: string }) {
         upsert: true,
       });
       if (upErr) throw new Error(upErr.message);
-      toast.info("Transcrevendo…");
       const r = await processAns({ data: { answer_id: created.answer_id } });
       setStep(r.next);
       if (r.next.type === "done") toast.success("Entrevista concluída.");
@@ -110,18 +109,26 @@ function RunInner({ slug }: { slug: string }) {
   }
 
   if (step.type === "processing") {
-    return <div className="mx-auto max-w-2xl px-6 py-20 text-sm text-muted-foreground">Processando última resposta…</div>;
+    return (
+      <div className="mx-auto max-w-2xl px-6 py-12 space-y-6">
+        <PipelineStatus interviewId={interviewId} variant="respondent" />
+        <div className="text-sm text-muted-foreground">Processando última resposta…</div>
+      </div>
+    );
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-12">
-      {step.type === "followup" && (
-        <p className="text-xs uppercase tracking-widest text-primary">Pergunta de aprofundamento</p>
-      )}
-      <h2 className="mt-3 text-2xl font-semibold leading-snug">{step.text}</h2>
-      {step.intent && <p className="mt-2 text-sm text-muted-foreground">{step.intent}</p>}
-      <div className="mt-8">
-        <Recorder key={`${step.question_id}-${step.type}-${step.parent_answer_id ?? "root"}`} onRecorded={handleRecorded} />
+    <div className="mx-auto max-w-2xl px-6 py-12 space-y-6">
+      <PipelineStatus interviewId={interviewId} variant="respondent" />
+      <div>
+        {step.type === "followup" && (
+          <p className="text-xs uppercase tracking-widest text-primary">Pergunta de aprofundamento</p>
+        )}
+        <h2 className="mt-3 text-2xl font-semibold leading-snug">{step.text}</h2>
+        {step.intent && <p className="mt-2 text-sm text-muted-foreground">{step.intent}</p>}
+        <div className="mt-8">
+          <Recorder key={`${step.question_id}-${step.type}-${step.parent_answer_id ?? "root"}`} onRecorded={handleRecorded} />
+        </div>
       </div>
     </div>
   );

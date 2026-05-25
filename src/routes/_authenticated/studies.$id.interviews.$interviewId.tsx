@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { getInterviewDetail } from "@/lib/interview.functions";
+import { PipelineStatus } from "@/components/interview/PipelineStatus";
 
 export const Route = createFileRoute("/_authenticated/studies/$id/interviews/$interviewId")({
   head: () => ({ meta: [{ title: "Entrevista — Lente" }] }),
@@ -35,6 +36,8 @@ function InterviewDetail() {
           Iniciada em {new Date(data.interview.started_at).toLocaleString("pt-BR")}
         </p>
       </div>
+
+      <PipelineStatus interviewId={interviewId} variant="researcher" />
 
       {data.answers.length === 0 ? (
         <div className="rounded-lg border border-border bg-card p-8 text-center text-sm text-muted-foreground">
