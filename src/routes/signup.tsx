@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { BrandHeader } from "@/components/brand/BrandHeader";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({ meta: [{ title: "Criar conta — Lente" }] }),
