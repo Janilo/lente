@@ -297,15 +297,26 @@ export const processAnswer = createServerFn({ method: "POST" })
     try {
       const { transcribeAudio } = await import("./stt.server");
       const { transcript, words } = await transcribeAudio(file);
+
+      const cleaned = (transcript ?? "").trim();
+      if (cleaned.length < 2) {
+        await supabaseAdmin.from("answers").update({
+          status: "failed",
+          error_message: "Nenhuma fala detectada no vídeo.",
+        }).eq("id", ans.id);
+        const next = await computeNextStep(ans.interview_id);
+        return { next, empty: true };
+      }
+
       await supabaseAdmin.from("answers").update({
         status: "ready",
-        transcript,
+        transcript: cleaned,
         words_json: words as any,
       }).eq("id", ans.id);
 
 
       // Best-effort auto quality scoring (does not block the pipeline).
-      try { await scoreAnswerInternal(ans.id, transcript); } catch (err) { console.error("quality score failed", err); }
+      try { await scoreAnswerInternal(ans.id, cleaned); } catch (err) { console.error("quality score failed", err); }
     } catch (e) {
       await supabaseAdmin.from("answers").update({
         status: "failed",
@@ -318,8 +329,9 @@ export const processAnswer = createServerFn({ method: "POST" })
     if (next.type === "done") {
       await supabaseAdmin.from("interviews").update({ status: "completed", finished_at: new Date().toISOString() }).eq("id", ans.interview_id);
     }
-    return { next };
+    return { next, empty: false };
   });
+
 
 export const finishInterview = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
