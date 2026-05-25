@@ -111,18 +111,26 @@ function RunInner({ slug }: { slug: string }) {
   }
 
   if (step.type === "processing") {
-    return <div className="mx-auto max-w-2xl px-6 py-20 text-sm text-muted-foreground">Processando última resposta…</div>;
+    return (
+      <div className="mx-auto max-w-2xl px-6 py-12 space-y-6">
+        <PipelineStatus interviewId={interviewId} variant="respondent" />
+        <div className="text-sm text-muted-foreground">Processando última resposta…</div>
+      </div>
+    );
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-12">
-      {step.type === "followup" && (
-        <p className="text-xs uppercase tracking-widest text-primary">Pergunta de aprofundamento</p>
-      )}
-      <h2 className="mt-3 text-2xl font-semibold leading-snug">{step.text}</h2>
-      {step.intent && <p className="mt-2 text-sm text-muted-foreground">{step.intent}</p>}
-      <div className="mt-8">
-        <Recorder key={`${step.question_id}-${step.type}-${step.parent_answer_id ?? "root"}`} onRecorded={handleRecorded} />
+    <div className="mx-auto max-w-2xl px-6 py-12 space-y-6">
+      <PipelineStatus interviewId={interviewId} variant="respondent" />
+      <div>
+        {step.type === "followup" && (
+          <p className="text-xs uppercase tracking-widest text-primary">Pergunta de aprofundamento</p>
+        )}
+        <h2 className="mt-3 text-2xl font-semibold leading-snug">{step.text}</h2>
+        {step.intent && <p className="mt-2 text-sm text-muted-foreground">{step.intent}</p>}
+        <div className="mt-8">
+          <Recorder key={`${step.question_id}-${step.type}-${step.parent_answer_id ?? "root"}`} onRecorded={handleRecorded} />
+        </div>
       </div>
     </div>
   );
