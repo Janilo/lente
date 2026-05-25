@@ -1,70 +1,67 @@
-# Painel de status do pipeline
+# Plano
 
-Hoje o estado do processamento aparece só via toasts efêmeros (`/r/$slug/run`) e como pílulas por resposta (detalhe da entrevista do pesquisador). Vamos consolidar tudo num painel persistente, igual nos dois lados, com atualização por polling.
+## 1. Bug Chrome — "Iniciar entrevista" só muda a URL
 
-## O que o painel mostra
+**Diagnóstico:** Em `src/routes/r_.$slug.tsx`, o botão navega para `/r/$slug/run`. Como `r.$slug.tsx` foi renomeado para `r_.$slug.tsx`, o arquivo filho `r.$slug.run.tsx` virou rota órfã que ainda funciona no Safari, mas no Chrome o build em cache pode estar servindo a árvore antiga (Service Worker / cache HTTP agressivo). Além disso, o `r.$slug.run.tsx` ainda está com `createFileRoute("/r/$slug/run")` sem um pai explícito, o que é frágil.
 
-Quatro etapas, na ordem do pipeline:
+**Correção:**
+- Renomear `src/routes/r.$slug.run.tsx` → `src/routes/r_.$slug.run.tsx` e atualizar `createFileRoute("/r_/$slug/run")` para deixar a hierarquia consistente.
+- Atualizar a navegação em `r_.$slug.tsx` para `to: "/r_/$slug/run"`.
+- Manter o link público `/r/$slug` funcionando via redirect: criar um `src/routes/r.$slug.tsx` minimalista que apenas faz `redirect({ to: "/r_/$slug", params: { slug } })` em `beforeLoad`, para que links já compartilhados continuem válidos.
+- Adicionar `<meta http-equiv="Cache-Control" content="no-cache">` no `__root.tsx` head para mitigar cache agressivo no Chrome.
 
-```text
-①  Upload do vídeo            (cliente → storage)
-②  Transcrição (ElevenLabs)   (status = transcribing → ready)
-③  Follow-up (Gemini)         (computeNextStep gerou follow-up? / SKIP / sem follow-ups restantes)
-④  Síntese pronta             (insights/recommendations existem para o estudo)
-```
+## 2. "Esqueceu a senha?" no login
 
-Cada etapa tem um de quatro estados visuais: `pendente`, `em andamento` (com spinner), `concluído` (check) e `falhou` (com mensagem). O painel mostra também a contagem de respostas processadas (`X de Y prontas`) e a duração da etapa atual.
+- Adicionar link "Esqueceu a senha?" em `src/routes/login.tsx`.
+- Criar `src/routes/forgot-password.tsx`: input de email → `supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + '/reset-password' })`.
+- Criar `src/routes/reset-password.tsx`: rota pública, detecta `type=recovery` no hash, mostra form de nova senha → `supabase.auth.updateUser({ password })`.
+- Estilo consistente com `login.tsx` / `signup.tsx`.
 
-## Onde aparece
+## 3. Painel de respondentes (perfil do pesquisador, conformidade LGPD)
 
-**Respondente — `/r/$slug/run`** (versão compacta, lateral/topo):
-- ① upload e ② transcrição refletem a resposta que acabou de ser enviada.
-- ③ follow-up acende enquanto `computeNextStep` decide; vira "concluído" assim que o próximo step retorna `question` ou `done`.
-- ④ síntese aparece desabilitada com legenda "disponível após o pesquisador gerar" — o respondente não dispara síntese.
+### Decisões do produto (já confirmadas)
+- Mostrar **email + nome** do respondente.
+- **Consentimento LGPD via checkbox** antes de iniciar a entrevista, com registro auditável.
+- **Qualidade da resposta = score IA (0–100) por pergunta** comparando a resposta à intenção da pergunta.
 
-**Pesquisador — `/studies/$id/interviews/$interviewId`** (versão completa, no topo):
-- ①–③ agregam o estado de todas as respostas da entrevista (qualquer uma em `transcribing` → ② em andamento).
-- ④ consulta `insights`/`recommendations` do estudo: "Síntese pronta · gerada em DD/MM" com link para `/studies/$id/synthesis`, ou "Síntese não gerada" com botão de ir até a página.
+### Banco de dados (1 migração)
+- Tabela `consents`: `id`, `interview_id`, `user_id`, `study_id`, `consent_version` (texto), `accepted_at`, `ip_address`, `user_agent`. RLS: respondente insere o próprio; dono do estudo lê os de suas pesquisas; ninguém deleta (apenas via processo de exclusão de dados).
+- Adicionar coluna `quality_score INT` (0–100) e `quality_reasoning TEXT` em `answers`.
+- View `respondent_panel` (security_invoker=on) consolidando por entrevista: `interview_id`, `study_id`, `respondent_id`, email + full_name (via join com `auth.users` e `profiles`), `started_at`, `finished_at`, `status`, contagem de respostas/total de perguntas, score médio de qualidade, `consent_accepted_at`. Acessível apenas pelo dono do estudo (via política na função de leitura, não na view).
+- Função RPC `delete_respondent_data(p_interview_id uuid)` SECURITY DEFINER: apaga answers (vídeos + linhas), interview e consent referentes ao respondente (executado pelo próprio respondente ou pelo dono do estudo). Para vídeos no storage, fazer remove em lote.
 
-## Como atualiza
+### Server functions (novas em `src/lib/respondents.functions.ts`)
+- `listStudyRespondents({ study_id })` — dono do estudo lista todos respondentes com agregados.
+- `getRespondentDetail({ interview_id })` — detalhe por entrevista, incluindo respostas, transcrições, scores, links assinados de vídeo.
+- `scoreAnswerQuality({ answer_id })` — chama Lovable AI Gateway (google/gemini-2.5-flash) com prompt: transcrição + texto/intenção da pergunta → JSON `{ score: 0-100, reasoning }`. Grava em `answers.quality_score` e `quality_reasoning`. Dispara automaticamente quando uma resposta vira `ready`.
+- `exportInterviewRawData({ interview_id })` — gera ZIP server-side (ou JSON + URLs assinadas dos vídeos) com: metadados da entrevista, consentimento (versão, timestamp, IP, user-agent), perguntas, respostas com transcrição/score, URLs temporárias dos vídeos (válidas 1h). Retorna como download.
+- `deleteRespondentData({ interview_id })` — wrapper da RPC, com confirmação.
 
-Polling com `useQuery` + `refetchInterval` dinâmico:
-- 2,5s enquanto houver etapa em andamento.
-- `false` (para o polling) quando tudo está `ready`/`done` e nada está pendente.
+### UI
+- **Consentimento (em `r_.$slug.tsx`):** antes de habilitar "Iniciar entrevista", checkbox obrigatório com texto LGPD claro (gravação de vídeo, transcrição por IA, retenção, contatos do controlador, direito de exclusão). Ao iniciar, inserir linha em `consents`. Versão do termo = constante `LGPD_CONSENT_V1`.
+- **Novo painel:** `src/routes/_authenticated/studies.$id.respondents.tsx`
+  - Tabela: Nome, Email, Cadastrado em, Status, Etapas (X/Y respondidas), Score médio de qualidade, Consentimento (✓ + data), Ações.
+  - Ações por linha: "Ver detalhes" → drawer com perguntas, respostas (player de vídeo via signed URL), transcrição, score IA + raciocínio. Botão "Baixar dados brutos (ZIP)". Botão "Apagar dados deste respondente" (LGPD – direito ao esquecimento) com confirmação.
+  - Aviso no topo: dados pessoais — uso restrito ao pesquisador, conforme termo aceito pelo respondente.
+- **Link** para o painel no header de `studies.$id.tsx` ("Respondentes").
+- **Página self-service** `src/routes/_authenticated/my-privacy.tsx`: respondente vê suas entrevistas, baixa seus dados, solicita exclusão.
 
-Reaproveita o padrão já existente em `studies.$id.interviews.$interviewId.tsx` (linhas 17–22).
+### Conformidade LGPD — garantias implementadas
+- Base legal: consentimento explícito, versionado, auditável (IP + user-agent + timestamp).
+- Finalidade: declarada no termo.
+- Minimização: pesquisador só vê dados do próprio estudo (RLS).
+- Direito de acesso: respondente baixa próprios dados em `/my-privacy`.
+- Direito de exclusão: respondente e pesquisador podem apagar (RPC remove vídeos + linhas).
+- Segurança: vídeos via signed URL (1h), bucket privado, RLS em todas as tabelas.
 
-## Mudanças no código
+## Detalhes técnicos
 
-### Backend (1 server function nova, sem migration)
+- **Score IA:** modelo `google/gemini-2.5-flash` (rápido/barato), prompt em PT-BR, output JSON via `response_format`. Trigger: após `answers.status = 'ready'`, server-fn `scoreAnswerQuality` rodada em background (chamada do cliente após o polling detectar `ready`).
+- **Export ZIP:** usar `jszip` no Worker (compatível). Vídeos referenciados por signed URL (não embutidos no ZIP para evitar timeout).
+- **Cache Chrome:** adicionar `Cache-Control: no-store` no SSR do `__root.tsx` apenas se o renomeio de rota não resolver sozinho.
 
-`src/lib/interview.functions.ts`:
-- `getInterviewPipelineStatus({ interview_id })` — protegido por `requireSupabaseAuth`, autorizado tanto para `respondent_id = userId` quanto para o `owner_id` do estudo. Retorna:
-  ```ts
-  {
-    answers: { total, uploading, transcribing, ready, failed },
-    last_answer: { id, status, error_message, updated_at } | null,
-    followup: { state: "idle" | "deciding" | "ready" | "skipped" | "exhausted" },
-    synthesis: { has_insights: boolean, has_recommendations: boolean, last_generated_at: string | null },
-  }
-  ```
-- `followup.state` é derivado: se `computeNextStep` retornaria `followup` → `ready`; se a última resposta está `ready` e ainda não há novo step decidido (ex.: chamada Gemini em voo no servidor) → `deciding`; se já passou para próxima pergunta → `skipped`; se atingiu `max_followups` → `exhausted`.
-
-Observação: a chamada Gemini é síncrona dentro do `processAnswer`/`getNextStep` atuais, então `deciding` na prática é o intervalo curto entre o `ready` da transcrição e o próximo `getNextStep`. Não precisa adicionar fila — só refletir o estado computado.
-
-### Frontend (1 componente compartilhado + 2 integrações)
-
-- `src/components/interview/PipelineStatus.tsx` — componente único com prop `variant: "respondent" | "researcher"`. Renderiza as 4 etapas, recebe o resultado de `getInterviewPipelineStatus` e o `interview_id`. Faz seu próprio `useQuery` com polling.
-- `src/routes/r.$slug.run.tsx` — monta `<PipelineStatus variant="respondent" interviewId={...} />` acima do `Recorder`. Remove os toasts redundantes ("Transcrevendo…") já cobertos pelo painel; mantém apenas erros.
-- `src/routes/_authenticated/studies.$id.interviews.$interviewId.tsx` — monta `<PipelineStatus variant="researcher" interviewId={...} />` no topo, antes da lista de respostas. Mantém as `StatusPill` por resposta.
-
-### Design
-
-Lista vertical em card, cada linha com ícone circular (estado), título, sublegenda (ex.: "3 de 5 prontas", "Gerado há 12s", mensagem de erro). Usa tokens do design system (`primary`, `muted-foreground`, `destructive`). Spinner para `em andamento`, check para `concluído`, ponto cinza para `pendente`, X vermelho para `falhou`.
-
-## Fora de escopo
-
-- Realtime via Supabase (preterido pelo polling, conforme escolha).
-- Notificações push / e-mail quando a síntese fica pronta.
-- Histórico de tentativas de retry.
-- Mudanças na lógica de geração de follow-up ou síntese.
+## Arquivos afetados (resumo)
+- Criar: `src/routes/forgot-password.tsx`, `src/routes/reset-password.tsx`, `src/routes/_authenticated/studies.$id.respondents.tsx`, `src/routes/_authenticated/my-privacy.tsx`, `src/routes/r.$slug.tsx` (redirect), `src/lib/respondents.functions.ts`, `src/components/interview/ConsentCheckbox.tsx`, `src/components/respondents/RespondentDetail.tsx`.
+- Renomear: `src/routes/r.$slug.run.tsx` → `src/routes/r_.$slug.run.tsx`.
+- Editar: `src/routes/login.tsx` (link forgot), `src/routes/r_.$slug.tsx` (consentimento + nova nav), `src/routes/_authenticated/studies.$id.tsx` (link Respondentes), `src/lib/interview.functions.ts` (gravar consent + trigger score).
+- Migração SQL: tabela `consents`, colunas em `answers`, view `respondent_panel`, RPC `delete_respondent_data`, RLS.
