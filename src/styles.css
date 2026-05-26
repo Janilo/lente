@@ -189,4 +189,34 @@
     color: var(--jps-soft);
     font-weight: 500;
   }
+  /* Brand utility: nav link (uppercase, tracked) */
+  .jps-navlink {
+    font-family: var(--font-sans);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-muted-foreground);
+    font-weight: 500;
+    transition: color 150ms ease;
+  }
+  .jps-navlink:hover {
+    color: var(--color-foreground);
+  }
+  /* Brand utility: CTA button (filled purple, tracked, arrow) */
+  .jps-cta {
+    font-family: var(--font-sans);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 500;
+    color: var(--color-primary-foreground);
+    background-color: var(--color-primary);
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--radius);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: opacity 150ms ease;
+  }
+  .jps-cta:hover { opacity: 0.9; }
 }
