@@ -138,11 +138,13 @@ function StudyEditor() {
               onChange={(e) => setForm({ ...form, max_followups: Math.max(0, Math.min(5, Number(e.target.value))) })}
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
           </Field>
-          <Field label="Status" hint="Controla se o link da entrevista está ativo para os respondentes.">
+          <Field label="Status" hint={canPublish ? "Controla se o link da entrevista está ativo para os respondentes." : "Publicação ainda não liberada para sua conta. Solicite ao administrador."}>
             <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as typeof form.status })}
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
               <option value="draft">Rascunho</option>
-              <option value="published">Publicado (link ativo)</option>
+              <option value="published" disabled={!canPublish && form.status !== "published"}>
+                Publicado (link ativo){!canPublish && form.status !== "published" ? " — bloqueado" : ""}
+              </option>
               <option value="closed">Encerrado</option>
             </select>
           </Field>
