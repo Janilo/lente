@@ -30,12 +30,18 @@ function StudyEditor() {
   const updateFn = useServerFn(updateStudy);
   const upsertQ = useServerFn(upsertQuestion);
   const deleteQ = useServerFn(deleteQuestion);
+  const fetchPerm = useServerFn(getMyPublishPermission);
   const qc = useQueryClient();
 
   const { data, isLoading } = useQuery({
     queryKey: ["study", id],
     queryFn: () => fetchStudy({ data: { id } }),
   });
+  const { data: perm } = useQuery({
+    queryKey: ["my-publish-permission"],
+    queryFn: () => fetchPerm(),
+  });
+  const canPublish = !!perm?.can_publish;
 
   const [form, setForm] = useState({
     title: "", business_goal: "", context: "", target_audience: "",
