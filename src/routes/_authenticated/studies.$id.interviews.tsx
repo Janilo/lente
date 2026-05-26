@@ -10,7 +10,10 @@ export const Route = createFileRoute("/_authenticated/studies/$id/interviews")({
   component: InterviewsTable,
 });
 
-type Row = Awaited<ReturnType<typeof listStudyInterviewsTable>>["rows"][number];
+type RawRow = Awaited<ReturnType<typeof listStudyInterviewsTable>>["rows"][number];
+type AnswerSummary = { question_id: string; summary: string };
+type Insights = (Omit<NonNullable<RawRow["insights"]>, "answer_summaries"> & { answer_summaries: AnswerSummary[] }) | null;
+type Row = Omit<RawRow, "insights"> & { insights: Insights };
 
 const STATUS_LABEL: Record<string, string> = {
   completed: "Concluída",
@@ -47,9 +50,10 @@ function InterviewsTable() {
 
   const [filters, setFilters] = useState<Record<string, string>>({});
 
-  const filteredRows = useMemo(() => {
-    if (!data) return [] as Row[];
-    return data.rows.filter((row) => {
+  const filteredRows = useMemo<Row[]>(() => {
+    if (!data) return [];
+    const rows = data.rows as unknown as Row[];
+    return rows.filter((row) => {
       for (const [key, val] of Object.entries(filters)) {
         if (!val) continue;
         const needle = val.toLowerCase();
