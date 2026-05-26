@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           created_at: string
           duration_seconds: number | null
+          end_seconds: number | null
           error_message: string | null
           id: string
           interview_id: string
@@ -27,6 +28,7 @@ export type Database = {
           quality_score: number | null
           question_id: string | null
           question_text: string
+          start_seconds: number | null
           status: Database["public"]["Enums"]["answer_status"]
           transcript: string | null
           updated_at: string
@@ -36,6 +38,7 @@ export type Database = {
         Insert: {
           created_at?: string
           duration_seconds?: number | null
+          end_seconds?: number | null
           error_message?: string | null
           id?: string
           interview_id: string
@@ -45,6 +48,7 @@ export type Database = {
           quality_score?: number | null
           question_id?: string | null
           question_text: string
+          start_seconds?: number | null
           status?: Database["public"]["Enums"]["answer_status"]
           transcript?: string | null
           updated_at?: string
@@ -54,6 +58,7 @@ export type Database = {
         Update: {
           created_at?: string
           duration_seconds?: number | null
+          end_seconds?: number | null
           error_message?: string | null
           id?: string
           interview_id?: string
@@ -63,6 +68,7 @@ export type Database = {
           quality_score?: number | null
           question_id?: string | null
           question_text?: string
+          start_seconds?: number | null
           status?: Database["public"]["Enums"]["answer_status"]
           transcript?: string | null
           updated_at?: string
@@ -209,30 +215,83 @@ export type Database = {
           },
         ]
       }
+      interview_insights: {
+        Row: {
+          answer_summaries: Json
+          bullet_summary: string[]
+          created_at: string
+          interview_id: string
+          model: string | null
+          quality: string | null
+          segments: string[]
+          tagline: string | null
+          tags: string[]
+          updated_at: string
+        }
+        Insert: {
+          answer_summaries?: Json
+          bullet_summary?: string[]
+          created_at?: string
+          interview_id: string
+          model?: string | null
+          quality?: string | null
+          segments?: string[]
+          tagline?: string | null
+          tags?: string[]
+          updated_at?: string
+        }
+        Update: {
+          answer_summaries?: Json
+          bullet_summary?: string[]
+          created_at?: string
+          interview_id?: string
+          model?: string | null
+          quality?: string | null
+          segments?: string[]
+          tagline?: string | null
+          tags?: string[]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_insights_interview_id_fkey"
+            columns: ["interview_id"]
+            isOneToOne: true
+            referencedRelation: "interviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interviews: {
         Row: {
           created_at: string
+          external_respondent: Json | null
           finished_at: string | null
           id: string
           respondent_id: string
+          source: string
           started_at: string
           status: Database["public"]["Enums"]["interview_status"]
           study_id: string
         }
         Insert: {
           created_at?: string
+          external_respondent?: Json | null
           finished_at?: string | null
           id?: string
           respondent_id: string
+          source?: string
           started_at?: string
           status?: Database["public"]["Enums"]["interview_status"]
           study_id: string
         }
         Update: {
           created_at?: string
+          external_respondent?: Json | null
           finished_at?: string | null
           id?: string
           respondent_id?: string
+          source?: string
           started_at?: string
           status?: Database["public"]["Enums"]["interview_status"]
           study_id?: string
