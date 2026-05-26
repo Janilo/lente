@@ -544,3 +544,85 @@ ${intent ? `Intenção da pergunta: ${intent}\n` : ""}Resposta transcrita: ${tex
     console.error("scoreAnswerInternal", e);
   }
 }
+
+// Researcher: tabela estruturada das entrevistas do estudo (com insights por IA)
+export const listStudyInterviewsTable = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ study_id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+    const { data: study } = await supabaseAdmin
+      .from("studies").select("id, owner_id, title").eq("id", data.study_id).maybeSingle();
+    if (!study || study.owner_id !== userId) throw new Error("Acesso negado.");
+
+    const { data: questions } = await supabaseAdmin
+      .from("questions").select("id, text, position").eq("study_id", data.study_id).order("position");
+
+    const { data: interviews } = await supabaseAdmin
+      .from("interviews")
+      .select("id, status, started_at, finished_at, respondent_id, source, external_respondent")
+      .eq("study_id", data.study_id)
+      .order("started_at", { ascending: false });
+
+    const ids = (interviews ?? []).map((i) => i.id);
+    const respondentIds = Array.from(new Set((interviews ?? []).map((i) => i.respondent_id)));
+
+    const [{ data: answers }, { data: insights }, { data: profiles }] = await Promise.all([
+      ids.length
+        ? supabaseAdmin.from("answers").select("interview_id, question_id, status, transcript, duration_seconds, quality_score").in("interview_id", ids)
+        : Promise.resolve({ data: [] as { interview_id: string; question_id: string | null; status: string; transcript: string | null; duration_seconds: number | null; quality_score: number | null }[] }),
+      ids.length
+        ? supabaseAdmin.from("interview_insights").select("interview_id, quality, segments, tags, bullet_summary, tagline, answer_summaries").in("interview_id", ids)
+        : Promise.resolve({ data: [] as { interview_id: string; quality: string | null; segments: string[]; tags: string[]; bullet_summary: string[]; tagline: string | null; answer_summaries: { question_id: string; summary: string }[] }[] }),
+      respondentIds.length
+        ? supabaseAdmin.from("profiles").select("id, full_name, city, state").in("id", respondentIds)
+        : Promise.resolve({ data: [] as { id: string; full_name: string | null; city: string | null; state: string | null }[] }),
+    ]);
+
+    const ansByIv = new Map<string, typeof answers>();
+    for (const a of answers ?? []) {
+      const list = ansByIv.get(a.interview_id) ?? [];
+      list.push(a);
+      ansByIv.set(a.interview_id, list);
+    }
+    const insightsByIv = new Map((insights ?? []).map((x) => [x.interview_id, x]));
+    const profileById = new Map((profiles ?? []).map((p) => [p.id, p]));
+
+    const rows = (interviews ?? []).map((iv, idx) => {
+      const ans = ansByIv.get(iv.id) ?? [];
+      const totalDuration = ans.reduce((s, a) => s + (a.duration_seconds ?? 0), 0);
+      const fallbackDuration = iv.finished_at && iv.started_at
+        ? (new Date(iv.finished_at).getTime() - new Date(iv.started_at).getTime()) / 1000
+        : 0;
+      const activeSec = Math.round(totalDuration > 0 ? totalDuration : fallbackDuration);
+
+      const qualityScores = ans.map((a) => a.quality_score).filter((x): x is number => typeof x === "number");
+      const avgQuality = qualityScores.length ? qualityScores.reduce((a, b) => a + b, 0) / qualityScores.length : null;
+
+      const insight = insightsByIv.get(iv.id);
+      const profile = profileById.get(iv.respondent_id);
+      const ext = (iv.external_respondent as Record<string, unknown> | null) ?? null;
+
+      return {
+        id: iv.id,
+        sequence: (interviews?.length ?? 0) - idx,
+        started_at: iv.started_at,
+        finished_at: iv.finished_at,
+        status: iv.status,
+        source: iv.source,
+        active_seconds: activeSec,
+        avg_quality_score: avgQuality,
+        respondent_name: ext?.full_name as string | undefined ?? profile?.full_name ?? null,
+        respondent_city: ext?.city as string | undefined ?? profile?.city ?? null,
+        respondent_state: ext?.state as string | undefined ?? profile?.state ?? null,
+        insights: insight ?? null,
+      };
+    });
+
+    return {
+      study: { id: study.id, title: study.title },
+      questions: questions ?? [],
+      rows,
+    };
+  });
+
