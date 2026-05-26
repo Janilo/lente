@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useChildMatches } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -26,6 +26,8 @@ export const Route = createFileRoute("/_authenticated/studies/$id")({
 
 function StudyEditor() {
   const { id } = Route.useParams();
+  const childMatches = useChildMatches();
+  if (childMatches.length > 0) return <Outlet />;
   const fetchStudy = useServerFn(getStudy);
   const updateFn = useServerFn(updateStudy);
   const upsertQ = useServerFn(upsertQuestion);
