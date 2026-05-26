@@ -93,6 +93,24 @@ export type Database = {
           },
         ]
       }
+      app_settings: {
+        Row: {
+          id: boolean
+          stt_provider: string
+          updated_at: string
+        }
+        Insert: {
+          id?: boolean
+          stt_provider?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: boolean
+          stt_provider?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       consents: {
         Row: {
           accepted_at: string
@@ -231,21 +249,42 @@ export type Database = {
       }
       profiles: {
         Row: {
+          age_range: string | null
+          can_publish: boolean
+          city: string | null
           created_at: string
           full_name: string | null
           id: string
+          industry: string | null
+          occupation: string | null
+          research_interests: string[] | null
+          state: string | null
           updated_at: string
         }
         Insert: {
+          age_range?: string | null
+          can_publish?: boolean
+          city?: string | null
           created_at?: string
           full_name?: string | null
           id: string
+          industry?: string | null
+          occupation?: string | null
+          research_interests?: string[] | null
+          state?: string | null
           updated_at?: string
         }
         Update: {
+          age_range?: string | null
+          can_publish?: boolean
+          city?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
+          industry?: string | null
+          occupation?: string | null
+          research_interests?: string[] | null
+          state?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -468,6 +507,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin: { Args: never; Returns: boolean }
     }
     Enums: {
       answer_status: "uploading" | "transcribing" | "ready" | "failed"

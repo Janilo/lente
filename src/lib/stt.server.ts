@@ -1,12 +1,30 @@
 // Speech-to-text provider abstraction.
-// Provider is selected via the STT_PROVIDER env var:
+// Provider is selected via app_settings.stt_provider (admin-configurable),
+// falling back to STT_PROVIDER env var if the table is unreachable.
 //   - "elevenlabs" (default) → requires ELEVENLABS_API_KEY
 //   - "assemblyai"           → requires ASSEMBLYAI_API_KEY
 
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
+
 export type SttResult = { transcript: string; words: unknown | null };
 
+let cachedProvider: { value: string; expiresAt: number } | null = null;
+const CACHE_TTL_MS = 60_000;
+
+async function getProvider(): Promise<string> {
+  const now = Date.now();
+  if (cachedProvider && cachedProvider.expiresAt > now) return cachedProvider.value;
+  let provider = (process.env.STT_PROVIDER ?? "elevenlabs").toLowerCase();
+  try {
+    const { data } = await supabaseAdmin.from("app_settings").select("stt_provider").eq("id", true).maybeSingle();
+    if (data?.stt_provider) provider = data.stt_provider.toLowerCase();
+  } catch { /* fall back to env */ }
+  cachedProvider = { value: provider, expiresAt: now + CACHE_TTL_MS };
+  return provider;
+}
+
 export async function transcribeAudio(file: Blob): Promise<SttResult> {
-  const provider = (process.env.STT_PROVIDER ?? "elevenlabs").toLowerCase();
+  const provider = await getProvider();
   switch (provider) {
     case "assemblyai":
       return transcribeAssemblyAI(file);
@@ -14,7 +32,7 @@ export async function transcribeAudio(file: Blob): Promise<SttResult> {
     case "":
       return transcribeElevenLabs(file);
     default:
-      throw new Error(`STT_PROVIDER inválido: "${provider}". Use elevenlabs ou assemblyai.`);
+      throw new Error(`STT provider inválido: "${provider}". Use elevenlabs ou assemblyai.`);
   }
 }
 
@@ -47,7 +65,6 @@ async function transcribeAssemblyAI(file: Blob): Promise<SttResult> {
   const apiKey = process.env.ASSEMBLYAI_API_KEY;
   if (!apiKey) throw new Error("ASSEMBLYAI_API_KEY não configurada.");
 
-  // 1. Upload raw bytes
   const buf = await file.arrayBuffer();
   const upRes = await fetch("https://api.assemblyai.com/v2/upload", {
     method: "POST",
@@ -57,7 +74,6 @@ async function transcribeAssemblyAI(file: Blob): Promise<SttResult> {
   if (!upRes.ok) throw new Error(`AssemblyAI upload: ${upRes.status} ${(await upRes.text()).slice(0, 200)}`);
   const { upload_url } = (await upRes.json()) as { upload_url: string };
 
-  // 2. Create transcript
   const createRes = await fetch("https://api.assemblyai.com/v2/transcript", {
     method: "POST",
     headers: { authorization: apiKey, "content-type": "application/json" },
@@ -66,7 +82,6 @@ async function transcribeAssemblyAI(file: Blob): Promise<SttResult> {
   if (!createRes.ok) throw new Error(`AssemblyAI create: ${createRes.status} ${(await createRes.text()).slice(0, 200)}`);
   const created = (await createRes.json()) as { id: string };
 
-  // 3. Poll until done (max ~5min)
   const deadline = Date.now() + 5 * 60 * 1000;
   while (Date.now() < deadline) {
     await new Promise((r) => setTimeout(r, 2500));
