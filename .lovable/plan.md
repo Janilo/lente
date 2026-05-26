@@ -1,31 +1,100 @@
-## Objetivo
 
-Manter exatamente o conteúdo atual do cabeçalho global (wordmark "Lente" + eyebrow "por J P Saraiva" + links de navegação + Admin condicional), mas aplicar o estilo visual do header de `pereirasaraiva.com` mostrado na referência.
+## 1. Upload da entrevista completa (pesquisador)
 
-## Estilo de referência (pereirasaraiva.com)
+**Nova rota:** `/_authenticated/studies/$id/interviews/upload`
 
-- Fundo cream/stone sólido (token `--background` / `--muted` já existem em `src/styles.css`), sem blur.
-- Wordmark à esquerda em serifa (Fraunces) na cor roxa da marca (`--primary` = `#4A1942`), peso regular, tamanho calmo (~22–24px).
-- Links de nav centralizados/à direita, em sans, **UPPERCASE**, `letter-spacing` largo (~0.18em), tamanho ~12–13px, cor `--muted-foreground` no estado normal e `--foreground` no hover. Sem fundo/hover-bg.
-- CTA à direita: botão retangular sólido roxo (`--primary`), texto em uppercase tracking largo, com seta `→` ao final. Cantos quase retos (segue `--radius: 4px` já definido).
-- Linha divisória sutil embaixo (border-bottom usando `--border`).
-- Altura confortável (~72–80px), padding horizontal generoso.
+Formulário com:
+- Vídeo (mp4/webm/mov, até ~500 MB)
+- Dados básicos do respondente "externo" (nome, e-mail opcional, cidade, estado, faixa etária, cargo, setor) — gravados como metadados na própria entrevista, **sem** criar usuário no Supabase Auth
+- Botão "Enviar e processar"
 
-## Arquivos afetados
+**Fluxo:**
+1. Cria registro em `interviews` marcado como `source = 'upload'`, com `respondent_id` = dono do estudo (placeholder) e metadados em uma nova coluna `external_respondent jsonb`.
+2. Faz upload do vídeo para `interview-videos/{interview_id}/full.{ext}`.
+3. Server fn `processUploadedInterview` (POST, dono do estudo):
+   - Baixa o vídeo, transcreve via `stt.server.ts` (já existe — Eleven/AssemblyAI).
+   - Chama Lovable AI (`google/gemini-2.5-pro`) com a transcrição + lista de perguntas do estudo, retornando JSON via tool-calling: para cada pergunta `{question_id, answer_transcript, start_seconds, end_seconds}`.
+   - Cria uma linha em `answers` por pergunta com `transcript`, `status='ready'`, `is_followup=false`, `video_path` apontando para o vídeo completo + faixa de tempo (novos campos `start_seconds`, `end_seconds`).
+   - Dispara o pipeline de enriquecimento (passo 2 abaixo) e marca `interviews.status='completed'`.
 
-- `src/routes/__root.tsx` — substituir o markup do `Header()` interno (que é o que aparece globalmente) pelo novo layout. **Sem mudar lógica**: mesmas condições `loading` / `isAuthenticated`, mesmos destinos de `Link`, mesmo `signOut`.
-- `src/components/brand/BrandHeader.tsx` — alinhar o mesmo tratamento visual (wordmark serif roxo + link Admin em uppercase tracking) para manter consistência onde ele é usado.
-- `src/styles.css` — adicionar **apenas** uma utility classe opcional `.jps-navlink` (uppercase + tracking + tamanho + cor) para reuso. Sem novas cores; tudo via tokens existentes.
+**Permissão:** qualquer dono do estudo. Tamanho/tipo validados client-side e via política de storage.
 
-## Mapeamento dos itens atuais
+---
 
-- Logo: `Lente` (Fraunces) + eyebrow `por J P Saraiva` permanece, mas eyebrow vira opcional/oculto em telas menores como já está. Visualmente o destaque principal é o wordmark, como na referência onde aparece só "J P Saraiva".
-- Nav autenticada: `Dashboard`, `Minha privacidade`, `Sair` → renderizados como `.jps-navlink`.
-- Nav anônima: `Entrar` como `.jps-navlink` + `Criar conta` como CTA roxo com seta `→` (equivalente ao "AGENDAR →").
-- `Admin` (no `BrandHeader` via `useIsAdmin`) também vira `.jps-navlink`.
+## 2. Painel estruturado do estudo
 
-## Fora de escopo
+**Rota substitui o conteúdo atual de:** `/_authenticated/studies/$id/interviews`
 
-- Não mexer em rotas, dados, auth, server functions.
-- Não trocar fontes/tokens de cor — só usar os já existentes.
-- Não alterar o `BrandFooter`.
+Tabela com uma linha por entrevista, colunas (PT-BR):
+- **ID** (#sequencial dentro do estudo)
+- **Iniciada em** (started_at)
+- **Tempo ativo** (duração — soma de `duration_seconds` ou `finished_at - started_at`)
+- **Progresso** (Concluída / Em andamento / Falhou)
+- **Qualidade** (Excelente/Boa/Média/Baixa — derivado do média de `answers.quality_score`)
+- **Segmentos** (chips coloridos, ex: "Price & Value Focused", "Young Adults (18-24)")
+- **Resumo em bullets** (3-5 bullets curtos)
+- **Tagline** (uma linha resumindo o respondente)
+- **Tags** (chips com termos-chave — cidade, perfil, etc.)
+- **Q1, Q2, …** uma coluna por pergunta do estudo, mostrando o resumo curto da resposta (com tooltip/expand para a transcrição completa)
+
+Tabela com:
+- Filtros por coluna (texto/chip simples — usando os `Filter` icons como na figura, com `Input` por coluna)
+- Scroll horizontal, header sticky, link na linha → detalhe atual da entrevista
+- Botão **"Enviar entrevista"** levando à rota de upload
+- Botão **"Reprocessar IA"** por linha (opcional, fora do auto)
+
+---
+
+## 3. Geração automática por IA (ao concluir entrevista)
+
+Nova função em `src/lib/synthesis.functions.ts` (ou novo `interview-enrichment.functions.ts`):
+
+`enrichInterview(interview_id)` — invocada automaticamente quando:
+- Última resposta vira `ready` em `processAnswer` e `computeNextStep` retorna `done`
+- Final de `processUploadedInterview`
+
+Faz **uma** chamada Lovable AI (`google/gemini-2.5-pro`, tool-calling) recebendo todas as transcrições + perguntas + perfil do respondente, e retornando JSON:
+
+```json
+{
+  "quality": "excellent|good|average|low",
+  "segments": ["..."],
+  "tags": ["..."],
+  "bullet_summary": ["...", "..."],
+  "tagline": "...",
+  "answer_summaries": [{ "question_id": "...", "summary": "..." }]
+}
+```
+
+Salvo em nova tabela `interview_insights` (1-para-1 com interview).
+
+---
+
+## Detalhes técnicos
+
+### Migrações
+- `ALTER TABLE interviews ADD COLUMN source text NOT NULL DEFAULT 'live'` (live | upload)
+- `ALTER TABLE interviews ADD COLUMN external_respondent jsonb` (nome, email, city, state, age_range, occupation, industry)
+- `ALTER TABLE answers ADD COLUMN start_seconds numeric, ADD COLUMN end_seconds numeric` (faixa do vídeo único, opcional)
+- Nova tabela `public.interview_insights`:
+  - `interview_id uuid PK references interviews`
+  - `quality text`, `segments text[]`, `tags text[]`, `bullet_summary text[]`, `tagline text`, `answer_summaries jsonb`, `model text`, `created_at`, `updated_at`
+  - RLS: dono do estudo lê/escreve (via join com `interviews`/`studies`)
+- Política de storage `interview-videos`: permitir INSERT do dono do estudo no path `{interview_id}/*` quando interview existe e é do estudo dele.
+
+### Server functions novas (`src/lib/interview.functions.ts` + nova `interview-enrichment.functions.ts`)
+- `createUploadedInterview({study_id, external_respondent})` → retorna `interview_id` + storage path para upload direto via SDK
+- `processUploadedInterview({interview_id, video_ext})` → STT + segmentação por IA + cria `answers`
+- `enrichInterview({interview_id})` → gera/atualiza `interview_insights`
+- `listStudyInterviewsTable({study_id})` → estende o atual `listStudyInterviews` retornando perguntas do estudo, insights e summaries (uma chamada para popular a tabela)
+
+### Componentes
+- `src/components/study/InterviewsTable.tsx` — tabela com colunas dinâmicas (Q1..Qn) e filtros por coluna
+- `src/components/study/UploadInterviewForm.tsx` — formulário de upload + barra de progresso
+- Chips reutilizando o componente `Badge`
+
+### Fora de escopo (não fazer agora)
+- Editor manual dos insights gerados (só reprocessamento)
+- Exportar CSV/Excel da tabela
+- Vídeo completo "fatiado" em players por pergunta (só transcrição segmentada; o player do detalhe continua usando o vídeo completo com tempo inicial quando houver `start_seconds`)
+- Mudanças no fluxo de entrevista ao vivo (respondent-side) além do gancho de enriquecimento ao final
