@@ -14,6 +14,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Toaster } from "@/components/ui/sonner";
 import { BrandFooter } from "@/components/brand/BrandFooter";
+import { syncHubspotSelf } from "@/lib/hubspot.functions";
+
 
 function NotFoundComponent() {
   const pathname = typeof window !== "undefined" ? window.location.pathname : "";
@@ -101,9 +103,23 @@ function AuthInvalidator() {
   const router = useRouter();
   const queryClient = useQueryClient();
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       router.invalidate();
       queryClient.invalidateQueries();
+
+      if (event === "SIGNED_IN" && session?.user) {
+        const userId = session.user.id;
+        const key = `lente:hubspot-synced:${userId}`;
+        if (typeof window !== "undefined" && !window.localStorage.getItem(key)) {
+          const path = window.location.pathname;
+          const m = path.match(/^\/r_?\/([^/]+)/);
+          const role: "researcher" | "respondent" = m ? "respondent" : "researcher";
+          const study_slug = m?.[1];
+          syncHubspotSelf({ data: { role, ...(study_slug ? { study_slug } : {}) } })
+            .then(() => window.localStorage.setItem(key, "1"))
+            .catch((e) => console.warn("hubspot sync failed", e));
+        }
+      }
     });
     return () => subscription.unsubscribe();
   }, [router, queryClient]);
