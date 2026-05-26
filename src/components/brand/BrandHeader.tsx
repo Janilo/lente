@@ -13,11 +13,11 @@ type Props = {
 export function BrandHeader({ variant = "default", right }: Props) {
   const { isAdmin } = useIsAdmin();
   return (
-    <header className="border-b border-border bg-background/80 backdrop-blur-sm">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+    <header className="border-b border-border bg-background">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-8 py-5">
         <Link to="/" className="group inline-flex items-baseline gap-3">
           <span
-            className="font-display text-3xl leading-none text-foreground"
+            className="font-display text-2xl leading-none text-primary"
             style={{ fontVariationSettings: '"opsz" 144, "SOFT" 0, "WONK" 0' }}
           >
             Lente
@@ -26,12 +26,9 @@ export function BrandHeader({ variant = "default", right }: Props) {
             <span className="jps-eyebrow hidden sm:inline">por J P Saraiva</span>
           )}
         </Link>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-8">
           {isAdmin && (
-            <Link
-              to="/admin/analytics"
-              className="text-xs uppercase tracking-wide text-muted-foreground hover:text-foreground"
-            >
+            <Link to="/admin/analytics" className="jps-navlink">
               Admin
             </Link>
           )}

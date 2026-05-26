@@ -113,34 +113,34 @@ function AuthInvalidator() {
 function Header() {
   const { isAuthenticated, loading } = useAuth();
   return (
-    <header className="border-b border-border bg-background/80 backdrop-blur sticky top-0 z-40">
-      <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-6">
+    <header className="border-b border-border bg-background sticky top-0 z-40">
+      <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-8">
         <Link to="/" className="group inline-flex items-baseline gap-3">
           <span
-            className="font-display text-3xl leading-none text-foreground"
+            className="font-display text-2xl leading-none text-primary"
             style={{ fontVariationSettings: '"opsz" 144, "SOFT" 0, "WONK" 0' }}
           >
             Lente
           </span>
           <span className="jps-eyebrow hidden sm:inline">por J P Saraiva</span>
         </Link>
-        <nav className="flex items-center gap-1 text-sm">
+        <nav className="flex items-center gap-8">
           {loading ? null : isAuthenticated ? (
             <>
-              <Link to="/dashboard" className="rounded-md px-3 py-2 text-foreground hover:bg-accent">Dashboard</Link>
-              <Link to="/my-privacy" className="rounded-md px-3 py-2 text-muted-foreground hover:text-foreground">Minha privacidade</Link>
+              <Link to="/dashboard" className="jps-navlink">Dashboard</Link>
+              <Link to="/my-privacy" className="jps-navlink">Minha privacidade</Link>
               <button
                 onClick={async () => { await supabase.auth.signOut(); }}
-                className="rounded-md px-3 py-2 text-muted-foreground hover:text-foreground"
+                className="jps-navlink"
               >
                 Sair
               </button>
             </>
           ) : (
             <>
-              <Link to="/login" className="rounded-md px-3 py-2 text-foreground hover:bg-accent">Entrar</Link>
-              <Link to="/signup" className="rounded-md bg-primary px-3.5 py-1.5 text-primary-foreground hover:opacity-90">
-                Criar conta
+              <Link to="/login" className="jps-navlink">Entrar</Link>
+              <Link to="/signup" className="jps-cta">
+                Criar conta <span aria-hidden>→</span>
               </Link>
             </>
           )}
