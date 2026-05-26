@@ -109,12 +109,13 @@ export const processUploadedInterview = createServerFn({ method: "POST" })
 
     const rows = questions.map((q) => {
       const seg = segments.find((s) => s.question_id === q.id);
+      const status: "ready" | "failed" = seg && seg.answer_transcript ? "ready" : "failed";
       return {
         interview_id: iv.id,
         question_id: q.id,
         question_text: q.text,
         is_followup: false,
-        status: seg && seg.answer_transcript ? "ready" : "failed",
+        status,
         transcript: seg?.answer_transcript ?? null,
         start_seconds: seg?.start_seconds ?? null,
         end_seconds: seg?.end_seconds ?? null,
