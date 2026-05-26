@@ -26,6 +26,8 @@ export const Route = createFileRoute("/_authenticated/studies/$id")({
 
 function StudyEditor() {
   const { id } = Route.useParams();
+  const childMatches = useChildMatches();
+  if (childMatches.length > 0) return <Outlet />;
   const fetchStudy = useServerFn(getStudy);
   const updateFn = useServerFn(updateStudy);
   const upsertQ = useServerFn(upsertQuestion);
