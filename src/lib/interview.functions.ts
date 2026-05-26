@@ -328,6 +328,10 @@ export const processAnswer = createServerFn({ method: "POST" })
     const next = await computeNextStep(ans.interview_id);
     if (next.type === "done") {
       await supabaseAdmin.from("interviews").update({ status: "completed", finished_at: new Date().toISOString() }).eq("id", ans.interview_id);
+      try {
+        const { enrichInterviewInternal } = await import("./interview-enrichment.functions");
+        await enrichInterviewInternal(ans.interview_id);
+      } catch (e) { console.error("enrich-on-complete failed", e); }
     }
     return { next, empty: false };
   });
@@ -393,13 +397,13 @@ export const getInterviewDetail = createServerFn({ method: "GET" })
 
     const { data: answers } = await supabaseAdmin
       .from("answers")
-      .select("id, question_id, question_text, transcript, is_followup, parent_answer_id, status, error_message, duration_seconds, created_at, video_path")
+      .select("id, question_id, question_text, transcript, is_followup, parent_answer_id, status, error_message, duration_seconds, created_at, video_path, start_seconds, end_seconds")
       .eq("interview_id", data.interview_id)
       .order("created_at", { ascending: true });
 
     const enriched = await Promise.all(
       (answers ?? []).map(async (a) => {
-        const path = `${data.interview_id}/${a.id}.webm`;
+        const path = a.video_path ?? `${data.interview_id}/${a.id}.webm`;
         const { data: signed } = await supabaseAdmin.storage.from(BUCKET).createSignedUrl(path, 60 * 60);
         return { ...a, video_url: signed?.signedUrl ?? null };
       }),
