@@ -1,100 +1,74 @@
 
-## 1. Upload da entrevista completa (pesquisador)
+## O que será enviado ao HubSpot
 
-**Nova rota:** `/_authenticated/studies/$id/interviews/upload`
+### 1) Pesquisador (cadastro via `/signup` sem `returnTo=/r/...`)
+Upsert de **Contato** no HubSpot por e-mail, com:
+- `email`
+- `firstname` / `lastname` (derivados de `full_name`)
+- `lente_role = "researcher"` (propriedade custom)
+- `lente_signup_source = "lente_app"`
+- `lifecyclestage = "lead"`
 
-Formulário com:
-- Vídeo (mp4/webm/mov, até ~500 MB)
-- Dados básicos do respondente "externo" (nome, e-mail opcional, cidade, estado, faixa etária, cargo, setor) — gravados como metadados na própria entrevista, **sem** criar usuário no Supabase Auth
-- Botão "Enviar e processar"
+Adicionalmente, cria uma **Nota** associada ao contato:
+> "Novo pesquisador cadastrado em Lente — {data}."
 
-**Fluxo:**
-1. Cria registro em `interviews` marcado como `source = 'upload'`, com `respondent_id` = dono do estudo (placeholder) e metadados em uma nova coluna `external_respondent jsonb`.
-2. Faz upload do vídeo para `interview-videos/{interview_id}/full.{ext}`.
-3. Server fn `processUploadedInterview` (POST, dono do estudo):
-   - Baixa o vídeo, transcreve via `stt.server.ts` (já existe — Eleven/AssemblyAI).
-   - Chama Lovable AI (`google/gemini-2.5-pro`) com a transcrição + lista de perguntas do estudo, retornando JSON via tool-calling: para cada pergunta `{question_id, answer_transcript, start_seconds, end_seconds}`.
-   - Cria uma linha em `answers` por pergunta com `transcript`, `status='ready'`, `is_followup=false`, `video_path` apontando para o vídeo completo + faixa de tempo (novos campos `start_seconds`, `end_seconds`).
-   - Dispara o pipeline de enriquecimento (passo 2 abaixo) e marca `interviews.status='completed'`.
+### 2) Respondente (cadastro vindo de um link de estudo `/r/{slug}` ou ao iniciar a entrevista)
+Upsert de **Contato** por e-mail, com:
+- `email`, `firstname`, `lastname`
+- `lente_role = "respondent"`
+- `lente_signup_source = "lente_app"`
+- `lente_last_study_title` = título do estudo
+- `lente_last_study_slug` = slug
+- `lifecyclestage = "lead"`
 
-**Permissão:** qualquer dono do estudo. Tamanho/tipo validados client-side e via política de storage.
+Cria uma **Nota** associada:
+> "Respondente cadastrado para o estudo '{título}' ({slug}) em {data}."
 
----
-
-## 2. Painel estruturado do estudo
-
-**Rota substitui o conteúdo atual de:** `/_authenticated/studies/$id/interviews`
-
-Tabela com uma linha por entrevista, colunas (PT-BR):
-- **ID** (#sequencial dentro do estudo)
-- **Iniciada em** (started_at)
-- **Tempo ativo** (duração — soma de `duration_seconds` ou `finished_at - started_at`)
-- **Progresso** (Concluída / Em andamento / Falhou)
-- **Qualidade** (Excelente/Boa/Média/Baixa — derivado do média de `answers.quality_score`)
-- **Segmentos** (chips coloridos, ex: "Price & Value Focused", "Young Adults (18-24)")
-- **Resumo em bullets** (3-5 bullets curtos)
-- **Tagline** (uma linha resumindo o respondente)
-- **Tags** (chips com termos-chave — cidade, perfil, etc.)
-- **Q1, Q2, …** uma coluna por pergunta do estudo, mostrando o resumo curto da resposta (com tooltip/expand para a transcrição completa)
-
-Tabela com:
-- Filtros por coluna (texto/chip simples — usando os `Filter` icons como na figura, com `Input` por coluna)
-- Scroll horizontal, header sticky, link na linha → detalhe atual da entrevista
-- Botão **"Enviar entrevista"** levando à rota de upload
-- Botão **"Reprocessar IA"** por linha (opcional, fora do auto)
+Se o mesmo e-mail já existir como pesquisador, mantém o contato e apenas acrescenta a nota + atualiza `lente_last_study_*` (não sobrescreve `lente_role`).
 
 ---
 
-## 3. Geração automática por IA (ao concluir entrevista)
+## Como será implementado
 
-Nova função em `src/lib/synthesis.functions.ts` (ou novo `interview-enrichment.functions.ts`):
+### Server function única `syncHubspotContact`
+Arquivo novo: `src/lib/hubspot.functions.ts` + helper server-only `src/lib/hubspot.server.ts`.
 
-`enrichInterview(interview_id)` — invocada automaticamente quando:
-- Última resposta vira `ready` em `processAnswer` e `computeNextStep` retorna `done`
-- Final de `processUploadedInterview`
-
-Faz **uma** chamada Lovable AI (`google/gemini-2.5-pro`, tool-calling) recebendo todas as transcrições + perguntas + perfil do respondente, e retornando JSON:
-
-```json
-{
-  "quality": "excellent|good|average|low",
-  "segments": ["..."],
-  "tags": ["..."],
-  "bullet_summary": ["...", "..."],
-  "tagline": "...",
-  "answer_summaries": [{ "question_id": "...", "summary": "..." }]
-}
+Entrada (Zod):
+```
+{ email, full_name?, role: "researcher" | "respondent",
+  study?: { id, title, slug } }
 ```
 
-Salvo em nova tabela `interview_insights` (1-para-1 com interview).
+Comportamento:
+1. Chama o gateway `https://connector-gateway.lovable.dev/hubspot/crm/v3/objects/contacts/{email}?idProperty=email` (GET) para descobrir se contato já existe.
+2. Se não existe → `POST /crm/v3/objects/contacts` com as propriedades acima.
+   Se existe → `PATCH /crm/v3/objects/{id}` (não rebaixa `lente_role` de researcher para respondent).
+3. Cria nota: `POST /crm/v3/objects/notes` com `hs_note_body` + `hs_timestamp`, e associa ao contato (`/crm/v3/objects/notes/{noteId}/associations/contacts/{contactId}/note_to_contact`).
+4. Erros do HubSpot são logados mas **não bloqueiam** o cadastro/início de entrevista (chamada fire-and-forget no servidor com try/catch).
+
+Autenticação: headers `Authorization: Bearer ${LOVABLE_API_KEY}` + `X-Connection-Api-Key: ${HUBSPOT_API_KEY}` (segredos já disponíveis).
+
+### Pontos de gatilho
+- **`src/routes/signup.tsx`**: após `supabase.auth.signUp` bem-sucedido e após retorno do Google (no `useEffect` de `isAuthenticated`), chama `syncHubspotContact` com `role = "researcher"` se `returnTo` não começa com `/r/`, senão `"respondent"` (e tenta achar o estudo pelo slug do `returnTo`).
+- **`src/lib/interview.functions.ts` → `startInterview`**: ao iniciar a entrevista (já é server fn autenticada e conhece o estudo), dispara `syncHubspotContact` com `role = "respondent"` e dados do estudo. Isso garante cobertura mesmo quando o respondente entra via Google (sem passar pelo handler do `/signup`) ou já tinha conta.
+
+### Propriedades custom no HubSpot
+Na primeira execução, o helper tenta criar (idempotente, ignora 409) as propriedades em `contacts`:
+- `lente_role` (enumeration: researcher, respondent)
+- `lente_signup_source` (single-line text)
+- `lente_last_study_title` (single-line text)
+- `lente_last_study_slug` (single-line text)
+
+Via `POST /crm/v3/properties/contacts`. Se a criação falhar por permissão, os campos custom são omitidos do payload e seguimos só com os padrões (`email`, `firstname`, `lastname`, `lifecyclestage`) + nota.
+
+### Fora de escopo
+- Criação de Deals/Companies no HubSpot.
+- Sincronização retroativa de usuários já existentes (só novos a partir da implementação).
+- Webhook do HubSpot de volta para o app.
+- UI no painel para ver status da sincronização (apenas logs do servidor).
 
 ---
 
-## Detalhes técnicos
-
-### Migrações
-- `ALTER TABLE interviews ADD COLUMN source text NOT NULL DEFAULT 'live'` (live | upload)
-- `ALTER TABLE interviews ADD COLUMN external_respondent jsonb` (nome, email, city, state, age_range, occupation, industry)
-- `ALTER TABLE answers ADD COLUMN start_seconds numeric, ADD COLUMN end_seconds numeric` (faixa do vídeo único, opcional)
-- Nova tabela `public.interview_insights`:
-  - `interview_id uuid PK references interviews`
-  - `quality text`, `segments text[]`, `tags text[]`, `bullet_summary text[]`, `tagline text`, `answer_summaries jsonb`, `model text`, `created_at`, `updated_at`
-  - RLS: dono do estudo lê/escreve (via join com `interviews`/`studies`)
-- Política de storage `interview-videos`: permitir INSERT do dono do estudo no path `{interview_id}/*` quando interview existe e é do estudo dele.
-
-### Server functions novas (`src/lib/interview.functions.ts` + nova `interview-enrichment.functions.ts`)
-- `createUploadedInterview({study_id, external_respondent})` → retorna `interview_id` + storage path para upload direto via SDK
-- `processUploadedInterview({interview_id, video_ext})` → STT + segmentação por IA + cria `answers`
-- `enrichInterview({interview_id})` → gera/atualiza `interview_insights`
-- `listStudyInterviewsTable({study_id})` → estende o atual `listStudyInterviews` retornando perguntas do estudo, insights e summaries (uma chamada para popular a tabela)
-
-### Componentes
-- `src/components/study/InterviewsTable.tsx` — tabela com colunas dinâmicas (Q1..Qn) e filtros por coluna
-- `src/components/study/UploadInterviewForm.tsx` — formulário de upload + barra de progresso
-- Chips reutilizando o componente `Badge`
-
-### Fora de escopo (não fazer agora)
-- Editor manual dos insights gerados (só reprocessamento)
-- Exportar CSV/Excel da tabela
-- Vídeo completo "fatiado" em players por pergunta (só transcrição segmentada; o player do detalhe continua usando o vídeo completo com tempo inicial quando houver `start_seconds`)
-- Mudanças no fluxo de entrevista ao vivo (respondent-side) além do gancho de enriquecimento ao final
+## Confirmações antes de implementar
+1. OK criar as propriedades custom `lente_role`, `lente_signup_source`, `lente_last_study_title`, `lente_last_study_slug` no seu HubSpot?
+2. OK marcar todos os contatos como `lifecyclestage = lead`, ou prefere outro estágio (ex.: `subscriber`)?
