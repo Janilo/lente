@@ -21,6 +21,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as RSlugRunRouteImport } from './routes/r_.$slug.run'
 import { Route as AuthenticatedStudiesIdRouteImport } from './routes/_authenticated/studies.$id'
 import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin.analytics'
+import { Route as ApiPublicTelegramWebhookRouteImport } from './routes/api/public/telegram/webhook'
 import { Route as AuthenticatedStudiesIdSynthesisRouteImport } from './routes/_authenticated/studies.$id.synthesis'
 import { Route as AuthenticatedStudiesIdRespondentsRouteImport } from './routes/_authenticated/studies.$id.respondents'
 import { Route as AuthenticatedStudiesIdInterviewsRouteImport } from './routes/_authenticated/studies.$id.interviews'
@@ -87,6 +88,12 @@ const AuthenticatedAdminAnalyticsRoute =
     path: '/admin/analytics',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const ApiPublicTelegramWebhookRoute =
+  ApiPublicTelegramWebhookRouteImport.update({
+    id: '/api/public/telegram/webhook',
+    path: '/api/public/telegram/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedStudiesIdSynthesisRoute =
   AuthenticatedStudiesIdSynthesisRouteImport.update({
     id: '/synthesis',
@@ -133,6 +140,7 @@ export interface FileRoutesByFullPath {
   '/studies/$id/interviews': typeof AuthenticatedStudiesIdInterviewsRouteWithChildren
   '/studies/$id/respondents': typeof AuthenticatedStudiesIdRespondentsRoute
   '/studies/$id/synthesis': typeof AuthenticatedStudiesIdSynthesisRoute
+  '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
   '/studies/$id/interviews/$interviewId': typeof AuthenticatedStudiesIdInterviewsInterviewIdRoute
   '/studies/$id/interviews/upload': typeof AuthenticatedStudiesIdInterviewsUploadRoute
 }
@@ -151,6 +159,7 @@ export interface FileRoutesByTo {
   '/studies/$id/interviews': typeof AuthenticatedStudiesIdInterviewsRouteWithChildren
   '/studies/$id/respondents': typeof AuthenticatedStudiesIdRespondentsRoute
   '/studies/$id/synthesis': typeof AuthenticatedStudiesIdSynthesisRoute
+  '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
   '/studies/$id/interviews/$interviewId': typeof AuthenticatedStudiesIdInterviewsInterviewIdRoute
   '/studies/$id/interviews/upload': typeof AuthenticatedStudiesIdInterviewsUploadRoute
 }
@@ -171,6 +180,7 @@ export interface FileRoutesById {
   '/_authenticated/studies/$id/interviews': typeof AuthenticatedStudiesIdInterviewsRouteWithChildren
   '/_authenticated/studies/$id/respondents': typeof AuthenticatedStudiesIdRespondentsRoute
   '/_authenticated/studies/$id/synthesis': typeof AuthenticatedStudiesIdSynthesisRoute
+  '/api/public/telegram/webhook': typeof ApiPublicTelegramWebhookRoute
   '/_authenticated/studies/$id/interviews/$interviewId': typeof AuthenticatedStudiesIdInterviewsInterviewIdRoute
   '/_authenticated/studies/$id/interviews/upload': typeof AuthenticatedStudiesIdInterviewsUploadRoute
 }
@@ -191,6 +201,7 @@ export interface FileRouteTypes {
     | '/studies/$id/interviews'
     | '/studies/$id/respondents'
     | '/studies/$id/synthesis'
+    | '/api/public/telegram/webhook'
     | '/studies/$id/interviews/$interviewId'
     | '/studies/$id/interviews/upload'
   fileRoutesByTo: FileRoutesByTo
@@ -209,6 +220,7 @@ export interface FileRouteTypes {
     | '/studies/$id/interviews'
     | '/studies/$id/respondents'
     | '/studies/$id/synthesis'
+    | '/api/public/telegram/webhook'
     | '/studies/$id/interviews/$interviewId'
     | '/studies/$id/interviews/upload'
   id:
@@ -228,6 +240,7 @@ export interface FileRouteTypes {
     | '/_authenticated/studies/$id/interviews'
     | '/_authenticated/studies/$id/respondents'
     | '/_authenticated/studies/$id/synthesis'
+    | '/api/public/telegram/webhook'
     | '/_authenticated/studies/$id/interviews/$interviewId'
     | '/_authenticated/studies/$id/interviews/upload'
   fileRoutesById: FileRoutesById
@@ -240,6 +253,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
   RSlugRoute: typeof RSlugRouteWithChildren
+  ApiPublicTelegramWebhookRoute: typeof ApiPublicTelegramWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -327,6 +341,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/analytics'
       preLoaderRoute: typeof AuthenticatedAdminAnalyticsRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/api/public/telegram/webhook': {
+      id: '/api/public/telegram/webhook'
+      path: '/api/public/telegram/webhook'
+      fullPath: '/api/public/telegram/webhook'
+      preLoaderRoute: typeof ApiPublicTelegramWebhookRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/studies/$id/synthesis': {
       id: '/_authenticated/studies/$id/synthesis'
@@ -440,6 +461,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
   RSlugRoute: RSlugRouteWithChildren,
+  ApiPublicTelegramWebhookRoute: ApiPublicTelegramWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
