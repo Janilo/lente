@@ -102,7 +102,7 @@ export const startInterview = createServerFn({ method: "POST" })
   });
 
 // Decide what the next step is for an interview
-async function computeNextStep(interview_id: string) {
+export async function computeNextStep(interview_id: string) {
   const { data: interview, error: iErr } = await supabaseAdmin
     .from("interviews").select("id, study_id, status").eq("id", interview_id).single();
   if (iErr || !interview) throw new Error("Entrevista não encontrada.");
