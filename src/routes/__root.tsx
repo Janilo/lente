@@ -137,15 +137,23 @@ function Header() {
   return (
     <header className="border-b border-border bg-background sticky top-0 z-40">
       <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-8">
-        <Link to="/" className="group inline-flex items-baseline gap-3">
-          <span
-            className="font-display text-2xl leading-none text-primary"
+        <div className="inline-flex items-baseline gap-3">
+          <Link
+            to="/"
+            className="font-display text-2xl leading-none text-primary hover:opacity-85 transition-opacity"
             style={{ fontVariationSettings: '"opsz" 144, "SOFT" 0, "WONK" 0' }}
           >
             Lente
-          </span>
-          <span className="jps-eyebrow hidden sm:inline">por J P Saraiva</span>
-        </Link>
+          </Link>
+          <a
+            href="https://pereirasaraiva.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="jps-eyebrow hidden sm:inline hover:opacity-70 transition-opacity"
+          >
+            por J P Saraiva
+          </a>
+        </div>
         <nav className="flex items-center gap-8">
           {loading ? null : isAuthenticated ? (
             <>
