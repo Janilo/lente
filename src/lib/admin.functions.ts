@@ -127,7 +127,7 @@ export const adminListRespondents = createServerFn({ method: "POST" })
     const { data: ivs } = await supabaseAdmin
       .from("interviews")
       .select("respondent_id");
-    const respondentIds = Array.from(new Set((ivs ?? []).map((i) => i.respondent_id)));
+    const respondentIds = Array.from(new Set((ivs ?? []).map((i) => i.respondent_id).filter((x): x is string => !!x)));
     if (respondentIds.length === 0) return { respondents: [] };
 
     let q = supabaseAdmin
@@ -147,7 +147,7 @@ export const adminListRespondents = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     const ivCount = new Map<string, number>();
-    for (const i of ivs ?? []) ivCount.set(i.respondent_id, (ivCount.get(i.respondent_id) ?? 0) + 1);
+    for (const i of ivs ?? []) { if (i.respondent_id) ivCount.set(i.respondent_id, (ivCount.get(i.respondent_id) ?? 0) + 1); }
 
     const emailMap = new Map<string, string>();
     for (const p of profiles ?? []) {

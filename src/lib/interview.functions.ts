@@ -586,7 +586,7 @@ export const listStudyInterviewsTable = createServerFn({ method: "GET" })
       .order("started_at", { ascending: false });
 
     const ids = (interviews ?? []).map((i) => i.id);
-    const respondentIds = Array.from(new Set((interviews ?? []).map((i) => i.respondent_id)));
+    const respondentIds = Array.from(new Set((interviews ?? []).map((i) => i.respondent_id).filter((x): x is string => !!x)));
 
     const [{ data: answers }, { data: insights }, { data: profiles }] = await Promise.all([
       ids.length
@@ -621,7 +621,7 @@ export const listStudyInterviewsTable = createServerFn({ method: "GET" })
       const avgQuality = qualityScores.length ? qualityScores.reduce((a, b) => a + b, 0) / qualityScores.length : null;
 
       const insight = insightsByIv.get(iv.id);
-      const profile = profileById.get(iv.respondent_id);
+      const profile = iv.respondent_id ? profileById.get(iv.respondent_id) : null;
       const ext = (iv.external_respondent as Record<string, unknown> | null) ?? null;
 
       return {
