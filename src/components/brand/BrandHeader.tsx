@@ -15,17 +15,12 @@ export function BrandHeader({ variant = "default", right }: Props) {
   return (
     <header className="border-b border-border bg-background">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-8 py-5">
-        <Link to="/" className="group inline-flex items-baseline gap-3">
-          <span
-            className="font-display text-2xl leading-none text-primary"
-            style={{ fontVariationSettings: '"opsz" 144, "SOFT" 0, "WONK" 0' }}
-          >
-            Lente
-          </span>
+        <div className="inline-flex items-baseline gap-3">
+          <Link to="/" className="font-display text-2xl leading-none text-primary" style={{ fontVariationSettings: '"opsz" 144, "SOFT" 0, "WONK" 0' }}>Lente</Link>
           {variant === "default" && (
             <a href="https://pereirasaraiva.com" target="_blank" rel="noopener noreferrer" className="jps-eyebrow hidden sm:inline hover:opacity-70 transition-opacity">por J P Saraiva</a>
           )}
-        </Link>
+        </div>
         <div className="flex items-center gap-8">
           {isAdmin && (
             <Link to="/admin/analytics" className="jps-navlink">
