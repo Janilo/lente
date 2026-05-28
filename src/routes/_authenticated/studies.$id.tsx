@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { getStudy, updateStudy, upsertQuestion, deleteQuestion } from "@/lib/studies.functions";
 import { getMyPublishPermission } from "@/lib/admin.functions";
+import { getTelegramShareLink } from "@/lib/telegram.functions";
 import { toast } from "sonner";
 import { ScriptBuilderActions } from "@/components/study/ScriptBuilderActions";
 import { ScreenerBuilder } from "@/components/study/ScreenerBuilder";
@@ -196,16 +197,23 @@ function StudyEditor() {
         <h2 className="text-xl">Link da entrevista</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           {form.status === "published"
-            ? "Compartilhe este link com seus entrevistados."
-            : "Publique o estudo para ativar o link."}
+            ? "Compartilhe um destes links com seus entrevistados."
+            : "Publique o estudo para ativar os links."}
         </p>
-        <div className="mt-4 flex items-center gap-2">
-          <input readOnly value={publicLink} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-muted-foreground" />
-          <button onClick={() => { navigator.clipboard.writeText(publicLink); toast.success("Copiado"); }}
-            className="rounded-md border border-border px-3 py-2 text-sm hover:bg-accent">Copiar</button>
+
+        <div className="mt-4">
+          <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Web (vídeo no navegador)</label>
+          <div className="mt-1 flex items-center gap-2">
+            <input readOnly value={publicLink} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-muted-foreground" />
+            <button onClick={() => { navigator.clipboard.writeText(publicLink); toast.success("Copiado"); }}
+              className="rounded-md border border-border px-3 py-2 text-sm hover:bg-accent">Copiar</button>
+          </div>
         </div>
+
+        <TelegramShare studyId={id} published={form.status === "published"} />
+
         <p className="mt-4 text-xs text-muted-foreground">
-          O respondente acessa o link publicado, cria conta ou entra, grava as respostas em vídeo e a IA transcreve e faz follow-ups automaticamente.
+          No link web, o respondente cria conta e grava em vídeo. No Telegram, ele responde por texto, áudio ou vídeo direto no chat — sem precisar de conta.
         </p>
       </section>
     </div>
