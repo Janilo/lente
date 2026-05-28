@@ -23,7 +23,7 @@ export function BrandHeader({ variant = "default", right }: Props) {
             Lente
           </span>
           {variant === "default" && (
-            <span className="jps-eyebrow hidden sm:inline">por J P Saraiva</span>
+            <a href="https://pereirasaraiva.com" target="_blank" rel="noopener noreferrer" className="jps-eyebrow hidden sm:inline hover:opacity-70 transition-opacity">por J P Saraiva</a>
           )}
         </Link>
         <div className="flex items-center gap-8">
