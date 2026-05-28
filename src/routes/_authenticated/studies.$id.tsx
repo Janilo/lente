@@ -229,3 +229,34 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
     </div>
   );
 }
+
+function TelegramShare({ studyId, published }: { studyId: string; published: boolean }) {
+  const getLink = useServerFn(getTelegramShareLink);
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["telegram-share", studyId],
+    queryFn: () => getLink({ data: { study_id: studyId } }),
+    enabled: published,
+    staleTime: 60 * 60 * 1000,
+  });
+  if (!published) return null;
+  return (
+    <div className="mt-4">
+      <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Telegram (texto, áudio ou vídeo)</label>
+      {isLoading ? (
+        <p className="mt-1 text-sm text-muted-foreground">Gerando link…</p>
+      ) : error ? (
+        <p className="mt-1 text-sm text-destructive">{(error as Error).message}</p>
+      ) : data ? (
+        <div className="mt-1 flex items-center gap-2">
+          <input readOnly value={data.url} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-muted-foreground" />
+          <button onClick={() => { navigator.clipboard.writeText(data.url); toast.success("Copiado"); }}
+            className="rounded-md border border-border px-3 py-2 text-sm hover:bg-accent">Copiar</button>
+          <a href={data.url} target="_blank" rel="noreferrer"
+            className="rounded-md bg-[#229ED9] px-3 py-2 text-sm font-medium text-white hover:opacity-90 whitespace-nowrap">
+            Abrir no Telegram
+          </a>
+        </div>
+      ) : null}
+    </div>
+  );
+}
