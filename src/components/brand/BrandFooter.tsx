@@ -34,6 +34,11 @@ export function BrandFooter() {
             Cadastre-se aqui&nbsp;→
           </a>
         </div>
+        <div className="flex flex-row flex-wrap items-center gap-x-6 gap-y-1 border-t border-border/70 py-5 text-[10px] uppercase tracking-[0.18em] text-muted-foreground sm:text-xs">
+          <span className="font-semibold">Outros produtos</span>
+          <a href="https://prisma.pereirasaraiva.com" target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity">Prisma</a>
+          <a href="https://cascata.pereirasaraiva.com" target="_blank" rel="noopener noreferrer" className="hover:opacity-70 transition-opacity">Cascata</a>
+        </div>
         <div className="flex flex-row flex-nowrap items-center justify-between gap-3 border-t border-border/70 py-6">
           <a href="https://pereirasaraiva.com" target="_blank" rel="noopener noreferrer" className="shrink-0 whitespace-nowrap text-[10px] uppercase tracking-[0.24em] text-muted-foreground hover:opacity-70 transition-opacity sm:text-xs sm:tracking-[0.32em]">J P Saraiva</a>
           <p className="shrink-0 whitespace-nowrap text-[10px] uppercase tracking-[0.18em] text-muted-foreground sm:text-xs">
