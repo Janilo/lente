@@ -268,7 +268,7 @@ export type Database = {
           external_respondent: Json | null
           finished_at: string | null
           id: string
-          respondent_id: string
+          respondent_id: string | null
           source: string
           started_at: string
           status: Database["public"]["Enums"]["interview_status"]
@@ -279,7 +279,7 @@ export type Database = {
           external_respondent?: Json | null
           finished_at?: string | null
           id?: string
-          respondent_id: string
+          respondent_id?: string | null
           source?: string
           started_at?: string
           status?: Database["public"]["Enums"]["interview_status"]
@@ -290,7 +290,7 @@ export type Database = {
           external_respondent?: Json | null
           finished_at?: string | null
           id?: string
-          respondent_id?: string
+          respondent_id?: string | null
           source?: string
           started_at?: string
           status?: Database["public"]["Enums"]["interview_status"]
@@ -526,6 +526,60 @@ export type Database = {
           target_audience?: string | null
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      telegram_sessions: {
+        Row: {
+          awaiting_consent: boolean
+          chat_id: number
+          created_at: string
+          interview_id: string | null
+          last_update_id: number | null
+          pending_is_followup: boolean
+          pending_parent_answer_id: string | null
+          pending_question_id: string | null
+          pending_question_text: string | null
+          state: string
+          study_id: string | null
+          telegram_first_name: string | null
+          telegram_username: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          awaiting_consent?: boolean
+          chat_id: number
+          created_at?: string
+          interview_id?: string | null
+          last_update_id?: number | null
+          pending_is_followup?: boolean
+          pending_parent_answer_id?: string | null
+          pending_question_id?: string | null
+          pending_question_text?: string | null
+          state?: string
+          study_id?: string | null
+          telegram_first_name?: string | null
+          telegram_username?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          awaiting_consent?: boolean
+          chat_id?: number
+          created_at?: string
+          interview_id?: string | null
+          last_update_id?: number | null
+          pending_is_followup?: boolean
+          pending_parent_answer_id?: string | null
+          pending_question_id?: string | null
+          pending_question_text?: string | null
+          state?: string
+          study_id?: string | null
+          telegram_first_name?: string | null
+          telegram_username?: string | null
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }

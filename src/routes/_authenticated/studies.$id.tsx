@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { getStudy, updateStudy, upsertQuestion, deleteQuestion } from "@/lib/studies.functions";
 import { getMyPublishPermission } from "@/lib/admin.functions";
+import { getTelegramShareLink } from "@/lib/telegram.functions";
 import { toast } from "sonner";
 import { ScriptBuilderActions } from "@/components/study/ScriptBuilderActions";
 import { ScreenerBuilder } from "@/components/study/ScreenerBuilder";
@@ -196,16 +197,23 @@ function StudyEditor() {
         <h2 className="text-xl">Link da entrevista</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           {form.status === "published"
-            ? "Compartilhe este link com seus entrevistados."
-            : "Publique o estudo para ativar o link."}
+            ? "Compartilhe um destes links com seus entrevistados."
+            : "Publique o estudo para ativar os links."}
         </p>
-        <div className="mt-4 flex items-center gap-2">
-          <input readOnly value={publicLink} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-muted-foreground" />
-          <button onClick={() => { navigator.clipboard.writeText(publicLink); toast.success("Copiado"); }}
-            className="rounded-md border border-border px-3 py-2 text-sm hover:bg-accent">Copiar</button>
+
+        <div className="mt-4">
+          <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Web (vídeo no navegador)</label>
+          <div className="mt-1 flex items-center gap-2">
+            <input readOnly value={publicLink} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-muted-foreground" />
+            <button onClick={() => { navigator.clipboard.writeText(publicLink); toast.success("Copiado"); }}
+              className="rounded-md border border-border px-3 py-2 text-sm hover:bg-accent">Copiar</button>
+          </div>
         </div>
+
+        <TelegramShare studyId={id} published={form.status === "published"} />
+
         <p className="mt-4 text-xs text-muted-foreground">
-          O respondente acessa o link publicado, cria conta ou entra, grava as respostas em vídeo e a IA transcreve e faz follow-ups automaticamente.
+          No link web, o respondente cria conta e grava em vídeo. No Telegram, ele responde por texto, áudio ou vídeo direto no chat — sem precisar de conta.
         </p>
       </section>
     </div>
@@ -218,6 +226,37 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
       <label className="text-sm font-medium">{label}</label>
       {hint && <p className="text-xs text-muted-foreground mt-0.5">{hint}</p>}
       <div className="mt-1.5">{children}</div>
+    </div>
+  );
+}
+
+function TelegramShare({ studyId, published }: { studyId: string; published: boolean }) {
+  const getLink = useServerFn(getTelegramShareLink);
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["telegram-share", studyId],
+    queryFn: () => getLink({ data: { study_id: studyId } }),
+    enabled: published,
+    staleTime: 60 * 60 * 1000,
+  });
+  if (!published) return null;
+  return (
+    <div className="mt-4">
+      <label className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Telegram (texto, áudio ou vídeo)</label>
+      {isLoading ? (
+        <p className="mt-1 text-sm text-muted-foreground">Gerando link…</p>
+      ) : error ? (
+        <p className="mt-1 text-sm text-destructive">{(error as Error).message}</p>
+      ) : data ? (
+        <div className="mt-1 flex items-center gap-2">
+          <input readOnly value={data.url} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-muted-foreground" />
+          <button onClick={() => { navigator.clipboard.writeText(data.url); toast.success("Copiado"); }}
+            className="rounded-md border border-border px-3 py-2 text-sm hover:bg-accent">Copiar</button>
+          <a href={data.url} target="_blank" rel="noreferrer"
+            className="rounded-md bg-[#229ED9] px-3 py-2 text-sm font-medium text-white hover:opacity-90 whitespace-nowrap">
+            Abrir no Telegram
+          </a>
+        </div>
+      ) : null}
     </div>
   );
 }

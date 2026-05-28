@@ -27,7 +27,7 @@ export const listStudyRespondents = createServerFn({ method: "GET" })
       .order("started_at", { ascending: false });
     const ivs = interviews ?? [];
     const ivIds = ivs.map((i) => i.id);
-    const userIds = Array.from(new Set(ivs.map((i) => i.respondent_id)));
+    const userIds = Array.from(new Set(ivs.map((i) => i.respondent_id).filter((x): x is string => !!x)));
 
     // Profiles
     const { data: profiles } = userIds.length
@@ -66,7 +66,7 @@ export const listStudyRespondents = createServerFn({ method: "GET" })
     return {
       study: { id: study.id, title: study.title, total_questions: totalQuestions },
       respondents: ivs.map((iv) => {
-        const profile = profileMap.get(iv.respondent_id);
+        const profile = iv.respondent_id ? profileMap.get(iv.respondent_id) : null;
         const agg = ansByIv[iv.id];
         const scores = agg?.scores ?? [];
         const avg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
@@ -75,7 +75,7 @@ export const listStudyRespondents = createServerFn({ method: "GET" })
           interview_id: iv.id,
           respondent_id: iv.respondent_id,
           full_name: profile?.full_name ?? null,
-          email: emailMap.get(iv.respondent_id) ?? null,
+          email: iv.respondent_id ? (emailMap.get(iv.respondent_id) ?? null) : null,
           signup_at: profile?.created_at ?? null,
           status: iv.status,
           started_at: iv.started_at,
