@@ -1,5 +1,4 @@
 import { supabase } from "@/integrations/supabase/client";
-import wordmarkInk from "@/assets/brand/wordmark-ink.svg";
 
 const RESPONDENTS_HREF = "https://pereirasaraiva.com/respondentes";
 const CTA_ID = "footer_respondents_signup";
@@ -41,9 +40,7 @@ export function BrandFooter() {
  <a href="https://cascata.pereirasaraiva.com"target="_blank"rel="noopener noreferrer"className="hover:opacity-70 transition-opacity">Cascata</a>
  </div>
  <div className="flex flex-row flex-nowrap items-center justify-between gap-3 border-t border-border/70 py-6">
- <a href="https://pereirasaraiva.com"target="_blank"rel="noopener noreferrer"aria-label="J P Saraiva"className="shrink-0 hover:opacity-70 transition-opacity">
- <img src={wordmarkInk} alt="J P Saraiva" className="h-4 w-auto" />
- </a>
+ <a href="https://pereirasaraiva.com"target="_blank"rel="noopener noreferrer"className="shrink-0 whitespace-nowrap text-[10px] uppercase tracking-[0.24em] text-muted-foreground hover:opacity-70 transition-opacity sm:text-xs sm:tracking-[0.32em]">J P Saraiva</a>
  <p className="shrink-0 whitespace-nowrap text-[10px] uppercase tracking-[0.18em] text-muted-foreground sm:text-xs">
  © {new Date().getFullYear()}
  </p>
