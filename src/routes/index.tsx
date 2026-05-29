@@ -14,7 +14,7 @@ export const Route = createFileRoute("/")({
 function Landing() {
  return (
  <div>
- <BrandHeader />
+ <BrandHeader variant="marketing" />
  {/* HERO */}
  <section className="mx-auto max-w-5xl px-6 pt-24 pb-16">
  <div className="max-w-3xl">
@@ -191,7 +191,7 @@ function Landing() {
  </section>
 
  {/* MÉTODO — 3 passos */}
- <section className="border-t border-border bg-card">
+ <section id="metodo"className="border-t border-border bg-card scroll-mt-24">
  <div className="mx-auto max-w-5xl px-6 py-20">
  <p className="jps-eyebrow">Método</p>
  <div className="mt-10 grid gap-12 md:grid-cols-3">
