@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Toaster } from "@/components/ui/sonner";
 import { BrandFooter } from "@/components/brand/BrandFooter";
+import { LenteWordmark } from "@/components/brand/LenteWordmark";
 import { syncHubspotSelf } from "@/lib/hubspot.functions";
 
 
@@ -162,16 +163,18 @@ function AuthInvalidator() {
 
 function Header() {
  const { isAuthenticated, loading } = useAuth();
+ const linkCls = "text-[11px] font-semibold uppercase tracking-[0.18em] text-foreground hover:opacity-70 transition-opacity";
+ const ctaCls = "inline-flex items-center gap-2 rounded-sm bg-primary px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary-foreground hover:bg-[color:var(--lente-teal-deep)] transition-colors";
  return (
  <header className="border-b border-border bg-background sticky top-0 z-40">
  <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-8">
  <div className="inline-flex items-baseline gap-3">
  <Link
  to="/"
- className="font-display text-2xl leading-none text-primary hover:opacity-85 transition-opacity"
- style={{ fontVariationSettings: '"opsz"144, "SOFT"0, "WONK"0' }}
+ aria-label="Lente — início"
+ className="inline-flex items-center text-[color:var(--lente-teal-deep)] hover:opacity-80 transition-opacity"
  >
- Lente
+ <LenteWordmark className="h-7 w-auto" />
  </Link>
  <a
  href="https://pereirasaraiva.com"
@@ -182,22 +185,23 @@ function Header() {
  por J P Saraiva
  </a>
  </div>
- <nav className="flex items-center gap-8">
+ <nav className="flex items-center gap-6 sm:gap-8">
  {loading ? null : isAuthenticated ? (
  <>
- <Link to="/dashboard"className="jps-navlink">Dashboard</Link>
- <Link to="/my-privacy"className="jps-navlink">Minha privacidade</Link>
+ <Link to="/dashboard"className={linkCls}>Dashboard</Link>
+ <Link to="/my-privacy"className={linkCls}>Minha privacidade</Link>
  <button
  onClick={async () => { await supabase.auth.signOut(); }}
- className="jps-navlink"
+ className={linkCls}
  >
  Sair
  </button>
  </>
  ) : (
  <>
- <Link to="/login"className="jps-navlink">Entrar</Link>
- <Link to="/signup"className="jps-cta">
+ <a href="/#metodo"className={`hidden sm:inline ${linkCls}`}>Metodologia</a>
+ <Link to="/login"className={linkCls}>Entrar</Link>
+ <Link to="/signup"className={ctaCls}>
  Criar conta <span aria-hidden>→</span>
  </Link>
  </>
