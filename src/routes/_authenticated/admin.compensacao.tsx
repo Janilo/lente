@@ -314,11 +314,11 @@ function CompensationPage() {
                     </td>
                     <td className="px-3 py-2">
                       <span
-                        className={`inline-flex rounded-full px-2 py-0.5 text-xs ${
+                        className={`inline-flex rounded-sm px-2 py-0.5 text-xs font-semibold ${
                           e.status === "paid"
-                            ? "bg-green-500/15 text-green-600 dark:text-green-400"
+                            ? "bg-[color:var(--lente-teal-soft)] text-[color:var(--lente-teal-ink)] dark:bg-[color:var(--lente-teal-deep)] dark:text-[color:var(--lente-teal-soft)]"
                             : e.status === "pending"
-                              ? "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                              ? "bg-[color:var(--lente-amber-soft)] text-[color:#7A5A1A] dark:bg-[color:var(--lente-amber)]/20 dark:text-[color:var(--lente-amber-soft)]"
                               : "bg-muted text-muted-foreground"
                         }`}
                       >
