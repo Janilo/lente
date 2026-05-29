@@ -109,7 +109,7 @@ function SynthesisPage() {
  const recs = data?.recommendations ?? [];
  const priorityLabel = (p: number | null) => (p === 1 ? "Alta": p === 2 ? "Média": p === 3 ? "Baixa": "—");
  const priorityCls = (p: number | null) =>
- p === 1 ? "bg-destructive/10 text-destructive": p === 2 ? "bg-primary/10 text-primary": "bg-muted text-muted-foreground";
+ p === 1 ? "bg-[color:var(--lente-danger)]/10 text-[color:var(--lente-danger)]" : p === 2 ? "bg-[color:var(--lente-amber-soft)] text-[color:var(--lente-amber-ink)]" : "bg-muted text-muted-foreground";
 
  return (
  <div className="mx-auto max-w-4xl px-6 py-12 space-y-8">

@@ -470,7 +470,7 @@ function TagValueChip({
  const [draft, setDraft] = useState(value.label);
  if (editing) {
  return (
- <span className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-1 text-xs">
+ <span className="inline-flex items-center gap-1 border border-border bg-background px-2 py-1 text-xs">
  <input
  value={draft}
  onChange={(e) => setDraft(e.target.value)}
@@ -483,7 +483,7 @@ function TagValueChip({
  );
  }
  return (
- <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1 text-xs">
+ <span className="inline-flex items-center gap-2 border border-border bg-background px-3 py-1 text-xs">
  <span>{value.label}</span>
  <span className="text-muted-foreground font-mono opacity-60">{value.slug}</span>
  <button onClick={() => setEditing(true)} className="text-muted-foreground hover:text-foreground">✎</button>
@@ -566,7 +566,7 @@ function PoolTab() {
  <button
  key={v.id}
  onClick={() => toggleTag(v.id)}
- className={`rounded-full border px-3 py-1 text-xs transition-colors ${on ? "border-primary bg-primary text-primary-foreground": "border-border bg-background hover:bg-accent"}`}
+ className={`border px-3 py-1 text-xs transition-colors ${on ? "border-primary bg-primary text-primary-foreground": "border-border bg-background hover:bg-accent"}`}
  >{v.label}</button>
  );
  })}
@@ -659,7 +659,7 @@ function RespondentCard({
 
  <div className="flex flex-wrap gap-1.5 items-center">
  {respondent.tags.map((t) => (
- <span key={t.tag_value_id} className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-xs">
+ <span key={t.tag_value_id} className="inline-flex items-center gap-1.5 bg-secondary px-2.5 py-1 text-xs">
  <span className="text-muted-foreground">{t.dimension}:</span>
  <span>{t.label}</span>
  <button onClick={() => onUnassign(t.tag_value_id)} className="text-muted-foreground hover:text-destructive">×</button>
@@ -669,7 +669,7 @@ function RespondentCard({
  <button
  onClick={() => setAdding(true)}
  disabled={available.length === 0}
- className="rounded-full border border-dashed border-border px-2.5 py-1 text-xs hover:bg-accent disabled:opacity-40"
+ className="border border-dashed border-border px-2.5 py-1 text-xs hover:bg-accent disabled:opacity-40"
  >+ tag</button>
  ) : (
  <select

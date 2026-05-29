@@ -228,7 +228,7 @@ function RecruitmentBoard({ initialStudyId }: { initialStudyId?: string }) {
  onClick={() =>
  setTagValueIds((prev) => (on ? prev.filter((x) => x !== v.id) : [...prev, v.id]))
  }
- className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+ className={`border px-3 py-1 text-xs transition-colors ${
  on
  ? "border-primary bg-primary text-primary-foreground"
  : "border-border bg-background hover:border-primary/40"
