@@ -76,7 +76,16 @@ export const updateStudy = createServerFn({ method: "POST" })
     }).parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+    const { supabase, userId, claims } = context;
+    if (data.status === "published") {
+      const email = (claims as { email?: string } | undefined)?.email?.toLowerCase();
+      const isAdmin = email === "janilo@pereirasaraiva.com";
+      if (!isAdmin) {
+        const { data: profile } = await supabase
+          .from("profiles").select("can_publish").eq("id", userId).maybeSingle();
+        if (!profile?.can_publish) throw new Error("Sem permissão para publicar. Solicite ao administrador.");
+      }
+    }
     const { error } = await supabase
       .from("studies")
       .update({
