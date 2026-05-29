@@ -117,7 +117,7 @@ function Dashboard() {
               <li key={s.id}>
                 <Link to="/studies/$id" params={{ id: s.id }} className="flex items-center justify-between gap-4 px-6 py-4 hover:bg-accent/40">
                   <div className="min-w-0">
-                    <h3 className="truncate text-base font-medium">{s.title}</h3>
+                    <h2 className="truncate text-base font-medium">{s.title}</h2>
                     {s.business_goal && <p className="truncate text-sm text-muted-foreground">{s.business_goal}</p>}
                   </div>
                   <span className="shrink-0 rounded-full border border-border px-2.5 py-0.5 text-xs capitalize text-muted-foreground">

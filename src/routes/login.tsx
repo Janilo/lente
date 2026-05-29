@@ -8,7 +8,16 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "Entrar — Lente" }] }),
+  head: () => ({
+    meta: [
+      { title: "Entrar — Lente" },
+      { name: "description", content: "Acesse sua conta Lente para acompanhar estudos, entrevistas e sínteses de pesquisa qualitativa em vídeo." },
+      { property: "og:title", content: "Entrar — Lente" },
+      { property: "og:description", content: "Acesse sua conta Lente para acompanhar estudos e sínteses de pesquisa." },
+      { property: "og:url", content: "https://lente.pereirasaraiva.com/login" },
+    ],
+    links: [{ rel: "canonical", href: "https://lente.pereirasaraiva.com/login" }],
+  }),
   validateSearch: z.object({ returnTo: z.string().optional() }),
   component: LoginPage,
 });
