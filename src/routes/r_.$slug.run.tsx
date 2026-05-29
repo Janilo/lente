@@ -69,7 +69,13 @@ function RunInner({ slug }: { slug: string }) {
 
  const askCamera = async () => {
  try {
- const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+ const timeout = new Promise<never>((_, reject) =>
+ setTimeout(() => reject(new Error("timeout")), 10_000)
+ );
+ const stream = await Promise.race([
+ navigator.mediaDevices.getUserMedia({ video: true, audio: true }),
+ timeout,
+ ]);
  streamRef.current = stream;
  if (videoRef.current) {
  videoRef.current.srcObject = stream;
