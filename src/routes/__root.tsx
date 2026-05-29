@@ -68,10 +68,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lente — Pesquisa qualitativa em vídeo com IA" },
+      { title: "Lente: Pesquisa qualitativa em vídeo com IA" },
       { name: "description", content: "Conduza entrevistas em vídeo com follow-ups adaptativos, transcrição automática e síntese de insights." },
-      { property: "og:title", content: "Lente — Pesquisa qualitativa em vídeo com IA" },
-      { name: "twitter:title", content: "Lente — Pesquisa qualitativa em vídeo com IA" },
+      { property: "og:title", content: "Lente: Pesquisa qualitativa em vídeo com IA" },
+      { name: "twitter:title", content: "Lente: Pesquisa qualitativa em vídeo com IA" },
       { property: "og:description", content: "Conduza entrevistas em vídeo com follow-ups adaptativos, transcrição automática e síntese de insights." },
       { name: "twitter:description", content: "Conduza entrevistas em vídeo com follow-ups adaptativos, transcrição automática e síntese de insights." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/821c4956-afdc-4651-b3a0-6801ad9b5d37/id-preview-3a98dd85--19daec10-d6e6-48b0-85d3-7e3715904e7f.lovable.app-1779670696225.png" },
