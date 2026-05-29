@@ -127,11 +127,15 @@ export const exportInterviewRawData = createServerFn({ method: "POST" })
       }),
     );
 
+    const studyForCaller = isOwner
+      ? { id: iv.studies?.id, title: iv.studies?.title, business_goal: iv.studies?.business_goal, context: iv.studies?.context, target_audience: iv.studies?.target_audience }
+      : { id: iv.studies?.id, title: iv.studies?.title };
+
     return {
       exported_at: new Date().toISOString(),
       lgpd_notice: "Dados pessoais — uso restrito conforme termo de consentimento aceito pelo entrevistado. URLs de vídeo expiram em 1h.",
       interview: { id: iv.id, status: iv.status, started_at: iv.started_at, finished_at: iv.finished_at },
-      study: iv.studies,
+      study: studyForCaller,
       respondent: { id: iv.respondent_id, full_name: profile?.full_name ?? null, email: respondentEmail, signup_at: profile?.created_at ?? null },
       consent: consent ?? null,
       questions,
