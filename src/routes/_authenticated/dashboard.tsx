@@ -72,7 +72,7 @@ function Dashboard() {
  title="Cria um estudo demo com entrevista simulada e roda a síntese completa."
  className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-sm hover:bg-accent disabled:opacity-50"
  >
- <Sparkles className="h-4 w-4"/>
+ <Sparkles className="h-4 w-4 text-[color:var(--lente-coral)]"/>
  {runTest.isPending ? "Gerando…": "Entrevista de teste"}
  </button>
  <button onClick={() => setOpen(true)} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
