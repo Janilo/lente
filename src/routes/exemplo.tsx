@@ -92,12 +92,12 @@ function DemoPage() {
  <span className="font-mono uppercase tracking-wider">Demo-ready</span>
  <span className="text-muted-foreground hidden sm:inline">· síntese real de exemplo, pronta para apresentar em reunião</span>
  </div>
- <a
- href="mailto:janilo@pereirasaraiva.com?subject=Conversa%20sobre%20a%20Lente&body=Vi%20a%20demo%20em%20%2Fexemplo%20e%20queria%20conversar."
+ <Link
+ to="/signup"
  className="rounded-sm border border-primary/40 bg-background px-2.5 py-1 font-medium text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
  >
- Agendar conversa →
- </a>
+ Criar minha pesquisa →
+ </Link>
  </div>
  </div>
 
@@ -272,21 +272,15 @@ function DemoPage() {
  <div className="max-w-xl">
  <p className="jps-eyebrow">Pronto para o seu estudo</p>
  <h2 className="mt-3 text-3xl md:text-4xl leading-tight">
- Rode com <em className="font-display italic text-primary">suas próprias entrevistas</em> — ou converse com quem construiu.
+ Rode com <em className="font-display italic text-primary">suas próprias entrevistas</em>.
  </h2>
  </div>
  <div className="flex flex-col sm:flex-row gap-3">
- <a
- href="mailto:janilo@pereirasaraiva.com?subject=Conversa%20sobre%20a%20Lente&body=Vi%20a%20demo%20em%20%2Fexemplo%20e%20queria%20conversar%20sobre%20aplicar%20a%20Lente%20no%20seguinte%20cen%C3%A1rio%3A%0A%0A"
- className="rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground text-center"
- >
- Agendar conversa
- </a>
  <Link
  to="/signup"
- className="rounded-md border border-border bg-card px-5 py-3 text-sm font-medium text-foreground hover:bg-accent text-center"
+ className="rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground text-center"
  >
- Criar conta de pesquisador
+ Criar minha pesquisa
  </Link>
  </div>
  </div>
