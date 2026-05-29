@@ -625,12 +625,20 @@ function RespondentCard({
     <div className="rounded-lg border border-border bg-card p-4 space-y-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
-          <div className="text-base font-medium">{respondent.full_name ?? "(sem nome)"}</div>
+          <div className="text-base font-medium">
+            <Link
+              to="/admin/respondentes/$id"
+              params={{ id: respondent.id }}
+              className="hover:underline"
+            >
+              {respondent.full_name ?? "(sem nome)"}
+            </Link>
+          </div>
           <div className="text-xs text-muted-foreground">
             {[respondent.email, respondent.phone, respondent.occupation, respondent.company, [respondent.city, respondent.state].filter(Boolean).join("/")].filter(Boolean).join(" · ") || "—"}
           </div>
         </div>
-        <div className="flex gap-4 text-xs text-muted-foreground">
+        <div className="flex items-center gap-4 text-xs text-muted-foreground">
           <span><strong className="text-foreground">{respondent.studies_count}</strong> estudos</span>
           <span><strong className="text-foreground">{respondent.completed_count}</strong> concluídas</span>
           {respondent.avg_quality_score != null && (
@@ -639,6 +647,13 @@ function RespondentCard({
           {respondent.last_participation_at && (
             <span>Última: {new Date(respondent.last_participation_at).toLocaleDateString("pt-BR")}</span>
           )}
+          <Link
+            to="/admin/respondentes/$id"
+            params={{ id: respondent.id }}
+            className="rounded-md border border-border px-2 py-1 hover:bg-accent"
+          >
+            Ficha →
+          </Link>
         </div>
       </div>
 

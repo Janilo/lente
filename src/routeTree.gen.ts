@@ -29,6 +29,7 @@ import { Route as ApiPublicTelegramWebhookRouteImport } from './routes/api/publi
 import { Route as AuthenticatedStudiesIdSynthesisRouteImport } from './routes/_authenticated/studies.$id.synthesis'
 import { Route as AuthenticatedStudiesIdRespondentsRouteImport } from './routes/_authenticated/studies.$id.respondents'
 import { Route as AuthenticatedStudiesIdInterviewsRouteImport } from './routes/_authenticated/studies.$id.interviews'
+import { Route as AuthenticatedAdminRespondentesIdRouteImport } from './routes/_authenticated/admin.respondentes.$id'
 import { Route as AuthenticatedStudiesIdInterviewsUploadRouteImport } from './routes/_authenticated/studies.$id.interviews.upload'
 import { Route as AuthenticatedStudiesIdInterviewsInterviewIdRouteImport } from './routes/_authenticated/studies.$id.interviews.$interviewId'
 
@@ -139,6 +140,12 @@ const AuthenticatedStudiesIdInterviewsRoute =
     path: '/interviews',
     getParentRoute: () => AuthenticatedStudiesIdRoute,
   } as any)
+const AuthenticatedAdminRespondentesIdRoute =
+  AuthenticatedAdminRespondentesIdRouteImport.update({
+    id: '/admin/respondentes/$id',
+    path: '/admin/respondentes/$id',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedStudiesIdInterviewsUploadRoute =
   AuthenticatedStudiesIdInterviewsUploadRouteImport.update({
     id: '/upload',
@@ -168,6 +175,7 @@ export interface FileRoutesByFullPath {
   '/admin/recrutamento': typeof AuthenticatedAdminRecrutamentoRoute
   '/studies/$id': typeof AuthenticatedStudiesIdRouteWithChildren
   '/r/$slug/run': typeof RSlugRunRoute
+  '/admin/respondentes/$id': typeof AuthenticatedAdminRespondentesIdRoute
   '/studies/$id/interviews': typeof AuthenticatedStudiesIdInterviewsRouteWithChildren
   '/studies/$id/respondents': typeof AuthenticatedStudiesIdRespondentsRoute
   '/studies/$id/synthesis': typeof AuthenticatedStudiesIdSynthesisRoute
@@ -191,6 +199,7 @@ export interface FileRoutesByTo {
   '/admin/recrutamento': typeof AuthenticatedAdminRecrutamentoRoute
   '/studies/$id': typeof AuthenticatedStudiesIdRouteWithChildren
   '/r/$slug/run': typeof RSlugRunRoute
+  '/admin/respondentes/$id': typeof AuthenticatedAdminRespondentesIdRoute
   '/studies/$id/interviews': typeof AuthenticatedStudiesIdInterviewsRouteWithChildren
   '/studies/$id/respondents': typeof AuthenticatedStudiesIdRespondentsRoute
   '/studies/$id/synthesis': typeof AuthenticatedStudiesIdSynthesisRoute
@@ -216,6 +225,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/recrutamento': typeof AuthenticatedAdminRecrutamentoRoute
   '/_authenticated/studies/$id': typeof AuthenticatedStudiesIdRouteWithChildren
   '/r_/$slug/run': typeof RSlugRunRoute
+  '/_authenticated/admin/respondentes/$id': typeof AuthenticatedAdminRespondentesIdRoute
   '/_authenticated/studies/$id/interviews': typeof AuthenticatedStudiesIdInterviewsRouteWithChildren
   '/_authenticated/studies/$id/respondents': typeof AuthenticatedStudiesIdRespondentsRoute
   '/_authenticated/studies/$id/synthesis': typeof AuthenticatedStudiesIdSynthesisRoute
@@ -241,6 +251,7 @@ export interface FileRouteTypes {
     | '/admin/recrutamento'
     | '/studies/$id'
     | '/r/$slug/run'
+    | '/admin/respondentes/$id'
     | '/studies/$id/interviews'
     | '/studies/$id/respondents'
     | '/studies/$id/synthesis'
@@ -264,6 +275,7 @@ export interface FileRouteTypes {
     | '/admin/recrutamento'
     | '/studies/$id'
     | '/r/$slug/run'
+    | '/admin/respondentes/$id'
     | '/studies/$id/interviews'
     | '/studies/$id/respondents'
     | '/studies/$id/synthesis'
@@ -288,6 +300,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/recrutamento'
     | '/_authenticated/studies/$id'
     | '/r_/$slug/run'
+    | '/_authenticated/admin/respondentes/$id'
     | '/_authenticated/studies/$id/interviews'
     | '/_authenticated/studies/$id/respondents'
     | '/_authenticated/studies/$id/synthesis'
@@ -450,6 +463,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStudiesIdInterviewsRouteImport
       parentRoute: typeof AuthenticatedStudiesIdRoute
     }
+    '/_authenticated/admin/respondentes/$id': {
+      id: '/_authenticated/admin/respondentes/$id'
+      path: '/admin/respondentes/$id'
+      fullPath: '/admin/respondentes/$id'
+      preLoaderRoute: typeof AuthenticatedAdminRespondentesIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/studies/$id/interviews/upload': {
       id: '/_authenticated/studies/$id/interviews/upload'
       path: '/upload'
@@ -513,6 +533,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAdminCompensacaoRoute: typeof AuthenticatedAdminCompensacaoRoute
   AuthenticatedAdminRecrutamentoRoute: typeof AuthenticatedAdminRecrutamentoRoute
   AuthenticatedStudiesIdRoute: typeof AuthenticatedStudiesIdRouteWithChildren
+  AuthenticatedAdminRespondentesIdRoute: typeof AuthenticatedAdminRespondentesIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -523,6 +544,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminCompensacaoRoute: AuthenticatedAdminCompensacaoRoute,
   AuthenticatedAdminRecrutamentoRoute: AuthenticatedAdminRecrutamentoRoute,
   AuthenticatedStudiesIdRoute: AuthenticatedStudiesIdRouteWithChildren,
+  AuthenticatedAdminRespondentesIdRoute: AuthenticatedAdminRespondentesIdRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
