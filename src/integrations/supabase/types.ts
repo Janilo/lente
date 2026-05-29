@@ -421,6 +421,127 @@ export type Database = {
           },
         ]
       }
+      respondent_profile: {
+        Row: {
+          active: boolean
+          age_range: string | null
+          city: string | null
+          company: string | null
+          company_size: string | null
+          consent_marketing: boolean
+          consent_research: boolean
+          country: string
+          created_at: string
+          education: string | null
+          email: string | null
+          full_name: string | null
+          gender: string | null
+          id: string
+          income_range: string | null
+          linkedin_url: string | null
+          notes: string | null
+          occupation: string | null
+          phone: string | null
+          source: string | null
+          state: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          age_range?: string | null
+          city?: string | null
+          company?: string | null
+          company_size?: string | null
+          consent_marketing?: boolean
+          consent_research?: boolean
+          country?: string
+          created_at?: string
+          education?: string | null
+          email?: string | null
+          full_name?: string | null
+          gender?: string | null
+          id?: string
+          income_range?: string | null
+          linkedin_url?: string | null
+          notes?: string | null
+          occupation?: string | null
+          phone?: string | null
+          source?: string | null
+          state?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          age_range?: string | null
+          city?: string | null
+          company?: string | null
+          company_size?: string | null
+          consent_marketing?: boolean
+          consent_research?: boolean
+          country?: string
+          created_at?: string
+          education?: string | null
+          email?: string | null
+          full_name?: string | null
+          gender?: string | null
+          id?: string
+          income_range?: string | null
+          linkedin_url?: string | null
+          notes?: string | null
+          occupation?: string | null
+          phone?: string | null
+          source?: string | null
+          state?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      respondent_tags: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          respondent_id: string
+          tag_value_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          respondent_id: string
+          tag_value_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          respondent_id?: string
+          tag_value_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "respondent_tags_respondent_id_fkey"
+            columns: ["respondent_id"]
+            isOneToOne: false
+            referencedRelation: "respondent_profile"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "respondent_tags_respondent_id_fkey"
+            columns: ["respondent_id"]
+            isOneToOne: false
+            referencedRelation: "respondent_stats"
+            referencedColumns: ["respondent_id"]
+          },
+          {
+            foreignKeyName: "respondent_tags_tag_value_id_fkey"
+            columns: ["tag_value_id"]
+            isOneToOne: false
+            referencedRelation: "tag_values"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       screener_questions: {
         Row: {
           created_at: string
@@ -529,6 +650,74 @@ export type Database = {
         }
         Relationships: []
       }
+      tag_dimensions: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          label: string
+          position: number
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          label: string
+          position?: number
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          label?: string
+          position?: number
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tag_values: {
+        Row: {
+          created_at: string
+          dimension_id: string
+          id: string
+          label: string
+          position: number
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          dimension_id: string
+          id?: string
+          label: string
+          position?: number
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          dimension_id?: string
+          id?: string
+          label?: string
+          position?: number
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tag_values_dimension_id_fkey"
+            columns: ["dimension_id"]
+            isOneToOne: false
+            referencedRelation: "tag_dimensions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       telegram_sessions: {
         Row: {
           awaiting_consent: boolean
@@ -606,7 +795,18 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      respondent_stats: {
+        Row: {
+          avg_quality_score: number | null
+          completed_count: number | null
+          interviews_count: number | null
+          last_participation_at: string | null
+          respondent_id: string | null
+          studies_count: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       delete_respondent_data: {
