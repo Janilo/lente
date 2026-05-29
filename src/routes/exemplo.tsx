@@ -81,6 +81,26 @@ function DemoPage() {
 
   return (
     <div>
+      {/* Faixa demo-ready — sinaliza que a página é um link compartilhável de apresentação */}
+      <div className="border-b border-primary/20 bg-primary/5">
+        <div className="mx-auto max-w-6xl px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2 text-primary">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/60" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+            </span>
+            <span className="font-mono uppercase tracking-wider">Demo-ready</span>
+            <span className="text-muted-foreground hidden sm:inline">· síntese real de exemplo, pronta para apresentar em reunião</span>
+          </div>
+          <a
+            href="mailto:janilo@pereirasaraiva.com?subject=Conversa%20sobre%20a%20Lente&body=Vi%20a%20demo%20em%20%2Fexemplo%20e%20queria%20conversar."
+            className="rounded-sm border border-primary/40 bg-background px-2.5 py-1 font-medium text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
+          >
+            Agendar conversa →
+          </a>
+        </div>
+      </div>
+
       {/* Header da demo */}
       <section className="border-b border-border bg-card">
         <div className="mx-auto max-w-6xl px-6 py-10">
@@ -107,6 +127,7 @@ function DemoPage() {
           </div>
         </div>
       </section>
+
 
       {/* Síntese — temas + detalhe */}
       <section>
