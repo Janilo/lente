@@ -8,7 +8,14 @@ import { InterviewProgress } from "@/components/interview/InterviewProgress";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/r_/$slug/run")({
-  head: () => ({ meta: [{ title: "Entrevista — Lente" }] }),
+  head: () => ({
+    meta: [
+      { title: "Participando da entrevista — Lente" },
+      { name: "description", content: "Sessão de gravação da entrevista em vídeo. Responda às perguntas no seu ritmo." },
+      { property: "og:title", content: "Participando da entrevista — Lente" },
+      { property: "og:type", content: "article" },
+    ],
+  }),
   component: RunPage,
 });
 
@@ -170,6 +177,7 @@ function RunInner({ slug }: { slug: string }) {
   if (step.type === "processing") {
     return (
       <div className="mx-auto max-w-2xl px-6 py-12 space-y-6">
+        <h1 className="sr-only">Processando resposta</h1>
         <InterviewProgress totals={totals} processing />
         <div className="text-sm text-muted-foreground">Processando última resposta…</div>
       </div>
@@ -178,6 +186,7 @@ function RunInner({ slug }: { slug: string }) {
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-12 space-y-6">
+      <h1 className="sr-only">Entrevista em andamento</h1>
       <InterviewProgress totals={totals} />
       <div>
         {step.type === "followup" && (

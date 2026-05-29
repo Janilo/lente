@@ -10,7 +10,15 @@ import { ScreenerForm } from "@/components/interview/ScreenerForm";
 import { LGPD_VERSION } from "@/lib/lgpd";
 
 export const Route = createFileRoute("/r_/$slug")({
-  head: () => ({ meta: [{ title: "Entrevista — Lente" }] }),
+  head: () => ({
+    meta: [
+      { title: "Convite para entrevista — Lente" },
+      { name: "description", content: "Você foi convidado a participar de uma entrevista em vídeo. Confira o consentimento e prepare-se para gravar suas respostas." },
+      { property: "og:title", content: "Convite para entrevista — Lente" },
+      { property: "og:description", content: "Participe de uma entrevista em vídeo conduzida com a Lente." },
+      { property: "og:type", content: "article" },
+    ],
+  }),
   component: PublicStudyRoute,
 });
 

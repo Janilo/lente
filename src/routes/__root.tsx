@@ -88,6 +88,33 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         children: `window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', 'G-QDHKZ82GE0');`,
       },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              name: "Lente",
+              url: "https://lente.pereirasaraiva.com",
+              logo: "https://lente.pereirasaraiva.com/favicon.svg",
+            },
+            {
+              "@type": "WebSite",
+              name: "Lente",
+              url: "https://lente.pereirasaraiva.com",
+            },
+            {
+              "@type": "SoftwareApplication",
+              name: "Lente",
+              applicationCategory: "BusinessApplication",
+              operatingSystem: "Web",
+              description: "Pesquisa qualitativa em vídeo com IA: entrevistas com follow-ups adaptativos, transcrição automática e síntese de insights.",
+              offers: { "@type": "Offer", price: "0", priceCurrency: "BRL" },
+            },
+          ],
+        }),
+      },
     ],
   }),
   shellComponent: RootShell,

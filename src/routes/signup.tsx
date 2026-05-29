@@ -7,7 +7,16 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/signup")({
-  head: () => ({ meta: [{ title: "Criar conta — Lente" }] }),
+  head: () => ({
+    meta: [
+      { title: "Criar conta — Lente" },
+      { name: "description", content: "Crie sua conta Lente em segundos e comece a rodar entrevistas em vídeo com follow-ups adaptativos e síntese automática." },
+      { property: "og:title", content: "Criar conta — Lente" },
+      { property: "og:description", content: "Cadastre-se na Lente para rodar entrevistas em vídeo com síntese automática de insights." },
+      { property: "og:url", content: "https://lente.pereirasaraiva.com/signup" },
+    ],
+    links: [{ rel: "canonical", href: "https://lente.pereirasaraiva.com/signup" }],
+  }),
   validateSearch: z.object({ returnTo: z.string().optional() }),
   component: SignupPage,
 });
