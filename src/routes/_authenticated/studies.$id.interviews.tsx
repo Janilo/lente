@@ -86,7 +86,7 @@ function InterviewsTable() {
         </Link>
       </div>
 
-      <div className="rounded-lg border border-border bg-card overflow-hidden">
+      <div className="rounded-sm border border-border bg-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm border-collapse">
             <thead className="bg-muted/40">

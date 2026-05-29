@@ -165,7 +165,7 @@ function DemoPage() {
             </aside>
 
             {/* Detalhe do tema selecionado */}
-            <div className="lg:col-span-3 rounded-md border border-border bg-background overflow-hidden shadow-sm">
+            <div className="lg:col-span-3 rounded-md border border-border bg-background overflow-hidden">
               <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-muted/40">
                 <div className="flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-full bg-destructive/70" />
@@ -195,7 +195,7 @@ function DemoPage() {
                         key={c.name + c.time}
                         className="flex gap-4 p-3 rounded-sm border border-border bg-card hover:border-primary/40 transition-colors"
                       >
-                        <div className="relative shrink-0 w-24 h-16 rounded-sm bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center">
+                        <div className="relative shrink-0 w-24 h-16 rounded-sm bg-muted flex items-center justify-center">
                           <svg className="w-6 h-6 text-background" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M8 5v14l11-7z" />
                           </svg>
@@ -242,7 +242,7 @@ function DemoPage() {
               </div>
             </div>
 
-            <div className="rounded-md border border-primary/30 bg-background p-6 shadow-sm">
+            <div className="rounded-md border border-primary/30 bg-background p-6">
               <p className="jps-eyebrow text-primary">Saída — insight estruturado</p>
               <div className="mt-4 space-y-4">
                 <div>

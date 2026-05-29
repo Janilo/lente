@@ -45,7 +45,7 @@ export function InterviewProgress({
       : `Sem aprofundamento (até ${maxFu})`;
 
   return (
-    <div className="rounded-lg border border-border bg-card p-4 space-y-4">
+    <div className="rounded-sm border border-border bg-card p-4 space-y-4">
       <div>
         <div className="flex items-baseline justify-between gap-3">
           <p className="text-sm font-medium">{primaryLabel}</p>

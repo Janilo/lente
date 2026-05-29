@@ -110,7 +110,7 @@ export function PipelineStatus({
     data?.last_answer?.status === "failed" ? data.last_answer.error_message : null;
 
   return (
-    <div className="rounded-lg border border-border bg-card p-5">
+    <div className="rounded-sm border border-border bg-card p-5">
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-xs uppercase tracking-widest text-muted-foreground">Status do pipeline</p>

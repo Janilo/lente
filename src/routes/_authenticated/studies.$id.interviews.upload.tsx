@@ -72,7 +72,7 @@ function UploadInterview() {
         </p>
       </div>
 
-      <form onSubmit={onSubmit} className="space-y-6 rounded-lg border border-border bg-card p-6">
+      <form onSubmit={onSubmit} className="space-y-6 rounded-sm border border-border bg-card p-6">
         <section className="grid gap-4 md:grid-cols-2">
           <Field label="Nome do respondente *">
             <input required value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })}

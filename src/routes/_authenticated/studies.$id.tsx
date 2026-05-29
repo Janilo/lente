@@ -117,7 +117,7 @@ function StudyEditor() {
 
 
 
-      <section className="rounded-lg border border-border bg-card p-6 space-y-4">
+      <section className="rounded-sm border border-border bg-card p-6 space-y-4">
         <h2 className="text-xl">Contexto do estudo</h2>
         <Field label="Título">
           <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })}
@@ -162,7 +162,7 @@ function StudyEditor() {
 
       <ScreenerBuilder studyId={id} />
 
-      <section className="rounded-lg border border-border bg-card p-6 space-y-4">
+      <section className="rounded-sm border border-border bg-card p-6 space-y-4">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <h2 className="text-xl">Roteiro de perguntas</h2>
           <ScriptBuilderActions
@@ -193,7 +193,7 @@ function StudyEditor() {
         )}
       </section>
 
-      <section className="rounded-lg border border-border bg-card p-6">
+      <section className="rounded-sm border border-border bg-card p-6">
         <h2 className="text-xl">Link da entrevista</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           {form.status === "published"

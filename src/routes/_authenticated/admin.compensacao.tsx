@@ -159,7 +159,7 @@ function CompensationPage() {
         <Stat label="Total pago (BRL)" value={formatBRL(totals.total_paid_brl)} />
       </div>
 
-      <section className="rounded-lg border border-border bg-card p-5 space-y-4">
+      <section className="rounded-sm border border-border bg-card p-5 space-y-4">
         <h2 className="text-lg font-medium">Novo registro</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Respondente *">
@@ -281,7 +281,7 @@ function CompensationPage() {
         ) : filtered.length === 0 ? (
           <p className="text-sm text-muted-foreground">Nenhum registro.</p>
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-border">
+          <div className="overflow-x-auto rounded-sm border border-border">
             <table className="w-full text-sm">
               <thead className="bg-muted/50 text-left text-xs uppercase text-muted-foreground">
                 <tr>
@@ -314,11 +314,11 @@ function CompensationPage() {
                     </td>
                     <td className="px-3 py-2">
                       <span
-                        className={`inline-flex rounded-full px-2 py-0.5 text-xs ${
+                        className={`inline-flex rounded-sm px-2 py-0.5 text-xs font-semibold ${
                           e.status === "paid"
-                            ? "bg-green-500/15 text-green-600 dark:text-green-400"
+                            ? "bg-[color:var(--lente-teal-soft)] text-[color:var(--lente-teal-ink)] dark:bg-[color:var(--lente-teal-deep)] dark:text-[color:var(--lente-teal-soft)]"
                             : e.status === "pending"
-                              ? "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                              ? "bg-[color:var(--lente-amber-soft)] text-[color:#7A5A1A] dark:bg-[color:var(--lente-amber)]/20 dark:text-[color:var(--lente-amber-soft)]"
                               : "bg-muted text-muted-foreground"
                         }`}
                       >
@@ -374,7 +374,7 @@ function CompensationPage() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-border bg-card p-4">
+    <div className="rounded-sm border border-border bg-card p-4">
       <div className="text-xs text-muted-foreground">{label}</div>
       <div className="mt-1 text-2xl font-medium">{value}</div>
     </div>

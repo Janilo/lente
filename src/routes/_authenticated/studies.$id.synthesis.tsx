@@ -146,7 +146,7 @@ function SynthesisPage() {
       </div>
 
       {insights.length === 0 && recs.length === 0 ? (
-        <div className="rounded-lg border border-border bg-card p-8 text-center text-sm text-muted-foreground">
+        <div className="rounded-sm border border-border bg-card p-8 text-center text-sm text-muted-foreground">
           Nenhuma síntese ainda. Clique em "Gerar síntese" depois que as entrevistas tiverem transcrições prontas.
         </div>
       ) : (
@@ -157,7 +157,7 @@ function SynthesisPage() {
               {insights.map((ins) => {
                 const evidence = ((ins.evidence as unknown) as Evidence[] | null) ?? [];
                 return (
-                  <li key={ins.id} className="rounded-lg border border-border bg-card p-5">
+                  <li key={ins.id} className="rounded-sm border border-border bg-card p-5">
                     <div className="text-base font-medium">{ins.theme}</div>
                     <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{ins.summary}</p>
                     {evidence.length > 0 && (
@@ -175,7 +175,7 @@ function SynthesisPage() {
             <h2 className="text-xl">Recomendações ({recs.length})</h2>
             <ul className="space-y-3">
               {recs.map((r) => (
-                <li key={r.id} className="rounded-lg border border-border bg-card p-5">
+                <li key={r.id} className="rounded-sm border border-border bg-card p-5">
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <div className="text-base font-medium">{r.title}</div>
                     <span className={`rounded-full px-2 py-0.5 text-xs ${priorityCls(r.priority)}`}>

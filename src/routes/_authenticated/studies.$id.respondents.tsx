@@ -67,11 +67,11 @@ function RespondentsPanel() {
       </div>
 
       {data.respondents.length === 0 ? (
-        <div className="rounded-lg border border-border bg-card p-8 text-center text-sm text-muted-foreground">
+        <div className="rounded-sm border border-border bg-card p-8 text-center text-sm text-muted-foreground">
           Nenhum respondente ainda.
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-border bg-card">
+        <div className="overflow-x-auto rounded-sm border border-border bg-card">
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
               <tr>
@@ -93,7 +93,7 @@ function RespondentsPanel() {
                   </td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">{r.signup_at ? new Date(r.signup_at).toLocaleDateString("pt-BR") : "—"}</td>
                   <td className="px-4 py-3">
-                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs ${r.status === "completed" ? "bg-emerald-100 text-emerald-900 dark:bg-emerald-900/40 dark:text-emerald-200" : "bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200"}`}>
+                    <span className={`inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-semibold ${r.status === "completed" ? "bg-[color:var(--lente-teal-soft)] text-[color:var(--lente-teal-ink)] dark:bg-[color:var(--lente-teal-deep)] dark:text-[color:var(--lente-teal-soft)]" : "bg-[color:var(--lente-amber-soft)] text-[color:#7A5A1A] dark:bg-[color:var(--lente-amber)]/20 dark:text-[color:var(--lente-amber-soft)]"}`}>
                       {r.status === "completed" ? "Concluída" : "Em andamento"}
                     </span>
                     <div className="mt-1 text-xs text-muted-foreground">
@@ -152,7 +152,7 @@ function RespondentDetailDrawer({ interviewId, onClose }: { interviewId: string;
 
   return (
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm overflow-y-auto" onClick={onClose}>
-      <div className="mx-auto max-w-3xl my-12 rounded-lg border border-border bg-card shadow-xl" onClick={(e) => e.stopPropagation()}>
+      <div className="mx-auto max-w-3xl my-12 rounded-sm border border-border bg-card border border-border" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <h2 className="text-lg font-semibold">Detalhes da entrevista</h2>
           <button onClick={onClose} className="text-sm text-muted-foreground hover:text-foreground">Fechar</button>

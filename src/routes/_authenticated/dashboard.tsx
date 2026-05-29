@@ -83,7 +83,7 @@ function Dashboard() {
 
 
       {open && (
-        <div className="mt-8 rounded-lg border border-border bg-card p-6">
+        <div className="mt-8 rounded-sm border border-border bg-card p-6">
           <h2 className="text-xl">Novo estudo</h2>
           <input
             autoFocus value={title} onChange={(e) => setTitle(e.target.value)}
@@ -107,12 +107,12 @@ function Dashboard() {
         {isLoading ? (
           <p className="text-sm text-muted-foreground">Carregando…</p>
         ) : data?.studies.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-border p-12 text-center">
+          <div className="rounded-sm border border-dashed border-border p-12 text-center">
             <p className="text-muted-foreground">Nenhum estudo ainda.</p>
             <p className="mt-1 text-sm text-muted-foreground">Crie seu primeiro estudo para começar.</p>
           </div>
         ) : (
-          <ul className="divide-y divide-border rounded-lg border border-border bg-card">
+          <ul className="divide-y divide-border rounded-sm border border-border bg-card">
             {data?.studies.map((s) => (
               <li key={s.id}>
                 <Link to="/studies/$id" params={{ id: s.id }} className="flex items-center justify-between gap-4 px-6 py-4 hover:bg-accent/40">
@@ -120,7 +120,7 @@ function Dashboard() {
                     <h2 className="truncate text-base font-medium">{s.title}</h2>
                     {s.business_goal && <p className="truncate text-sm text-muted-foreground">{s.business_goal}</p>}
                   </div>
-                  <span className="shrink-0 rounded-full border border-border px-2.5 py-0.5 text-xs capitalize text-muted-foreground">
+                  <span className="shrink-0 rounded-sm border border-border px-2 py-0.5 text-xs font-semibold capitalize text-muted-foreground">
                     {s.status === "draft" ? "rascunho" : s.status === "published" ? "publicado" : "encerrado"}
                   </span>
                 </Link>
