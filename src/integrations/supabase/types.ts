@@ -650,6 +650,45 @@ export type Database = {
         }
         Relationships: []
       }
+      study_invitations: {
+        Row: {
+          channel: string
+          created_at: string
+          id: string
+          invited_by: string
+          message: string | null
+          respondent_id: string
+          sent_at: string | null
+          status: string
+          study_id: string
+          updated_at: string
+        }
+        Insert: {
+          channel?: string
+          created_at?: string
+          id?: string
+          invited_by: string
+          message?: string | null
+          respondent_id: string
+          sent_at?: string | null
+          status?: string
+          study_id: string
+          updated_at?: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          id?: string
+          invited_by?: string
+          message?: string | null
+          respondent_id?: string
+          sent_at?: string | null
+          status?: string
+          study_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tag_dimensions: {
         Row: {
           created_at: string
