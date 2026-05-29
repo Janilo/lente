@@ -318,7 +318,7 @@ function CompensationPage() {
  e.status === "paid"
  ? "bg-[color:var(--lente-teal-soft)] text-[color:var(--lente-teal-ink)] dark:bg-[color:var(--lente-teal-deep)] dark:text-[color:var(--lente-teal-soft)]"
  : e.status === "pending"
- ? "bg-[color:var(--lente-amber-soft)] text-[color:#7A5A1A] dark:bg-[color:var(--lente-amber)]/20 dark:text-[color:var(--lente-amber-soft)]"
+ ? "bg-[color:var(--lente-amber-soft)] text-[color:var(--lente-amber-ink)] dark:bg-[color:var(--lente-amber)]/20 dark:text-[color:var(--lente-amber-soft)]"
  : "bg-muted text-muted-foreground"
  }`}
  >

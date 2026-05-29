@@ -252,7 +252,7 @@ function TelegramShare({ studyId, published }: { studyId: string; published: boo
  <button onClick={() => { navigator.clipboard.writeText(data.url); toast.success("Copiado"); }}
  className="rounded-md border border-border px-3 py-2 text-sm hover:bg-accent">Copiar</button>
  <a href={data.url} target="_blank"rel="noreferrer"
- className="rounded-md bg-[#229ED9] px-3 py-2 text-sm font-medium text-white hover:opacity-90 whitespace-nowrap">
+ className="rounded-md bg-[color:var(--lente-telegram)] px-3 py-2 text-sm font-medium text-[color:var(--lente-white)] hover:opacity-90 whitespace-nowrap">
  Abrir no Telegram
  </a>
  </div>
