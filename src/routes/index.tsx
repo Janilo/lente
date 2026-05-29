@@ -189,7 +189,7 @@ function Landing() {
  </section>
 
  {/* MÉTODO — 3 passos */}
- <section id="metodo"className="border-t border-border bg-card scroll-mt-24">
+ <section id="metodo"className="border-t border-border bg-card scroll-mt-[var(--header-height)]">
  <div className="mx-auto max-w-5xl px-6 py-20">
  <p className="jps-eyebrow">Método</p>
  <div className="mt-10 grid gap-12 md:grid-cols-3">
