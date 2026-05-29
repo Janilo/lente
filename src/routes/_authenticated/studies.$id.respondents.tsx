@@ -62,7 +62,7 @@ function RespondentsPanel() {
  </p>
  </div>
 
- <div className="rounded-md border border-border bg-amber-50/50 dark:bg-amber-950/20 p-4 text-xs text-muted-foreground">
+ <div className="rounded-sm border border-[color:var(--lente-amber)]/40 bg-[color:var(--lente-amber-soft)] dark:bg-[color:var(--lente-amber)]/10 p-4 text-xs text-muted-foreground">
  <strong className="text-foreground">Aviso LGPD:</strong> os dados pessoais abaixo (nome, email, gravações, transcrições) só podem ser usados para a finalidade declarada no termo aceito pelo respondente. Não os compartilhe sem base legal. Você pode atender pedidos de exclusão pelo botão "Apagar dados".
  </div>
 
