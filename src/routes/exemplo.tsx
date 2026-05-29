@@ -81,6 +81,26 @@ function DemoPage() {
 
   return (
     <div>
+      {/* Faixa demo-ready — sinaliza que a página é um link compartilhável de apresentação */}
+      <div className="border-b border-primary/20 bg-primary/5">
+        <div className="mx-auto max-w-6xl px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2 text-primary">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/60" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+            </span>
+            <span className="font-mono uppercase tracking-wider">Demo-ready</span>
+            <span className="text-muted-foreground hidden sm:inline">· síntese real de exemplo, pronta para apresentar em reunião</span>
+          </div>
+          <a
+            href="mailto:janilo@pereirasaraiva.com?subject=Conversa%20sobre%20a%20Lente&body=Vi%20a%20demo%20em%20%2Fexemplo%20e%20queria%20conversar."
+            className="rounded-sm border border-primary/40 bg-background px-2.5 py-1 font-medium text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
+          >
+            Agendar conversa →
+          </a>
+        </div>
+      </div>
+
       {/* Header da demo */}
       <section className="border-b border-border bg-card">
         <div className="mx-auto max-w-6xl px-6 py-10">
@@ -107,6 +127,7 @@ function DemoPage() {
           </div>
         </div>
       </section>
+
 
       {/* Síntese — temas + detalhe */}
       <section>
@@ -251,21 +272,21 @@ function DemoPage() {
             <div className="max-w-xl">
               <p className="jps-eyebrow">Pronto para o seu estudo</p>
               <h2 className="mt-3 text-3xl md:text-4xl leading-tight">
-                Rode com <em className="font-display italic text-primary">suas próprias entrevistas</em>.
+                Rode com <em className="font-display italic text-primary">suas próprias entrevistas</em> — ou converse com quem construiu.
               </h2>
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <a
+                href="mailto:janilo@pereirasaraiva.com?subject=Conversa%20sobre%20a%20Lente&body=Vi%20a%20demo%20em%20%2Fexemplo%20e%20queria%20conversar%20sobre%20aplicar%20a%20Lente%20no%20seguinte%20cen%C3%A1rio%3A%0A%0A"
+                className="rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground text-center"
+              >
+                Agendar conversa
+              </a>
               <Link
                 to="/signup"
-                className="rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground"
+                className="rounded-md border border-border bg-card px-5 py-3 text-sm font-medium text-foreground hover:bg-accent text-center"
               >
                 Criar conta de pesquisador
-              </Link>
-              <Link
-                to="/"
-                className="rounded-md border border-border px-5 py-3 text-sm font-medium text-foreground hover:bg-accent"
-              >
-                Voltar
               </Link>
             </div>
           </div>
