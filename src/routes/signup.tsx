@@ -16,6 +16,9 @@ function SignupPage() {
   const navigate = useNavigate();
   const { returnTo } = Route.useSearch();
   const target = returnTo || "/dashboard";
+  // After signup, route through qualification so the respondent gets auto-tagged.
+  // Researchers can hit "Pular por agora" on the form.
+  const postSignupTarget = `/qualificacao?returnTo=${encodeURIComponent(target)}`;
   const { isAuthenticated, loading } = useAuth();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -23,8 +26,8 @@ function SignupPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!loading && isAuthenticated) navigate({ to: target });
-  }, [loading, isAuthenticated, navigate, target]);
+    if (!loading && isAuthenticated) navigate({ to: postSignupTarget });
+  }, [loading, isAuthenticated, navigate, postSignupTarget]);
 
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,7 +35,7 @@ function SignupPage() {
     const { error } = await supabase.auth.signUp({
       email, password,
       options: {
-        emailRedirectTo: `${window.location.origin}${target}`,
+        emailRedirectTo: `${window.location.origin}${postSignupTarget}`,
         data: { full_name: fullName },
       },
     });
@@ -42,7 +45,7 @@ function SignupPage() {
   };
 
   const handleGoogle = async () => {
-    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + target });
+    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + postSignupTarget });
     if (result.error) toast.error(result.error.message);
   };
 
