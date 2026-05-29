@@ -120,7 +120,7 @@ function Dashboard() {
                     <h2 className="truncate text-base font-medium">{s.title}</h2>
                     {s.business_goal && <p className="truncate text-sm text-muted-foreground">{s.business_goal}</p>}
                   </div>
-                  <span className="shrink-0 rounded-full border border-border px-2.5 py-0.5 text-xs capitalize text-muted-foreground">
+                  <span className="shrink-0 rounded-sm border border-border px-2 py-0.5 text-xs font-semibold capitalize text-muted-foreground">
                     {s.status === "draft" ? "rascunho" : s.status === "published" ? "publicado" : "encerrado"}
                   </span>
                 </Link>
