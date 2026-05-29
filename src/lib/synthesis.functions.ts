@@ -125,7 +125,18 @@ export const listSynthesis = createServerFn({ method: "GET" })
       };
     });
 
-    return { insights: enriched, recommendations: recs ?? [] };
+    return {
+      insights: enriched,
+      recommendations: recs ?? [],
+      study: {
+        id: study.id,
+        title: study.title,
+        business_goal: study.business_goal ?? null,
+        context: study.context ?? null,
+        target_audience: study.target_audience ?? null,
+      },
+      interview_count: interviewCount ?? 0,
+    };
   });
 
 // ─────────────────────── generateSynthesis ───────────────────────
