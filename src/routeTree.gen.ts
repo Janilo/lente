@@ -17,6 +17,7 @@ import { Route as ExemploRouteImport } from './routes/exemplo'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RSlugRouteImport } from './routes/r_.$slug'
+import { Route as AuthenticatedQualificacaoRouteImport } from './routes/_authenticated/qualificacao'
 import { Route as AuthenticatedMyPrivacyRouteImport } from './routes/_authenticated/my-privacy'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as RSlugRunRouteImport } from './routes/r_.$slug.run'
@@ -68,6 +69,12 @@ const RSlugRoute = RSlugRouteImport.update({
   path: '/r/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedQualificacaoRoute =
+  AuthenticatedQualificacaoRouteImport.update({
+    id: '/qualificacao',
+    path: '/qualificacao',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedMyPrivacyRoute = AuthenticatedMyPrivacyRouteImport.update({
   id: '/my-privacy',
   path: '/my-privacy',
@@ -140,6 +147,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/my-privacy': typeof AuthenticatedMyPrivacyRoute
+  '/qualificacao': typeof AuthenticatedQualificacaoRoute
   '/r/$slug': typeof RSlugRouteWithChildren
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/studies/$id': typeof AuthenticatedStudiesIdRouteWithChildren
@@ -160,6 +168,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/my-privacy': typeof AuthenticatedMyPrivacyRoute
+  '/qualificacao': typeof AuthenticatedQualificacaoRoute
   '/r/$slug': typeof RSlugRouteWithChildren
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/studies/$id': typeof AuthenticatedStudiesIdRouteWithChildren
@@ -182,6 +191,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/my-privacy': typeof AuthenticatedMyPrivacyRoute
+  '/_authenticated/qualificacao': typeof AuthenticatedQualificacaoRoute
   '/r_/$slug': typeof RSlugRouteWithChildren
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/_authenticated/studies/$id': typeof AuthenticatedStudiesIdRouteWithChildren
@@ -204,6 +214,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/dashboard'
     | '/my-privacy'
+    | '/qualificacao'
     | '/r/$slug'
     | '/admin/analytics'
     | '/studies/$id'
@@ -224,6 +235,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/dashboard'
     | '/my-privacy'
+    | '/qualificacao'
     | '/r/$slug'
     | '/admin/analytics'
     | '/studies/$id'
@@ -245,6 +257,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/_authenticated/dashboard'
     | '/_authenticated/my-privacy'
+    | '/_authenticated/qualificacao'
     | '/r_/$slug'
     | '/_authenticated/admin/analytics'
     | '/_authenticated/studies/$id'
@@ -326,6 +339,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/r/$slug'
       preLoaderRoute: typeof RSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/qualificacao': {
+      id: '/_authenticated/qualificacao'
+      path: '/qualificacao'
+      fullPath: '/qualificacao'
+      preLoaderRoute: typeof AuthenticatedQualificacaoRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/my-privacy': {
       id: '/_authenticated/my-privacy'
@@ -448,6 +468,7 @@ const AuthenticatedStudiesIdRouteWithChildren =
 interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedMyPrivacyRoute: typeof AuthenticatedMyPrivacyRoute
+  AuthenticatedQualificacaoRoute: typeof AuthenticatedQualificacaoRoute
   AuthenticatedAdminAnalyticsRoute: typeof AuthenticatedAdminAnalyticsRoute
   AuthenticatedStudiesIdRoute: typeof AuthenticatedStudiesIdRouteWithChildren
 }
@@ -455,6 +476,7 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedMyPrivacyRoute: AuthenticatedMyPrivacyRoute,
+  AuthenticatedQualificacaoRoute: AuthenticatedQualificacaoRoute,
   AuthenticatedAdminAnalyticsRoute: AuthenticatedAdminAnalyticsRoute,
   AuthenticatedStudiesIdRoute: AuthenticatedStudiesIdRouteWithChildren,
 }
