@@ -12,6 +12,7 @@ import { useEffect } from "react";
 import appCss from "../styles.css?url";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { Toaster } from "@/components/ui/sonner";
 import { BrandFooter } from "@/components/brand/BrandFooter";
 import { LenteWordmark } from "@/components/brand/LenteWordmark";
@@ -163,6 +164,7 @@ function AuthInvalidator() {
 
 function Header() {
  const { isAuthenticated, loading } = useAuth();
+ const { isAdmin } = useIsAdmin();
  return (
  <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/70">
  <div className="mx-auto flex max-w-6xl items-center justify-between px-8 py-5">
@@ -188,6 +190,7 @@ function Header() {
  <>
  <Link to="/dashboard"className="jps-navlink">Dashboard</Link>
  <Link to="/my-privacy"className="jps-navlink">Minha privacidade</Link>
+ {isAdmin && <Link to="/admin/analytics" className="jps-navlink">Admin</Link>}
  <button
  onClick={async () => { await supabase.auth.signOut(); }}
  className="jps-navlink"
