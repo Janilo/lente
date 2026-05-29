@@ -53,14 +53,18 @@ function AdminAnalyticsPage() {
       <Tabs defaultValue="overview">
         <TabsList className="flex-wrap">
           <TabsTrigger value="overview">Visão geral</TabsTrigger>
+          <TabsTrigger value="pool">Pool</TabsTrigger>
+          <TabsTrigger value="tags">Tags</TabsTrigger>
           <TabsTrigger value="studies">Estudos</TabsTrigger>
           <TabsTrigger value="users">Usuários</TabsTrigger>
-          <TabsTrigger value="respondents">Respondentes</TabsTrigger>
+          <TabsTrigger value="respondents">Respondentes (legado)</TabsTrigger>
           <TabsTrigger value="ctas">Cliques CTA</TabsTrigger>
           <TabsTrigger value="settings">Configurações</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview"><OverviewTab /></TabsContent>
+        <TabsContent value="pool"><PoolTab /></TabsContent>
+        <TabsContent value="tags"><TagsTab /></TabsContent>
         <TabsContent value="studies"><StudiesTab /></TabsContent>
         <TabsContent value="users"><UsersTab /></TabsContent>
         <TabsContent value="respondents"><RespondentsTab /></TabsContent>
