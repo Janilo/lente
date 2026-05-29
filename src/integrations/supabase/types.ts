@@ -117,6 +117,60 @@ export type Database = {
         }
         Relationships: []
       }
+      compensation_log: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string
+          currency: string
+          id: string
+          interview_id: string | null
+          method: string
+          notes: string | null
+          paid_at: string | null
+          receipt_url: string | null
+          reference: string | null
+          respondent_id: string
+          status: string
+          study_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by: string
+          currency?: string
+          id?: string
+          interview_id?: string | null
+          method?: string
+          notes?: string | null
+          paid_at?: string | null
+          receipt_url?: string | null
+          reference?: string | null
+          respondent_id: string
+          status?: string
+          study_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string
+          currency?: string
+          id?: string
+          interview_id?: string | null
+          method?: string
+          notes?: string | null
+          paid_at?: string | null
+          receipt_url?: string | null
+          reference?: string | null
+          respondent_id?: string
+          status?: string
+          study_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       consents: {
         Row: {
           accepted_at: string
