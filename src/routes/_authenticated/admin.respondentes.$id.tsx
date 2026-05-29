@@ -220,7 +220,7 @@ function Section({ title, action, children }: { title: string; action?: React.Re
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-border bg-card p-4">
+    <div className="rounded-sm border border-border bg-card p-4">
       <div className="text-xs text-muted-foreground">{label}</div>
       <div className="mt-1 text-2xl font-medium">{value}</div>
     </div>
@@ -250,7 +250,7 @@ function Empty({ children }: { children: React.ReactNode }) {
 
 function Table({ headers, children }: { headers: string[]; children: React.ReactNode }) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-border">
+    <div className="overflow-x-auto rounded-sm border border-border">
       <table className="w-full text-sm">
         <thead className="bg-muted/50 text-left text-xs uppercase text-muted-foreground">
           <tr>

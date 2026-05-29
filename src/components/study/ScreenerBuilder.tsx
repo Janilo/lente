@@ -58,7 +58,7 @@ export function ScreenerBuilder({ studyId }: { studyId: string }) {
   });
 
   return (
-    <section className="rounded-lg border border-border bg-card p-6 space-y-4">
+    <section className="rounded-sm border border-border bg-card p-6 space-y-4">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h2 className="text-xl">Perguntas de triagem</h2>

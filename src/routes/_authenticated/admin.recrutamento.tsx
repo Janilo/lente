@@ -141,7 +141,7 @@ function RecruitmentBoard({ initialStudyId }: { initialStudyId?: string }) {
   return (
     <div className="space-y-6">
       {/* Study + invite settings */}
-      <div className="rounded-lg border border-border bg-card p-5 space-y-4">
+      <div className="rounded-sm border border-border bg-card p-5 space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block space-y-1">
             <span className="text-xs text-muted-foreground">Estudo</span>
@@ -201,7 +201,7 @@ function RecruitmentBoard({ initialStudyId }: { initialStudyId?: string }) {
       </div>
 
       {/* Filters */}
-      <div className="rounded-lg border border-border bg-card p-5 space-y-4">
+      <div className="rounded-sm border border-border bg-card p-5 space-y-4">
         <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
           <input
             value={search}
@@ -243,7 +243,7 @@ function RecruitmentBoard({ initialStudyId }: { initialStudyId?: string }) {
       </div>
 
       {/* Pool */}
-      <div className="rounded-lg border border-border bg-card overflow-hidden">
+      <div className="rounded-sm border border-border bg-card overflow-hidden">
         <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-3">
           <div className="text-sm">
             <span className="font-medium">{pool.data?.respondents.length ?? 0}</span> respondente(s)

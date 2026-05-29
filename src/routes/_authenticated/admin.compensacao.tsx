@@ -159,7 +159,7 @@ function CompensationPage() {
         <Stat label="Total pago (BRL)" value={formatBRL(totals.total_paid_brl)} />
       </div>
 
-      <section className="rounded-lg border border-border bg-card p-5 space-y-4">
+      <section className="rounded-sm border border-border bg-card p-5 space-y-4">
         <h2 className="text-lg font-medium">Novo registro</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Respondente *">
@@ -281,7 +281,7 @@ function CompensationPage() {
         ) : filtered.length === 0 ? (
           <p className="text-sm text-muted-foreground">Nenhum registro.</p>
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-border">
+          <div className="overflow-x-auto rounded-sm border border-border">
             <table className="w-full text-sm">
               <thead className="bg-muted/50 text-left text-xs uppercase text-muted-foreground">
                 <tr>
@@ -374,7 +374,7 @@ function CompensationPage() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-border bg-card p-4">
+    <div className="rounded-sm border border-border bg-card p-4">
       <div className="text-xs text-muted-foreground">{label}</div>
       <div className="mt-1 text-2xl font-medium">{value}</div>
     </div>

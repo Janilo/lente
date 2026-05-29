@@ -342,7 +342,7 @@ function Recorder({
   };
 
   return (
-    <div className="rounded-lg border border-border bg-card p-4">
+    <div className="rounded-sm border border-border bg-card p-4">
       <div className="relative">
         <video ref={videoRef} className="aspect-video w-full rounded-md bg-black" playsInline autoPlay muted />
         {state === "recording" && (

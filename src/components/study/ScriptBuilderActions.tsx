@@ -240,7 +240,7 @@ function PreviewDialog({
           </div>
 
           {script.blocks.map((block, bi) => (
-            <div key={bi} className="rounded-lg border border-border bg-card p-4 space-y-3">
+            <div key={bi} className="rounded-sm border border-border bg-card p-4 space-y-3">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 space-y-2">
                   <input
@@ -306,7 +306,7 @@ function PreviewDialog({
             + Adicionar bloco
           </button>
 
-          <div className="rounded-lg border border-border bg-card p-4">
+          <div className="rounded-sm border border-border bg-card p-4">
             <label className="text-sm font-medium">Observações finais</label>
             <p className="text-xs text-muted-foreground mt-0.5">
               Notas, instruções de encerramento ou lembretes para o entrevistador. Serão salvas como item final do roteiro.

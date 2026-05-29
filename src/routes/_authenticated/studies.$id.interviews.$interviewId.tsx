@@ -40,13 +40,13 @@ function InterviewDetail() {
       <PipelineStatus interviewId={interviewId} variant="researcher" />
 
       {data.answers.length === 0 ? (
-        <div className="rounded-lg border border-border bg-card p-8 text-center text-sm text-muted-foreground">
+        <div className="rounded-sm border border-border bg-card p-8 text-center text-sm text-muted-foreground">
           Nenhuma resposta gravada ainda.
         </div>
       ) : (
         <ol className="space-y-6">
           {data.answers.map((a, idx) => (
-            <li key={a.id} className="rounded-lg border border-border bg-card p-5 space-y-3">
+            <li key={a.id} className="rounded-sm border border-border bg-card p-5 space-y-3">
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="text-xs text-muted-foreground">
                   Resposta {idx + 1}{a.is_followup && " · follow-up"}

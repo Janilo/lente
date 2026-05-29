@@ -54,13 +54,13 @@ function MyPrivacyPage() {
       {isLoading ? (
         <div className="text-sm text-muted-foreground">Carregando…</div>
       ) : !data || data.interviews.length === 0 ? (
-        <div className="rounded-lg border border-border bg-card p-8 text-center text-sm text-muted-foreground">
+        <div className="rounded-sm border border-border bg-card p-8 text-center text-sm text-muted-foreground">
           Você ainda não participou de nenhuma entrevista.
         </div>
       ) : (
         <ul className="space-y-3">
           {data.interviews.map((iv) => (
-            <li key={iv.id} className="rounded-lg border border-border bg-card p-4">
+            <li key={iv.id} className="rounded-sm border border-border bg-card p-4">
               <div className="flex items-start justify-between gap-3 flex-wrap">
                 <div>
                   <div className="font-medium">{iv.study_title}</div>

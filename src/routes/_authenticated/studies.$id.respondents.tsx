@@ -67,11 +67,11 @@ function RespondentsPanel() {
       </div>
 
       {data.respondents.length === 0 ? (
-        <div className="rounded-lg border border-border bg-card p-8 text-center text-sm text-muted-foreground">
+        <div className="rounded-sm border border-border bg-card p-8 text-center text-sm text-muted-foreground">
           Nenhum respondente ainda.
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-border bg-card">
+        <div className="overflow-x-auto rounded-sm border border-border bg-card">
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
               <tr>
@@ -152,7 +152,7 @@ function RespondentDetailDrawer({ interviewId, onClose }: { interviewId: string;
 
   return (
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm overflow-y-auto" onClick={onClose}>
-      <div className="mx-auto max-w-3xl my-12 rounded-lg border border-border bg-card shadow-xl" onClick={(e) => e.stopPropagation()}>
+      <div className="mx-auto max-w-3xl my-12 rounded-sm border border-border bg-card border border-border" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <h2 className="text-lg font-semibold">Detalhes da entrevista</h2>
           <button onClick={onClose} className="text-sm text-muted-foreground hover:text-foreground">Fechar</button>

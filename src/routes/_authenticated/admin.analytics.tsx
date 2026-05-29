@@ -107,7 +107,7 @@ function OverviewTab() {
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-lg border border-border bg-card p-5">
+    <div className="rounded-sm border border-border bg-card p-5">
       <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
       <div className="mt-2 text-3xl font-medium">{value}</div>
     </div>
@@ -420,7 +420,7 @@ function DimensionEditor({
   };
 
   return (
-    <div className="rounded-lg border border-border bg-card p-5 space-y-4">
+    <div className="rounded-sm border border-border bg-card p-5 space-y-4">
       <div>
         <h3 className="text-lg">{dimension.label}</h3>
         {dimension.description && <p className="text-xs text-muted-foreground mt-1">{dimension.description}</p>}
@@ -622,7 +622,7 @@ function RespondentCard({
   const available = allValues.filter((v) => !assignedIds.has(v.id));
 
   return (
-    <div className="rounded-lg border border-border bg-card p-4 space-y-3">
+    <div className="rounded-sm border border-border bg-card p-4 space-y-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <div>
           <div className="text-base font-medium">
