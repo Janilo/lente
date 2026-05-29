@@ -22,6 +22,7 @@ import { Route as AuthenticatedMyPrivacyRouteImport } from './routes/_authentica
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as RSlugRunRouteImport } from './routes/r_.$slug.run'
 import { Route as AuthenticatedStudiesIdRouteImport } from './routes/_authenticated/studies.$id'
+import { Route as AuthenticatedAdminRecrutamentoRouteImport } from './routes/_authenticated/admin.recrutamento'
 import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin.analytics'
 import { Route as ApiPublicTelegramWebhookRouteImport } from './routes/api/public/telegram/webhook'
 import { Route as AuthenticatedStudiesIdSynthesisRouteImport } from './routes/_authenticated/studies.$id.synthesis'
@@ -95,6 +96,12 @@ const AuthenticatedStudiesIdRoute = AuthenticatedStudiesIdRouteImport.update({
   path: '/studies/$id',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAdminRecrutamentoRoute =
+  AuthenticatedAdminRecrutamentoRouteImport.update({
+    id: '/admin/recrutamento',
+    path: '/admin/recrutamento',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAdminAnalyticsRoute =
   AuthenticatedAdminAnalyticsRouteImport.update({
     id: '/admin/analytics',
@@ -150,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/qualificacao': typeof AuthenticatedQualificacaoRoute
   '/r/$slug': typeof RSlugRouteWithChildren
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
+  '/admin/recrutamento': typeof AuthenticatedAdminRecrutamentoRoute
   '/studies/$id': typeof AuthenticatedStudiesIdRouteWithChildren
   '/r/$slug/run': typeof RSlugRunRoute
   '/studies/$id/interviews': typeof AuthenticatedStudiesIdInterviewsRouteWithChildren
@@ -171,6 +179,7 @@ export interface FileRoutesByTo {
   '/qualificacao': typeof AuthenticatedQualificacaoRoute
   '/r/$slug': typeof RSlugRouteWithChildren
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
+  '/admin/recrutamento': typeof AuthenticatedAdminRecrutamentoRoute
   '/studies/$id': typeof AuthenticatedStudiesIdRouteWithChildren
   '/r/$slug/run': typeof RSlugRunRoute
   '/studies/$id/interviews': typeof AuthenticatedStudiesIdInterviewsRouteWithChildren
@@ -194,6 +203,7 @@ export interface FileRoutesById {
   '/_authenticated/qualificacao': typeof AuthenticatedQualificacaoRoute
   '/r_/$slug': typeof RSlugRouteWithChildren
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
+  '/_authenticated/admin/recrutamento': typeof AuthenticatedAdminRecrutamentoRoute
   '/_authenticated/studies/$id': typeof AuthenticatedStudiesIdRouteWithChildren
   '/r_/$slug/run': typeof RSlugRunRoute
   '/_authenticated/studies/$id/interviews': typeof AuthenticatedStudiesIdInterviewsRouteWithChildren
@@ -217,6 +227,7 @@ export interface FileRouteTypes {
     | '/qualificacao'
     | '/r/$slug'
     | '/admin/analytics'
+    | '/admin/recrutamento'
     | '/studies/$id'
     | '/r/$slug/run'
     | '/studies/$id/interviews'
@@ -238,6 +249,7 @@ export interface FileRouteTypes {
     | '/qualificacao'
     | '/r/$slug'
     | '/admin/analytics'
+    | '/admin/recrutamento'
     | '/studies/$id'
     | '/r/$slug/run'
     | '/studies/$id/interviews'
@@ -260,6 +272,7 @@ export interface FileRouteTypes {
     | '/_authenticated/qualificacao'
     | '/r_/$slug'
     | '/_authenticated/admin/analytics'
+    | '/_authenticated/admin/recrutamento'
     | '/_authenticated/studies/$id'
     | '/r_/$slug/run'
     | '/_authenticated/studies/$id/interviews'
@@ -375,6 +388,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStudiesIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/admin/recrutamento': {
+      id: '/_authenticated/admin/recrutamento'
+      path: '/admin/recrutamento'
+      fullPath: '/admin/recrutamento'
+      preLoaderRoute: typeof AuthenticatedAdminRecrutamentoRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/admin/analytics': {
       id: '/_authenticated/admin/analytics'
       path: '/admin/analytics'
@@ -470,6 +490,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedMyPrivacyRoute: typeof AuthenticatedMyPrivacyRoute
   AuthenticatedQualificacaoRoute: typeof AuthenticatedQualificacaoRoute
   AuthenticatedAdminAnalyticsRoute: typeof AuthenticatedAdminAnalyticsRoute
+  AuthenticatedAdminRecrutamentoRoute: typeof AuthenticatedAdminRecrutamentoRoute
   AuthenticatedStudiesIdRoute: typeof AuthenticatedStudiesIdRouteWithChildren
 }
 
@@ -478,6 +499,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedMyPrivacyRoute: AuthenticatedMyPrivacyRoute,
   AuthenticatedQualificacaoRoute: AuthenticatedQualificacaoRoute,
   AuthenticatedAdminAnalyticsRoute: AuthenticatedAdminAnalyticsRoute,
+  AuthenticatedAdminRecrutamentoRoute: AuthenticatedAdminRecrutamentoRoute,
   AuthenticatedStudiesIdRoute: AuthenticatedStudiesIdRouteWithChildren,
 }
 

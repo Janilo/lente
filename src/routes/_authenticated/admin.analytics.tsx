@@ -44,10 +44,18 @@ function AdminAnalyticsPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-10 space-y-8">
-      <div>
-        <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground">← Voltar</Link>
-        <h1 className="mt-2 text-4xl">Administração</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Painel restrito ao administrador da plataforma.</p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground">← Voltar</Link>
+          <h1 className="mt-2 text-4xl">Administração</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Painel restrito ao administrador da plataforma.</p>
+        </div>
+        <Link
+          to="/admin/recrutamento"
+          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+        >
+          Recrutamento →
+        </Link>
       </div>
 
       <Tabs defaultValue="overview">
