@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
 import { listSynthesis, generateSynthesis } from "@/lib/synthesis.functions";
 import { toast } from "sonner";
 
@@ -8,6 +9,77 @@ export const Route = createFileRoute("/_authenticated/studies/$id/synthesis")({
   head: () => ({ meta: [{ title: "Síntese — Lente" }] }),
   component: SynthesisPage,
 });
+
+type Evidence = {
+  quote: string;
+  interview_index?: number | null;
+  question_text?: string | null;
+  video_url?: string | null;
+  clip_start?: number | null;
+  clip_end?: number | null;
+};
+
+function fmtTime(s: number | null | undefined): string {
+  if (s == null || !isFinite(s)) return "—";
+  const m = Math.floor(s / 60);
+  const r = Math.floor(s % 60);
+  return `${String(m).padStart(2, "0")}:${String(r).padStart(2, "0")}`;
+}
+
+function EvidenceClip({ ev }: { ev: Evidence }) {
+  const ref = useRef<HTMLVideoElement | null>(null);
+  const [open, setOpen] = useState(false);
+
+  // Seek + auto-stop at clip_end
+  useEffect(() => {
+    if (!open) return;
+    const v = ref.current;
+    if (!v) return;
+    const start = ev.clip_start ?? 0;
+    const end = ev.clip_end ?? null;
+    const onLoaded = () => { try { v.currentTime = start; } catch { /* noop */ } };
+    const onTime = () => { if (end != null && v.currentTime >= end) v.pause(); };
+    v.addEventListener("loadedmetadata", onLoaded);
+    v.addEventListener("timeupdate", onTime);
+    return () => {
+      v.removeEventListener("loadedmetadata", onLoaded);
+      v.removeEventListener("timeupdate", onTime);
+    };
+  }, [open, ev.clip_start, ev.clip_end]);
+
+  return (
+    <li className="border-l-2 border-primary/40 pl-3">
+      <p className="text-sm italic text-muted-foreground leading-snug">
+        "{ev.quote}"
+      </p>
+      <div className="mt-1.5 flex items-center gap-3 flex-wrap">
+        <span className="text-xs text-muted-foreground font-mono">
+          {ev.interview_index != null ? `Entrevista ${ev.interview_index}` : "—"}
+          {ev.clip_start != null && <> · {fmtTime(ev.clip_start)}{ev.clip_end != null ? `–${fmtTime(ev.clip_end)}` : ""}</>}
+        </span>
+        {ev.video_url ? (
+          <button
+            onClick={() => setOpen((o) => !o)}
+            className="text-xs font-medium text-primary hover:underline inline-flex items-center gap-1"
+          >
+            {open ? "Fechar clipe" : "▶ Tocar clipe"}
+          </button>
+        ) : (
+          <span className="text-xs text-muted-foreground">sem vídeo</span>
+        )}
+      </div>
+      {open && ev.video_url && (
+        <video
+          ref={ref}
+          src={ev.video_url}
+          controls
+          autoPlay
+          className="mt-2 w-full max-w-md rounded-md border border-border bg-black"
+        />
+      )}
+    </li>
+  );
+}
 
 function SynthesisPage() {
   const { id } = Route.useParams();
@@ -43,7 +115,7 @@ function SynthesisPage() {
         <div>
           <Link to="/studies/$id" params={{ id }} className="text-sm text-muted-foreground hover:text-foreground">← Voltar ao estudo</Link>
           <h1 className="mt-3 text-3xl">Síntese e recomendações</h1>
-          <p className="text-sm text-muted-foreground mt-1">A IA analisa todas as transcrições prontas e extrai temas e ações.</p>
+          <p className="text-sm text-muted-foreground mt-1">A IA analisa todas as transcrições prontas e extrai temas, com clipes em vídeo ancorando cada citação.</p>
         </div>
         <button onClick={() => gen.mutate()} disabled={gen.isPending}
           className="mt-8 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50">
@@ -61,18 +133,14 @@ function SynthesisPage() {
             <h2 className="text-xl">Insights ({insights.length})</h2>
             <ul className="space-y-3">
               {insights.map((ins) => {
-                const evidence = (ins.evidence as Array<{ quote: string; interview_index: number }> | null) ?? [];
+                const evidence = ((ins.evidence as unknown) as Evidence[] | null) ?? [];
                 return (
                   <li key={ins.id} className="rounded-lg border border-border bg-card p-5">
                     <div className="text-base font-medium">{ins.theme}</div>
                     <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{ins.summary}</p>
                     {evidence.length > 0 && (
-                      <ul className="mt-3 space-y-2">
-                        {evidence.map((e, i) => (
-                          <li key={i} className="border-l-2 border-primary/40 pl-3 text-sm italic text-muted-foreground">
-                            "{e.quote}" <span className="not-italic text-xs">— Entrevista {e.interview_index}</span>
-                          </li>
-                        ))}
+                      <ul className="mt-3 space-y-3">
+                        {evidence.map((e, i) => <EvidenceClip key={i} ev={e} />)}
                       </ul>
                     )}
                   </li>
