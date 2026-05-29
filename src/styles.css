@@ -40,7 +40,8 @@
   --font-display: "Inter Tight", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Fraunces", "Source Serif 4", Georgia, serif;
   --font-sans: "Inter Tight", "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", "SF Mono", Consolas, ui-monospace, monospace;
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --header-height: 5rem;
   --radius-sm: calc(var(--radius) - 2px);
   --radius-md: var(--radius);
   --radius-lg: calc(var(--radius) + 2px);
@@ -142,36 +143,8 @@
   --sidebar-ring: var(--lente-teal);
 }
 
-.dark {
-  --background: #0B1513;
-  --foreground: #EEF2F1;
-  --card: #11201D;
-  --card-foreground: #EEF2F1;
-  --popover: #11201D;
-  --popover-foreground: #EEF2F1;
-  --primary: #2FA08F;
-  --primary-foreground: #0B1513;
-  --secondary: #16302B;
-  --secondary-foreground: #EEF2F1;
-  --muted: #16302B;
-  --muted-foreground: #95A4A0;
-  --accent: #08504A;
-  --accent-foreground: #EEF2F1;
-  --destructive: #E5614D;
-  --destructive-foreground: #0B1513;
-  --border: rgba(238, 242, 241, 0.12);
-  --input: rgba(238, 242, 241, 0.16);
-  --ring: #2FA08F;
-
-  --sidebar: #0B1513;
-  --sidebar-foreground: #EEF2F1;
-  --sidebar-primary: #2FA08F;
-  --sidebar-primary-foreground: #0B1513;
-  --sidebar-accent: #16302B;
-  --sidebar-accent-foreground: #EEF2F1;
-  --sidebar-border: rgba(238, 242, 241, 0.10);
-  --sidebar-ring: #2FA08F;
-}
+/* Dark mode tokens intentionally omitted — Lente is light-only today.
+   Re-introduce a .dark { … } block here when a theme toggle ships. */
 
 @layer base {
   * {
@@ -203,30 +176,30 @@
     color: var(--lente-mute);
     font-weight: 600;
   }
-  /* Brand utility: nav link (uppercase, tracked) */
+  /* Brand utility: nav link (uppercase, tracked, header-canonical) */
   .jps-navlink {
     font-family: var(--font-sans);
-    font-size: 12px;
+    font-size: 11px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--color-muted-foreground);
-    font-weight: 500;
-    transition: color 150ms ease;
+    color: var(--color-foreground);
+    font-weight: 600;
+    transition: opacity 150ms ease;
   }
   .jps-navlink:hover {
-    color: var(--color-foreground);
+    opacity: 0.7;
   }
   /* Brand utility: CTA button (filled teal, tracked, arrow) */
   .jps-cta {
     font-family: var(--font-sans);
-    font-size: 12px;
+    font-size: 11px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
     font-weight: 600;
     color: var(--color-primary-foreground);
     background-color: var(--color-primary);
-    padding: 0.75rem 1.25rem;
-    border-radius: var(--radius);
+    padding: 0.625rem 1rem;
+    border-radius: calc(var(--radius) - 2px);
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
