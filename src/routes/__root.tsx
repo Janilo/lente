@@ -166,7 +166,7 @@ function Header() {
  return (
  <header className="border-b border-border bg-background sticky top-0 z-40 h-[var(--header-height)]">
  <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-8">
- <div className="inline-flex items-baseline gap-3">
+ <div className="inline-flex items-center gap-3">
  <Link
  to="/"
  aria-label="Lente — início"
