@@ -141,7 +141,7 @@ export const adminCreateCompensation = createServerFn({ method: "POST" })
 
     const { data: inserted, error } = await supabaseAdmin
       .from("compensation_log")
-      .insert(payload)
+      .insert(payload as never)
       .select()
       .single();
     if (error) throw new Error(error.message);
@@ -164,7 +164,7 @@ export const adminUpdateCompensationStatus = createServerFn({ method: "POST" })
 
     const { error } = await supabaseAdmin
       .from("compensation_log")
-      .update(patch)
+      .update(patch as never)
       .eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
