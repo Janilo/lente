@@ -22,6 +22,9 @@ export function BrandHeader({ variant = "default", right }: Props) {
           )}
         </div>
         <div className="flex items-center gap-8">
+          <Link to="/exemplo" className="jps-navlink">
+            Ver exemplo
+          </Link>
           {isAdmin && (
             <Link to="/admin/analytics" className="jps-navlink">
               Admin
