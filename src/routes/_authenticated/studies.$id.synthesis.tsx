@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { listSynthesis, generateSynthesis } from "@/lib/synthesis.functions";
+import { exportSynthesisPDF } from "@/lib/export-synthesis";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/studies/$id/synthesis")({
