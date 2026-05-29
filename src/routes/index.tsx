@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { BrandHeader } from "@/components/brand/BrandHeader";
 
 export const Route = createFileRoute("/")({
  head: () => ({
@@ -13,6 +14,7 @@ export const Route = createFileRoute("/")({
 function Landing() {
  return (
  <div>
+ <BrandHeader />
  {/* HERO */}
  <section className="mx-auto max-w-5xl px-6 pt-24 pb-16">
  <div className="max-w-3xl">
