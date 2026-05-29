@@ -347,7 +347,7 @@ function Recorder({
         <video ref={videoRef} className="aspect-video w-full rounded-md bg-black" playsInline autoPlay muted />
         {state === "recording" && (
           <div className="absolute left-3 top-3 flex items-center gap-2 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white">
-            <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-red-500" />
+            <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-destructive" />
             Gravando · {fmt(elapsed)}
           </div>
         )}
