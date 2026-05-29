@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { listSynthesis, generateSynthesis } from "@/lib/synthesis.functions";
 import { exportSynthesisPDF } from "@/lib/export-synthesis";
 import { toast } from "sonner";
+import { Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/studies/$id/synthesis")({
  head: () => ({ meta: [{ title: "Síntese — Lente"}] }),
@@ -139,7 +140,8 @@ function SynthesisPage() {
  </button>
  )}
  <button onClick={() => gen.mutate()} disabled={gen.isPending}
- className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50">
+ className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50">
+ <Sparkles className="h-4 w-4 text-[color:var(--lente-coral)]"/>
  {gen.isPending ? "Sintetizando...": insights.length > 0 ? "Regenerar síntese": "Gerar síntese"}
  </button>
  </div>
@@ -158,7 +160,7 @@ function SynthesisPage() {
  const evidence = ((ins.evidence as unknown) as Evidence[] | null) ?? [];
  return (
  <li key={ins.id} className="rounded-sm border border-border bg-card p-5">
- <div className="text-base font-medium">{ins.theme}</div>
+ <div className="text-base font-medium text-[color:var(--lente-coral-deep)] dark:text-[color:var(--lente-coral)]">{ins.theme}</div>
  <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{ins.summary}</p>
  {evidence.length > 0 && (
  <ul className="mt-3 space-y-3">
