@@ -195,7 +195,7 @@ function DemoPage() {
                         key={c.name + c.time}
                         className="flex gap-4 p-3 rounded-sm border border-border bg-card hover:border-primary/40 transition-colors"
                       >
-                        <div className="relative shrink-0 w-24 h-16 rounded-sm bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center">
+                        <div className="relative shrink-0 w-24 h-16 rounded-sm bg-muted flex items-center justify-center">
                           <svg className="w-6 h-6 text-background" viewBox="0 0 24 24" fill="currentColor">
                             <path d="M8 5v14l11-7z" />
                           </svg>
