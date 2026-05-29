@@ -68,7 +68,7 @@ function Landing() {
           {/* Mock do output da síntese */}
           <div className="grid gap-6 lg:grid-cols-5">
             {/* Painel principal — tema com clipes */}
-            <div className="lg:col-span-3 rounded-md border border-border bg-background overflow-hidden shadow-sm">
+            <div className="lg:col-span-3 rounded-md border border-border bg-background overflow-hidden">
               <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-muted/40">
                 <div className="flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-full bg-destructive/70" />
@@ -113,7 +113,7 @@ function Landing() {
 
             {/* Coluna lateral — recomendação + métricas */}
             <div className="lg:col-span-2 space-y-6">
-              <div className="rounded-md border border-border bg-background p-6 shadow-sm">
+              <div className="rounded-md border border-border bg-background p-6">
                 <p className="jps-eyebrow text-accent">Recomendação</p>
                 <p className="mt-3 text-lg leading-snug">
                   Mover a verificação bancária para depois do primeiro uso, ou adicionar contexto inline antes do pedido.
@@ -124,7 +124,7 @@ function Landing() {
                 </div>
               </div>
 
-              <div className="rounded-md border border-border bg-background p-6 shadow-sm">
+              <div className="rounded-md border border-border bg-background p-6">
                 <p className="jps-eyebrow">Cobertura do estudo</p>
                 <div className="mt-4 space-y-3">
                   {[
@@ -167,7 +167,7 @@ function Landing() {
             </div>
 
             {/* Depois */}
-            <div className="rounded-md border border-primary/30 bg-background p-6 shadow-sm">
+            <div className="rounded-md border border-primary/30 bg-background p-6">
               <p className="jps-eyebrow text-primary">Depois — insight estruturado</p>
               <div className="mt-4 space-y-4">
                 <div>

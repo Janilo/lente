@@ -165,7 +165,7 @@ function DemoPage() {
             </aside>
 
             {/* Detalhe do tema selecionado */}
-            <div className="lg:col-span-3 rounded-md border border-border bg-background overflow-hidden shadow-sm">
+            <div className="lg:col-span-3 rounded-md border border-border bg-background overflow-hidden">
               <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-muted/40">
                 <div className="flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-full bg-destructive/70" />
@@ -242,7 +242,7 @@ function DemoPage() {
               </div>
             </div>
 
-            <div className="rounded-md border border-primary/30 bg-background p-6 shadow-sm">
+            <div className="rounded-md border border-primary/30 bg-background p-6">
               <p className="jps-eyebrow text-primary">Saída — insight estruturado</p>
               <div className="mt-4 space-y-4">
                 <div>
