@@ -46,7 +46,14 @@ const SEED_QUESTIONS: SeedQ[] = [
 export const createTestInterview = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { userId } = context;
+    const { userId, claims } = context;
+    const email = (claims as { email?: string } | undefined)?.email?.toLowerCase();
+    const isAdmin = email === "janilo@pereirasaraiva.com";
+    if (!isAdmin) {
+      const { data: profile } = await supabaseAdmin
+        .from("profiles").select("can_publish").eq("id", userId).maybeSingle();
+      if (!profile?.can_publish) throw new Error("Sem permissão para publicar estudos de teste. Solicite ao administrador.");
+    }
     const stamp = new Date().toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 
     // 1. Study
