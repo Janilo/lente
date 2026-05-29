@@ -23,7 +23,7 @@ function NotFoundComponent() {
  const match = pathname.match(/^\/r_?\/([^/]+)/);
  const slug = match?.[1];
  return (
- <div className="flex min-h-screen items-center justify-center bg-background px-4">
+ <div className="flex min-h-dvh items-center justify-center bg-background px-4">
  <div className="max-w-md text-center">
  <h1 className="text-7xl font-bold text-foreground">404</h1>
  <p className="mt-4 text-muted-foreground">Página não encontrada.</p>
@@ -49,7 +49,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
  console.error(error);
  const router = useRouter();
  return (
- <div className="flex min-h-screen items-center justify-center bg-background px-4">
+ <div className="flex min-h-dvh items-center justify-center bg-background px-4">
  <div className="max-w-md text-center">
  <h1 className="text-xl font-semibold">Algo deu errado</h1>
  <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
@@ -217,7 +217,7 @@ function RootComponent() {
  return (
  <QueryClientProvider client={queryClient}>
  <AuthInvalidator />
- <div className="min-h-screen flex flex-col">
+ <div className="min-h-dvh flex flex-col">
  <Header />
  <main className="flex-1"><Outlet /></main>
  <BrandFooter />

@@ -93,7 +93,7 @@ function RespondentsPanel() {
  </td>
  <td className="px-4 py-3 text-xs text-muted-foreground">{r.signup_at ? new Date(r.signup_at).toLocaleDateString("pt-BR") : "—"}</td>
  <td className="px-4 py-3">
- <span className={`inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-semibold ${r.status === "completed"? "bg-[color:var(--lente-teal-soft)] text-[color:var(--lente-teal-ink)] dark:bg-[color:var(--lente-teal-deep)] dark:text-[color:var(--lente-teal-soft)]": "bg-[color:var(--lente-amber-soft)] text-[color:#7A5A1A] dark:bg-[color:var(--lente-amber)]/20 dark:text-[color:var(--lente-amber-soft)]"}`}>
+ <span className={`inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-semibold ${r.status === "completed"? "bg-[color:var(--lente-teal-soft)] text-[color:var(--lente-teal-ink)] dark:bg-[color:var(--lente-teal-deep)] dark:text-[color:var(--lente-teal-soft)]": "bg-[color:var(--lente-amber-soft)] text-[color:var(--lente-amber-ink)] dark:bg-[color:var(--lente-amber)]/20 dark:text-[color:var(--lente-amber-soft)]"}`}>
  {r.status === "completed"? "Concluída": "Em andamento"}
  </span>
  <div className="mt-1 text-xs text-muted-foreground">
