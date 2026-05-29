@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import wordmarkInk from "@/assets/brand/wordmark-ink.svg";
 
 type Props = {
  variant?: "default"| "minimal";
@@ -18,7 +19,10 @@ export function BrandHeader({ variant = "default", right }: Props) {
  <div className="inline-flex items-baseline gap-3">
  <Link to="/"className="font-display text-2xl leading-none text-primary"style={{ fontVariationSettings: '"opsz"144, "SOFT"0, "WONK"0' }}>Lente</Link>
  {variant === "default"&& (
- <a href="https://pereirasaraiva.com"target="_blank"rel="noopener noreferrer"className="jps-eyebrow hidden sm:inline hover:opacity-70 transition-opacity">por J P Saraiva</a>
+ <a href="https://pereirasaraiva.com"target="_blank"rel="noopener noreferrer"className="hidden sm:inline-flex items-baseline gap-1.5 hover:opacity-70 transition-opacity">
+ <span className="jps-eyebrow">por</span>
+ <img src={wordmarkInk} alt="J P Saraiva" className="h-3 w-auto translate-y-[1px]" />
+ </a>
  )}
  </div>
  <div className="flex items-center gap-8">
