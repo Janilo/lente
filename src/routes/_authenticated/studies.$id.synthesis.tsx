@@ -178,7 +178,7 @@ function SynthesisPage() {
  <li key={r.id} className="rounded-sm border border-border bg-card p-5">
  <div className="flex items-center justify-between gap-2 flex-wrap">
  <div className="text-base font-medium">{r.title}</div>
- <span className={`rounded-full px-2 py-0.5 text-xs ${priorityCls(r.priority)}`}>
+ <span className={`inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-semibold ${priorityCls(r.priority)}`}>
  Prioridade {priorityLabel(r.priority)}
  </span>
  </div>
