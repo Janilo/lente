@@ -1,0 +1,12 @@
+# Lente
+
+> Pesquisa qualitativa em vídeo com IA: conduza entrevistas com follow-ups adaptativos, transcrição automática e síntese de insights.
+
+Lente é uma plataforma para pesquisadores e times de produto que recrutam respondentes, fazem entrevistas em vídeo assíncronas e recebem uma síntese com temas, clipes citáveis e recomendações.
+
+## Pages
+
+- [Home](/): Visão geral do produto e benefícios.
+- [Exemplo de síntese](/exemplo): Demonstração real de uma síntese gerada a partir de 12 entrevistas.
+- [Entrar](/login): Acesso para pesquisadores.
+- [Criar conta](/signup): Cadastro de novos pesquisadores.
