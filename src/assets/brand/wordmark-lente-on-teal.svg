@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 44" role="img" aria-label="Lente">
+  <g fill="#F7F9F8">
+    <circle cx="22" cy="22" r="16" fill="none" stroke="#F7F9F8" stroke-width="1.5"></circle>
+    <circle cx="22" cy="22" r="10" fill="none" stroke="#F7F9F8" stroke-width="1.5"></circle>
+    <circle cx="22" cy="22" r="4.5"></circle>
+    <text x="50" y="29.5" font-family="Inter Tight, Inter, system-ui, sans-serif" font-weight="700" font-size="24" letter-spacing="-0.02em">lente</text>
+  </g>
+</svg>
