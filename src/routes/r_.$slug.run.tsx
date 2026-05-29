@@ -7,6 +7,8 @@ import { startInterview, getNextStep, createAnswer, processAnswer } from "@/lib/
 import { InterviewProgress } from "@/components/interview/InterviewProgress";
 import { toast } from "sonner";
 
+type Step = Awaited<ReturnType<typeof getNextStep>>["next"];
+
 export const Route = createFileRoute("/r_/$slug/run")({
  head: () => ({
  meta: [
@@ -51,7 +53,7 @@ function RunInner({ slug }: { slug: string }) {
  const processAns = useServerFn(processAnswer);
 
  const [interviewId, setInterviewId] = useState<string | null>(null);
- const [step, setStep] = useState<any>(null);
+ const [step, setStep] = useState<Step | null>(null);
  const [totals, setTotals] = useState<Totals | null>(null);
  const [stepLoading, setStepLoading] = useState(false);
 
