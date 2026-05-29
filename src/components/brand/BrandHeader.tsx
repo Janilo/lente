@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { LenteWordmark } from "./LenteWordmark";
 
 type Props = {
  variant?: "default"| "minimal";
@@ -16,7 +17,9 @@ export function BrandHeader({ variant = "default", right }: Props) {
  <header className="border-b border-border bg-background">
  <div className="mx-auto flex max-w-6xl items-center justify-between px-8 py-5">
  <div className="inline-flex items-baseline gap-3">
- <Link to="/"className="font-display text-2xl leading-none text-primary"style={{ fontVariationSettings: '"opsz"144, "SOFT"0, "WONK"0' }}>Lente</Link>
+ <Link to="/"aria-label="Lente — início"className="inline-flex items-center text-[color:var(--lente-teal-deep)] hover:opacity-80 transition-opacity">
+ <LenteWordmark className="h-7 w-auto" />
+ </Link>
  {variant === "default"&& (
  <a href="https://pereirasaraiva.com"target="_blank"rel="noopener noreferrer"className="jps-eyebrow hidden sm:inline hover:opacity-70 transition-opacity">por J P Saraiva</a>
  )}
