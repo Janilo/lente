@@ -293,7 +293,7 @@ Tarefa: extraia 4-8 INSIGHTS e 3-6 RECOMENDAÇÕES acionáveis. Para cada evidê
         const words = normalizeWords(a.words_json);
         const located = locateQuoteClip(ev.quote, words);
         const baseStart = a.start_seconds ?? 0;
-        const baseEnd = a.end_seconds ?? (a.duration_seconds ?? null);
+        const baseEnd = a.end_seconds ?? null;
         return {
           quote: ev.quote,
           answer_ref: ev.answer_ref,
