@@ -106,7 +106,7 @@ function RespondentsPanel() {
  {r.avg_quality === null ? (
  <span className="text-xs text-muted-foreground">—</span>
  ) : (
- <span className={`text-sm font-medium ${r.avg_quality >= 70 ? "text-emerald-700 dark:text-emerald-400": r.avg_quality >= 40 ? "text-amber-700 dark:text-amber-400": "text-destructive"}`}>
+ <span className={`text-sm font-medium ${r.avg_quality >= 70 ? "text-[color:var(--lente-success)]": r.avg_quality >= 40 ? "text-[color:var(--lente-amber)]": "text-destructive"}`}>
  {r.avg_quality}/100
  </span>
  )}
