@@ -37,7 +37,8 @@
 }
 
 @theme inline {
-  --font-display: "Fraunces", "Source Serif 4", Georgia, serif;
+  --font-display: "Inter Tight", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Fraunces", "Source Serif 4", Georgia, serif;
   --font-sans: "Inter Tight", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", "SF Mono", Consolas, ui-monospace, monospace;
   --radius-sm: calc(var(--radius) - 2px);
@@ -76,88 +77,98 @@
 
 :root {
   /* ============================
-     J P Saraiva brand tokens
+     LENTE — brand primitives
+     (independent brand inheriting only technical primitives from JPS core)
      ============================ */
-  --jps-purple:      #4A1942;
-  --jps-purple-deep: #3A1334;
-  --jps-green:       #2E5D4F;
-  --jps-gold:        #C9A227;
-  --jps-marine:      #0F2940;
-  --jps-ink:         #1F1F1F;
-  --jps-muted:       #6B6B6B;
-  --jps-soft:        #94908A;
-  --jps-stone:       #D9D6CF;
-  --jps-cream:       #F0EEE7;
-  --jps-offwhite:    #F8F6F1;
-  --jps-white:       #FFFFFF;
-  --jps-gold-soft:   #FBF6E8;
-  --jps-marine-soft: #EAF0F6;
+  --lente-teal:        #0E6B5E;
+  --lente-teal-deep:   #08504A;
+  --lente-teal-soft:   #E7F2EF;
+  --lente-teal-ink:    #052F2A;
+  --lente-coral:       #D9614F;
+  --lente-coral-soft:  #FBEDE9;
+  --lente-coral-deep:  #B14939;
+  --lente-amber:       #D4A24A;
+  --lente-amber-soft:  #FAF3E1;
+  --lente-indigo:      #3D5BA5;
 
-  --jps-paper: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.8' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.12  0 0 0 0 0.12  0 0 0 0 0.12  0 0 0 0.035 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  --lente-ink:         #0E1A18;
+  --lente-slate:       #3C4744;
+  --lente-mute:        #6B7773;
+  --lente-stone:       #D7DEDC;
+  --lente-stone-soft:  #E6EAE8;
+  --lente-mist:        #EEF2F1;
+  --lente-paper:       #F7F9F8;
+  --lente-white:       #FFFFFF;
+
+  --lente-danger:      #C13F2A;
+  --lente-success:     #2F8C5A;
+
+  /* Lente is a dense digital product — no paper grain */
+  --jps-paper: none;
 
   /* Brand stays square — only circles for portraits */
   --radius: 4px;
 
-  /* Semantic tokens (shadcn) mapped to JPS palette */
-  --background: #F0EEE7;        /* cream */
-  --foreground: #1F1F1F;        /* ink */
-  --card: #F8F6F1;              /* offwhite */
-  --card-foreground: #1F1F1F;
-  --popover: #FFFFFF;
-  --popover-foreground: #1F1F1F;
-  --primary: #4A1942;           /* roxo pereira */
-  --primary-foreground: #F8F6F1;
-  --secondary: #EAF0F6;         /* marinho soft */
-  --secondary-foreground: #0F2940;
-  --muted: #D9D6CF;             /* stone */
-  --muted-foreground: #6B6B6B;
-  --accent: #C9A227;            /* mostarda — emphasis only */
-  --accent-foreground: #1F1F1F;
-  --destructive: #B00020;
-  --destructive-foreground: #F8F6F1;
-  --border: #D9D6CF;
-  --input: #D9D6CF;
-  --ring: #4A1942;
+  /* Semantic tokens (shadcn) mapped to Lente palette */
+  --background: var(--lente-paper);
+  --foreground: var(--lente-ink);
+  --card: var(--lente-white);
+  --card-foreground: var(--lente-ink);
+  --popover: var(--lente-white);
+  --popover-foreground: var(--lente-ink);
+  --primary: var(--lente-teal);
+  --primary-foreground: var(--lente-white);
+  --secondary: var(--lente-mist);
+  --secondary-foreground: var(--lente-slate);
+  --muted: var(--lente-mist);
+  --muted-foreground: var(--lente-mute);
+  --accent: var(--lente-teal-soft);
+  --accent-foreground: var(--lente-teal-ink);
+  --destructive: var(--lente-danger);
+  --destructive-foreground: var(--lente-white);
+  --border: var(--lente-stone);
+  --input: var(--lente-stone);
+  --ring: var(--lente-teal);
 
-  --sidebar: #F8F6F1;
-  --sidebar-foreground: #1F1F1F;
-  --sidebar-primary: #4A1942;
-  --sidebar-primary-foreground: #F8F6F1;
-  --sidebar-accent: #EAF0F6;
-  --sidebar-accent-foreground: #0F2940;
-  --sidebar-border: #D9D6CF;
-  --sidebar-ring: #4A1942;
+  --sidebar: var(--lente-white);
+  --sidebar-foreground: var(--lente-ink);
+  --sidebar-primary: var(--lente-teal);
+  --sidebar-primary-foreground: var(--lente-white);
+  --sidebar-accent: var(--lente-teal-soft);
+  --sidebar-accent-foreground: var(--lente-teal-deep);
+  --sidebar-border: var(--lente-stone);
+  --sidebar-ring: var(--lente-teal);
 }
 
 .dark {
-  --background: #1F1F1F;
-  --foreground: #F0EEE7;
-  --card: #2A1326;              /* near purple-deep */
-  --card-foreground: #F0EEE7;
-  --popover: #3A1334;
-  --popover-foreground: #F8F6F1;
-  --primary: #C9A227;           /* mostarda lifts on dark */
-  --primary-foreground: #1F1F1F;
-  --secondary: #0F2940;
-  --secondary-foreground: #F0EEE7;
-  --muted: #2E2E2E;
-  --muted-foreground: #94908A;
-  --accent: #4A1942;
-  --accent-foreground: #F0EEE7;
-  --destructive: #E5484D;
-  --destructive-foreground: #1F1F1F;
-  --border: rgba(240, 238, 231, 0.12);
-  --input: rgba(240, 238, 231, 0.16);
-  --ring: #C9A227;
+  --background: #0B1513;
+  --foreground: #EEF2F1;
+  --card: #11201D;
+  --card-foreground: #EEF2F1;
+  --popover: #11201D;
+  --popover-foreground: #EEF2F1;
+  --primary: #2FA08F;
+  --primary-foreground: #0B1513;
+  --secondary: #16302B;
+  --secondary-foreground: #EEF2F1;
+  --muted: #16302B;
+  --muted-foreground: #95A4A0;
+  --accent: #08504A;
+  --accent-foreground: #EEF2F1;
+  --destructive: #E5614D;
+  --destructive-foreground: #0B1513;
+  --border: rgba(238, 242, 241, 0.12);
+  --input: rgba(238, 242, 241, 0.16);
+  --ring: #2FA08F;
 
-  --sidebar: #1A0F18;
-  --sidebar-foreground: #F0EEE7;
-  --sidebar-primary: #C9A227;
-  --sidebar-primary-foreground: #1F1F1F;
-  --sidebar-accent: #3A1334;
-  --sidebar-accent-foreground: #F0EEE7;
-  --sidebar-border: rgba(240, 238, 231, 0.10);
-  --sidebar-ring: #C9A227;
+  --sidebar: #0B1513;
+  --sidebar-foreground: #EEF2F1;
+  --sidebar-primary: #2FA08F;
+  --sidebar-primary-foreground: #0B1513;
+  --sidebar-accent: #16302B;
+  --sidebar-accent-foreground: #EEF2F1;
+  --sidebar-border: rgba(238, 242, 241, 0.10);
+  --sidebar-ring: #2FA08F;
 }
 
 @layer base {
@@ -166,7 +177,6 @@
   }
   body {
     background-color: var(--color-background);
-    background-image: var(--jps-paper);
     color: var(--color-foreground);
     font-family: var(--font-sans);
     font-feature-settings: "ss01", "cv11";
@@ -174,11 +184,13 @@
   }
   h1, h2, h3, h4 {
     font-family: var(--font-display);
-    letter-spacing: -0.012em;
-    font-variation-settings: "opsz" 96, "SOFT" 0, "WONK" 0;
+    font-weight: 600;
+    letter-spacing: -0.015em;
   }
-  h1 {
-    font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 0;
+  /* Brand moments use Fraunces (hero, large empty states, marketing) */
+  .brand-serif {
+    font-family: var(--font-serif);
+    font-variation-settings: "opsz" 96, "SOFT" 0, "WONK" 0;
   }
   /* Brand utility: eyebrow label */
   .jps-eyebrow {
@@ -186,8 +198,8 @@
     font-size: 11px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--jps-soft);
-    font-weight: 500;
+    color: var(--lente-mute);
+    font-weight: 600;
   }
   /* Brand utility: nav link (uppercase, tracked) */
   .jps-navlink {
@@ -202,13 +214,13 @@
   .jps-navlink:hover {
     color: var(--color-foreground);
   }
-  /* Brand utility: CTA button (filled purple, tracked, arrow) */
+  /* Brand utility: CTA button (filled teal, tracked, arrow) */
   .jps-cta {
     font-family: var(--font-sans);
     font-size: 12px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    font-weight: 500;
+    font-weight: 600;
     color: var(--color-primary-foreground);
     background-color: var(--color-primary);
     padding: 0.75rem 1.25rem;
@@ -216,7 +228,8 @@
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    transition: opacity 150ms ease;
+    transition: background-color 150ms ease;
   }
-  .jps-cta:hover { opacity: 0.9; }
+  .jps-cta:hover { background-color: var(--lente-teal-deep); }
 }
+
