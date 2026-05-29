@@ -26,20 +26,27 @@ function Landing() {
             follow-up adaptativas, transcreve as respostas e devolve uma síntese com recortes em
             vídeo das citações que sustentam cada insight.
           </p>
-          <div className="mt-10 flex gap-3">
+          <div className="mt-10 flex flex-wrap gap-3">
             <Link
-              to="/signup"
+              to="/exemplo"
               className="rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground"
             >
-              Criar conta de pesquisador
+              Ver síntese de exemplo →
+            </Link>
+            <Link
+              to="/signup"
+              className="rounded-md border border-border px-5 py-3 text-sm font-medium text-foreground hover:bg-accent"
+            >
+              Criar conta
             </Link>
             <Link
               to="/login"
-              className="rounded-md border border-border px-5 py-3 text-sm font-medium text-foreground hover:bg-accent"
+              className="rounded-md px-5 py-3 text-sm font-medium text-muted-foreground hover:text-foreground"
             >
               Entrar
             </Link>
           </div>
+          <p className="mt-3 text-xs text-muted-foreground font-mono">Sem cadastro · carrega na hora · dados ilustrativos</p>
         </div>
       </section>
 
