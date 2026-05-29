@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { listSynthesis, generateSynthesis } from "@/lib/synthesis.functions";
+import { exportSynthesisPDF } from "@/lib/export-synthesis";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/studies/$id/synthesis")({
@@ -117,10 +118,31 @@ function SynthesisPage() {
           <h1 className="mt-3 text-3xl">Síntese e recomendações</h1>
           <p className="text-sm text-muted-foreground mt-1">A IA analisa todas as transcrições prontas e extrai temas, com clipes em vídeo ancorando cada citação.</p>
         </div>
-        <button onClick={() => gen.mutate()} disabled={gen.isPending}
-          className="mt-8 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50">
-          {gen.isPending ? "Sintetizando..." : insights.length > 0 ? "Regenerar síntese" : "Gerar síntese"}
-        </button>
+        <div className="mt-8 flex flex-wrap gap-2">
+          {insights.length > 0 && data?.study && (
+            <button
+              onClick={() => {
+                try {
+                  exportSynthesisPDF({
+                    study: data.study,
+                    interview_count: data.interview_count ?? 0,
+                    insights: insights as unknown as Parameters<typeof exportSynthesisPDF>[0]["insights"],
+                    recommendations: recs as unknown as Parameters<typeof exportSynthesisPDF>[0]["recommendations"],
+                  });
+                } catch (e) {
+                  toast.error(e instanceof Error ? e.message : "Falha ao gerar PDF");
+                }
+              }}
+              className="rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-accent"
+            >
+              Exportar PDF
+            </button>
+          )}
+          <button onClick={() => gen.mutate()} disabled={gen.isPending}
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50">
+            {gen.isPending ? "Sintetizando..." : insights.length > 0 ? "Regenerar síntese" : "Gerar síntese"}
+          </button>
+        </div>
       </div>
 
       {insights.length === 0 && recs.length === 0 ? (

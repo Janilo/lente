@@ -90,10 +90,11 @@ export const listSynthesis = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) => z.object({ study_id: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
-    await assertOwner(data.study_id, context.userId);
-    const [{ data: insights }, { data: recs }] = await Promise.all([
+    const study = await assertOwner(data.study_id, context.userId);
+    const [{ data: insights }, { data: recs }, { count: interviewCount }] = await Promise.all([
       supabaseAdmin.from("insights").select("id, theme, summary, evidence, created_at").eq("study_id", data.study_id).order("created_at", { ascending: false }),
       supabaseAdmin.from("recommendations").select("id, title, rationale, priority, supporting_insight_ids, created_at").eq("study_id", data.study_id).order("priority", { ascending: true, nullsFirst: false }),
+      supabaseAdmin.from("interviews").select("id", { count: "exact", head: true }).eq("study_id", data.study_id),
     ]);
 
     // Collect unique video paths from evidence and sign them.
@@ -124,7 +125,18 @@ export const listSynthesis = createServerFn({ method: "GET" })
       };
     });
 
-    return { insights: enriched, recommendations: recs ?? [] };
+    return {
+      insights: enriched,
+      recommendations: recs ?? [],
+      study: {
+        id: study.id,
+        title: study.title,
+        business_goal: study.business_goal ?? null,
+        context: study.context ?? null,
+        target_audience: study.target_audience ?? null,
+      },
+      interview_count: interviewCount ?? 0,
+    };
   });
 
 // ─────────────────────── generateSynthesis ───────────────────────
