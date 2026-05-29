@@ -122,7 +122,7 @@ function RespondentDetailPage() {
  ) : (
  <div className="flex flex-wrap gap-1.5">
  {d.tags.map((t) => (
- <span key={t.tag_value_id} className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-xs">
+ <span key={t.tag_value_id} className="inline-flex items-center gap-1.5 bg-secondary px-2.5 py-1 text-xs">
  <span className="text-muted-foreground">{t.dimension}:</span>
  <span>{t.label}</span>
  </span>
