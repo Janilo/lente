@@ -89,5 +89,5 @@ function StatusPill({ status }: { status: string }) {
  failed: { label: "falhou", cls: "bg-destructive/10 text-destructive"},
  };
  const m = map[status] ?? { label: status, cls: "bg-muted text-muted-foreground"};
- return <span className={`rounded-full px-2 py-0.5 text-xs ${m.cls}`}>{m.label}</span>;
+ return <span className={`inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-semibold ${m.cls}`}>{m.label}</span>;
 }
