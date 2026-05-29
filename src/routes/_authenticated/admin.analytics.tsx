@@ -335,3 +335,327 @@ function Th({ children }: { children: React.ReactNode }) {
 function Td({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return <td className={`px-3 py-2 align-top ${className}`}>{children}</td>;
 }
+
+// ---------- Tags Tab ----------
+function TagsTab() {
+  const list = useServerFn(adminListTagDimensions);
+  const create = useServerFn(adminCreateTagValue);
+  const update = useServerFn(adminUpdateTagValue);
+  const del = useServerFn(adminDeleteTagValue);
+  const qc = useQueryClient();
+  const { data, isLoading } = useQuery({ queryKey: ["admin", "tag-dims"], queryFn: () => list() });
+
+  const invalidate = () => qc.invalidateQueries({ queryKey: ["admin", "tag-dims"] });
+
+  const createMut = useMutation({
+    mutationFn: (vars: { dimension_id: string; slug: string; label: string }) => create({ data: vars }),
+    onSuccess: () => { toast.success("Valor adicionado"); invalidate(); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const updateMut = useMutation({
+    mutationFn: (vars: { id: string; label: string }) => update({ data: vars }),
+    onSuccess: () => { toast.success("Atualizado"); invalidate(); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const deleteMut = useMutation({
+    mutationFn: (id: string) => del({ data: { id } }),
+    onSuccess: () => { toast.success("Removido"); invalidate(); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (isLoading) return <p className="text-sm text-muted-foreground py-6">Carregando…</p>;
+
+  return (
+    <div className="py-6 space-y-8">
+      <p className="text-sm text-muted-foreground">
+        As 5 dimensões são fixas. Cadastre os valores que ficam disponíveis para classificar respondentes (ex: em <em>Setor</em>: Varejo, SaaS, Financeiro…).
+      </p>
+      {(data?.dimensions ?? []).map((dim) => (
+        <DimensionEditor
+          key={dim.id}
+          dimension={dim}
+          onCreate={(slug, label) => createMut.mutate({ dimension_id: dim.id, slug, label })}
+          onUpdate={(id, label) => updateMut.mutate({ id, label })}
+          onDelete={(id) => { if (confirm("Remover este valor? Respondentes perderão essa tag.")) deleteMut.mutate(id); }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function DimensionEditor({
+  dimension,
+  onCreate,
+  onUpdate,
+  onDelete,
+}: {
+  dimension: { id: string; label: string; description: string | null; values: { id: string; slug: string; label: string }[] };
+  onCreate: (slug: string, label: string) => void;
+  onUpdate: (id: string, label: string) => void;
+  onDelete: (id: string) => void;
+}) {
+  const [label, setLabel] = useState("");
+  const [slug, setSlug] = useState("");
+
+  const submit = () => {
+    if (!label.trim() || !slug.trim()) { toast.error("Preencha slug e rótulo"); return; }
+    onCreate(slug.trim().toLowerCase(), label.trim());
+    setLabel(""); setSlug("");
+  };
+
+  return (
+    <div className="rounded-lg border border-border bg-card p-5 space-y-4">
+      <div>
+        <h3 className="text-lg">{dimension.label}</h3>
+        {dimension.description && <p className="text-xs text-muted-foreground mt-1">{dimension.description}</p>}
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {dimension.values.length === 0 && (
+          <span className="text-xs text-muted-foreground italic">Nenhum valor cadastrado.</span>
+        )}
+        {dimension.values.map((v) => (
+          <TagValueChip key={v.id} value={v} onUpdate={onUpdate} onDelete={onDelete} />
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-2 pt-3 border-t border-border">
+        <input
+          placeholder="Rótulo (ex: Varejo)"
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+          className="rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+        />
+        <input
+          placeholder="Slug (ex: varejo)"
+          value={slug}
+          onChange={(e) => setSlug(e.target.value)}
+          className="rounded-md border border-input bg-background px-2 py-1.5 text-sm font-mono"
+        />
+        <button
+          onClick={submit}
+          className="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground"
+        >Adicionar</button>
+      </div>
+    </div>
+  );
+}
+
+function TagValueChip({
+  value,
+  onUpdate,
+  onDelete,
+}: {
+  value: { id: string; slug: string; label: string };
+  onUpdate: (id: string, label: string) => void;
+  onDelete: (id: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value.label);
+  if (editing) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2 py-1 text-xs">
+        <input
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          className="bg-transparent outline-none w-32"
+          autoFocus
+        />
+        <button onClick={() => { onUpdate(value.id, draft); setEditing(false); }} className="text-primary">✓</button>
+        <button onClick={() => { setDraft(value.label); setEditing(false); }} className="text-muted-foreground">✕</button>
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1 text-xs">
+      <span>{value.label}</span>
+      <span className="text-muted-foreground font-mono opacity-60">{value.slug}</span>
+      <button onClick={() => setEditing(true)} className="text-muted-foreground hover:text-foreground">✎</button>
+      <button onClick={() => onDelete(value.id)} className="text-muted-foreground hover:text-destructive">×</button>
+    </span>
+  );
+}
+
+// ---------- Pool Tab ----------
+function PoolTab() {
+  const listDims = useServerFn(adminListTagDimensions);
+  const listPool = useServerFn(adminListRespondentPool);
+  const assign = useServerFn(adminAssignTag);
+  const unassign = useServerFn(adminUnassignTag);
+  const qc = useQueryClient();
+
+  const [search, setSearch] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
+  const dimsQ = useQuery({ queryKey: ["admin", "tag-dims"], queryFn: () => listDims() });
+  const poolQ = useQuery({
+    queryKey: ["admin", "pool", appliedSearch, selectedTags],
+    queryFn: () => listPool({ data: { search: appliedSearch, tagValueIds: selectedTags, onlyActive: true } }),
+  });
+
+  const invalidate = () => qc.invalidateQueries({ queryKey: ["admin", "pool"] });
+  const assignMut = useMutation({
+    mutationFn: (vars: { respondent_id: string; tag_value_id: string }) => assign({ data: vars }),
+    onSuccess: invalidate,
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const unassignMut = useMutation({
+    mutationFn: (vars: { respondent_id: string; tag_value_id: string }) => unassign({ data: vars }),
+    onSuccess: invalidate,
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const toggleTag = (id: string) => setSelectedTags((s) => s.includes(id) ? s.filter((x) => x !== id) : [...s, id]);
+
+  const allValues = useMemo(() => {
+    const out: { id: string; label: string; dimension: string }[] = [];
+    for (const d of dimsQ.data?.dimensions ?? []) {
+      for (const v of d.values) out.push({ id: v.id, label: v.label, dimension: d.label });
+    }
+    return out;
+  }, [dimsQ.data]);
+
+  return (
+    <div className="py-6 space-y-5">
+      <div className="flex gap-2 items-end">
+        <div className="flex-1">
+          <label className="text-xs text-muted-foreground">Buscar (nome, e-mail, cargo, empresa)</label>
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") setAppliedSearch(search); }}
+            className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          />
+        </div>
+        <button
+          onClick={() => setAppliedSearch(search)}
+          className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground"
+        >Buscar</button>
+        {(appliedSearch || selectedTags.length > 0) && (
+          <button
+            onClick={() => { setSearch(""); setAppliedSearch(""); setSelectedTags([]); }}
+            className="rounded-md border border-border px-3 py-2 text-sm hover:bg-accent"
+          >Limpar</button>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        {(dimsQ.data?.dimensions ?? []).map((dim) => dim.values.length > 0 && (
+          <div key={dim.id} className="flex flex-wrap gap-1.5 items-center">
+            <span className="text-xs uppercase tracking-wide text-muted-foreground w-32 shrink-0">{dim.label}</span>
+            {dim.values.map((v) => {
+              const on = selectedTags.includes(v.id);
+              return (
+                <button
+                  key={v.id}
+                  onClick={() => toggleTag(v.id)}
+                  className={`rounded-full border px-3 py-1 text-xs transition-colors ${on ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background hover:bg-accent"}`}
+                >{v.label}</button>
+              );
+            })}
+          </div>
+        ))}
+        {allValues.length === 0 && (
+          <p className="text-xs text-muted-foreground italic">Cadastre valores de tag em "Tags" para filtrar o pool.</p>
+        )}
+      </div>
+
+      <div className="text-xs text-muted-foreground">
+        {poolQ.isLoading ? "Carregando…" : `${poolQ.data?.respondents.length ?? 0} respondente(s)`}
+        {selectedTags.length > 0 && ` · com TODAS as ${selectedTags.length} tags selecionadas`}
+      </div>
+
+      <div className="space-y-3">
+        {(poolQ.data?.respondents ?? []).map((r) => (
+          <RespondentCard
+            key={r.id}
+            respondent={r}
+            allValues={allValues}
+            onAssign={(tag_value_id) => assignMut.mutate({ respondent_id: r.id, tag_value_id })}
+            onUnassign={(tag_value_id) => unassignMut.mutate({ respondent_id: r.id, tag_value_id })}
+          />
+        ))}
+        {!poolQ.isLoading && (poolQ.data?.respondents ?? []).length === 0 && (
+          <p className="text-sm text-muted-foreground py-8 text-center">Nenhum respondente encontrado.</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function RespondentCard({
+  respondent,
+  allValues,
+  onAssign,
+  onUnassign,
+}: {
+  respondent: {
+    id: string; full_name: string | null; email: string | null; phone: string | null;
+    city: string | null; state: string | null; occupation: string | null; company: string | null;
+    source: string | null; studies_count: number; completed_count: number;
+    last_participation_at: string | null; avg_quality_score: number | string | null;
+    tags: { tag_value_id: string; label: string; dimension: string }[];
+  };
+  allValues: { id: string; label: string; dimension: string }[];
+  onAssign: (tag_value_id: string) => void;
+  onUnassign: (tag_value_id: string) => void;
+}) {
+  const [adding, setAdding] = useState(false);
+  const assignedIds = new Set(respondent.tags.map((t) => t.tag_value_id));
+  const available = allValues.filter((v) => !assignedIds.has(v.id));
+
+  return (
+    <div className="rounded-lg border border-border bg-card p-4 space-y-3">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <div>
+          <div className="text-base font-medium">{respondent.full_name ?? "(sem nome)"}</div>
+          <div className="text-xs text-muted-foreground">
+            {[respondent.email, respondent.phone, respondent.occupation, respondent.company, [respondent.city, respondent.state].filter(Boolean).join("/")].filter(Boolean).join(" · ") || "—"}
+          </div>
+        </div>
+        <div className="flex gap-4 text-xs text-muted-foreground">
+          <span><strong className="text-foreground">{respondent.studies_count}</strong> estudos</span>
+          <span><strong className="text-foreground">{respondent.completed_count}</strong> concluídas</span>
+          {respondent.avg_quality_score != null && (
+            <span>Qualidade <strong className="text-foreground">{Number(respondent.avg_quality_score).toFixed(1)}</strong></span>
+          )}
+          {respondent.last_participation_at && (
+            <span>Última: {new Date(respondent.last_participation_at).toLocaleDateString("pt-BR")}</span>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-1.5 items-center">
+        {respondent.tags.map((t) => (
+          <span key={t.tag_value_id} className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-xs">
+            <span className="text-muted-foreground">{t.dimension}:</span>
+            <span>{t.label}</span>
+            <button onClick={() => onUnassign(t.tag_value_id)} className="text-muted-foreground hover:text-destructive">×</button>
+          </span>
+        ))}
+        {!adding ? (
+          <button
+            onClick={() => setAdding(true)}
+            disabled={available.length === 0}
+            className="rounded-full border border-dashed border-border px-2.5 py-1 text-xs hover:bg-accent disabled:opacity-40"
+          >+ tag</button>
+        ) : (
+          <select
+            autoFocus
+            defaultValue=""
+            onChange={(e) => { if (e.target.value) { onAssign(e.target.value); setAdding(false); } }}
+            onBlur={() => setAdding(false)}
+            className="rounded-md border border-input bg-background px-2 py-1 text-xs"
+          >
+            <option value="">Escolher tag…</option>
+            {available.map((v) => (
+              <option key={v.id} value={v.id}>{v.dimension}: {v.label}</option>
+            ))}
+          </select>
+        )}
+      </div>
+    </div>
+  );
+}
+
