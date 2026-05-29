@@ -9,6 +9,83 @@ async function assertOwner(study_id: string, userId: string) {
   return s;
 }
 
+// ─────────────────────── word-level clip resolver ───────────────────────
+
+type NormWord = { text: string; start: number; end: number };
+
+function normalizeWords(raw: unknown): NormWord[] {
+  if (!Array.isArray(raw)) return [];
+  const out: NormWord[] = [];
+  // Detect ms vs s: if any end > 600 we assume ms (AssemblyAI), else s (ElevenLabs).
+  let maxEnd = 0;
+  for (const w of raw) {
+    if (typeof w !== "object" || w === null) continue;
+    const t = (w as { text?: unknown; word?: unknown }).text ?? (w as { word?: unknown }).word;
+    const s = (w as { start?: unknown }).start;
+    const e = (w as { end?: unknown }).end;
+    if (typeof t !== "string" || typeof s !== "number" || typeof e !== "number") continue;
+    maxEnd = Math.max(maxEnd, e);
+  }
+  const divisor = maxEnd > 600 ? 1000 : 1;
+  for (const w of raw) {
+    if (typeof w !== "object" || w === null) continue;
+    const t = (w as { text?: unknown; word?: unknown }).text ?? (w as { word?: unknown }).word;
+    const s = (w as { start?: unknown }).start;
+    const e = (w as { end?: unknown }).end;
+    if (typeof t !== "string" || typeof s !== "number" || typeof e !== "number") continue;
+    out.push({ text: String(t), start: s / divisor, end: e / divisor });
+  }
+  return out;
+}
+
+function normalizeForMatch(s: string): string {
+  return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+}
+
+/** Locate quote span inside words_json. Returns [start, end] seconds or null. */
+function locateQuoteClip(quote: string, words: NormWord[]): { start: number; end: number } | null {
+  if (words.length === 0) return null;
+  const qTokens = normalizeForMatch(quote).split(" ").filter(Boolean);
+  if (qTokens.length === 0) return null;
+  const wTokens = words.map((w) => normalizeForMatch(w.text));
+
+  // Sliding window — best contiguous overlap.
+  let bestScore = 0;
+  let bestStartIdx = -1;
+  let bestEndIdx = -1;
+  const windowSize = Math.min(qTokens.length + 4, wTokens.length);
+  for (let i = 0; i <= wTokens.length - 1; i++) {
+    const end = Math.min(i + windowSize, wTokens.length);
+    const slice = wTokens.slice(i, end);
+    let matches = 0;
+    for (const tok of qTokens) {
+      if (slice.includes(tok)) matches++;
+    }
+    if (matches > bestScore) {
+      bestScore = matches;
+      // Tight bounds: first and last token of quote inside slice.
+      let firstHit = -1;
+      let lastHit = -1;
+      for (let j = 0; j < slice.length; j++) {
+        if (qTokens.includes(slice[j])) {
+          if (firstHit < 0) firstHit = j;
+          lastHit = j;
+        }
+      }
+      bestStartIdx = i + Math.max(0, firstHit);
+      bestEndIdx = i + Math.max(firstHit, lastHit);
+    }
+  }
+  // Need at least 40% of quote tokens matched to trust the match.
+  if (bestScore < Math.max(2, Math.ceil(qTokens.length * 0.4))) return null;
+  if (bestStartIdx < 0 || bestEndIdx < 0) return null;
+  const start = Math.max(0, words[bestStartIdx].start - 0.4);
+  const end = words[bestEndIdx].end + 0.6;
+  return { start, end };
+}
+
+// ─────────────────────── listSynthesis ───────────────────────
+
 export const listSynthesis = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) => z.object({ study_id: z.string().uuid() }).parse(i))
@@ -18,8 +95,39 @@ export const listSynthesis = createServerFn({ method: "GET" })
       supabaseAdmin.from("insights").select("id, theme, summary, evidence, created_at").eq("study_id", data.study_id).order("created_at", { ascending: false }),
       supabaseAdmin.from("recommendations").select("id, title, rationale, priority, supporting_insight_ids, created_at").eq("study_id", data.study_id).order("priority", { ascending: true, nullsFirst: false }),
     ]);
-    return { insights: insights ?? [], recommendations: recs ?? [] };
+
+    // Collect unique video paths from evidence and sign them.
+    const paths = new Set<string>();
+    for (const ins of insights ?? []) {
+      const ev = (ins.evidence as Array<{ video_path?: string | null }> | null) ?? [];
+      for (const e of ev) if (e.video_path) paths.add(e.video_path);
+    }
+    const signed = new Map<string, string>();
+    if (paths.size > 0) {
+      const { data: signedList } = await supabaseAdmin.storage
+        .from("interview-videos")
+        .createSignedUrls([...paths], 60 * 60);
+      for (const s of signedList ?? []) {
+        if (s.path && s.signedUrl) signed.set(s.path, s.signedUrl);
+      }
+    }
+
+    // Inject signed URL onto each evidence item.
+    const enriched = (insights ?? []).map((ins) => {
+      const ev = (ins.evidence as Array<Record<string, unknown>> | null) ?? [];
+      return {
+        ...ins,
+        evidence: ev.map((e) => ({
+          ...e,
+          video_url: typeof e.video_path === "string" ? signed.get(e.video_path) ?? null : null,
+        })),
+      };
+    });
+
+    return { insights: enriched, recommendations: recs ?? [] };
   });
+
+// ─────────────────────── generateSynthesis ───────────────────────
 
 export const generateSynthesis = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -34,14 +142,14 @@ export const generateSynthesis = createServerFn({ method: "POST" })
 
     const { data: answers } = await supabaseAdmin
       .from("answers")
-      .select("id, interview_id, question_text, transcript, is_followup, status")
+      .select("id, interview_id, question_text, transcript, is_followup, status, video_path, start_seconds, end_seconds, words_json")
       .in("interview_id", ids)
       .eq("status", "ready");
 
     const ready = (answers ?? []).filter((a) => a.transcript && a.transcript.trim().length > 0);
     if (ready.length === 0) throw new Error("Nenhuma transcrição disponível ainda.");
 
-    // Group by interview
+    // Group by interview, assign reference codes A1, A2, ... for the LLM.
     const byInterview = new Map<string, typeof ready>();
     for (const a of ready) {
       const arr = byInterview.get(a.interview_id) ?? [];
@@ -49,12 +157,21 @@ export const generateSynthesis = createServerFn({ method: "POST" })
       byInterview.set(a.interview_id, arr);
     }
 
+    const answersByRef = new Map<string, (typeof ready)[number]>();
     const transcriptBlocks: string[] = [];
-    let idx = 0;
+    let interviewIdx = 0;
+    let answerSeq = 0;
     for (const [iid, arr] of byInterview) {
-      idx++;
-      const lines = arr.map((a) => `  ${a.is_followup ? "↳ (follow-up) " : ""}P: ${a.question_text}\n    R: ${a.transcript}`).join("\n");
-      transcriptBlocks.push(`Entrevista ${idx} (id=${iid}):\n${lines}`);
+      interviewIdx++;
+      const lines: string[] = [];
+      for (const a of arr) {
+        answerSeq++;
+        const ref = `A${answerSeq}`;
+        answersByRef.set(ref, a);
+        const tag = a.is_followup ? "↳ (follow-up) " : "";
+        lines.push(`  [${ref}] ${tag}P: ${a.question_text}\n    R: ${a.transcript}`);
+      }
+      transcriptBlocks.push(`Entrevista ${interviewIdx} (id=${iid}):\n${lines.join("\n")}`);
     }
     let corpus = transcriptBlocks.join("\n\n");
     if (corpus.length > 60000) corpus = corpus.slice(0, 60000) + "\n\n[truncado]";
@@ -62,17 +179,17 @@ export const generateSynthesis = createServerFn({ method: "POST" })
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("LOVABLE_API_KEY ausente.");
 
-    const system = `Você é um pesquisador sênior de UX/Insights. Sintetize entrevistas em profundidade em temas (insights) e recomendações acionáveis. Sempre responda em PORTUGUÊS. Seja específico — cite trechos curtos das falas como evidência.`;
+    const system = `Você é um pesquisador sênior de UX/Insights. Sintetize entrevistas em profundidade em temas (insights) e recomendações acionáveis. Sempre responda em PORTUGUÊS. Cada evidência DEVE referenciar o código [Ax] da resposta de onde a citação saiu — copie a quote literalmente da transcrição daquela resposta.`;
 
     const user = `Estudo: ${study.title}
 Objetivo de negócio: ${study.business_goal ?? "(não informado)"}
 Contexto: ${study.context ?? "(não informado)"}
 Público-alvo: ${study.target_audience ?? "(não informado)"}
 
-Transcrições (${byInterview.size} entrevistas):
+Transcrições (${byInterview.size} entrevistas). Cada resposta tem um código [Ax]:
 ${corpus}
 
-Tarefa: extraia 4-8 INSIGHTS (temas/padrões) e 3-6 RECOMENDAÇÕES acionáveis ligadas a esses insights. Use a tool 'submit_synthesis'.`;
+Tarefa: extraia 4-8 INSIGHTS e 3-6 RECOMENDAÇÕES acionáveis. Para cada evidência, retorne answer_ref="Ax" (exatamente como aparece) e quote (trecho LITERAL da resposta correspondente).`;
 
     const tool = {
       type: "function",
@@ -94,10 +211,10 @@ Tarefa: extraia 4-8 INSIGHTS (temas/padrões) e 3-6 RECOMENDAÇÕES acionáveis 
                     items: {
                       type: "object",
                       properties: {
-                        quote: { type: "string", description: "Trecho curto da fala do respondente (até 280 chars)." },
-                        interview_index: { type: "integer", description: "Número da entrevista (1-based) de onde a fala veio." },
+                        quote: { type: "string", description: "Trecho LITERAL da fala (até 280 chars) — copiado da resposta referenciada." },
+                        answer_ref: { type: "string", description: "Código da resposta no formato 'Ax' (ex: A12)." },
                       },
-                      required: ["quote", "interview_index"],
+                      required: ["quote", "answer_ref"],
                     },
                   },
                 },
@@ -143,23 +260,59 @@ Tarefa: extraia 4-8 INSIGHTS (temas/padrões) e 3-6 RECOMENDAÇÕES acionáveis 
     const json = await res.json();
     const call = json.choices?.[0]?.message?.tool_calls?.[0];
     if (!call) throw new Error("IA não retornou síntese estruturada.");
-    let parsed: { insights: Array<{ theme: string; summary: string; evidence: Array<{ quote: string; interview_index: number }> }>; recommendations: Array<{ title: string; rationale: string; priority: number; supporting_insight_indices: number[] }> };
+    let parsed: {
+      insights: Array<{ theme: string; summary: string; evidence: Array<{ quote: string; answer_ref: string }> }>;
+      recommendations: Array<{ title: string; rationale: string; priority: number; supporting_insight_indices: number[] }>;
+    };
     try {
       parsed = JSON.parse(call.function.arguments);
     } catch {
       throw new Error("Falha ao interpretar resposta da IA.");
     }
 
+    // Map answer → interview index for display.
+    const interviewIndexById = new Map<string, number>();
+    {
+      let n = 0;
+      for (const iid of byInterview.keys()) {
+        n++;
+        interviewIndexById.set(iid, n);
+      }
+    }
+
     // Replace previous synthesis
     await supabaseAdmin.from("recommendations").delete().eq("study_id", data.study_id);
     await supabaseAdmin.from("insights").delete().eq("study_id", data.study_id);
 
-    const insightsToInsert = (parsed.insights ?? []).map((ins) => ({
-      study_id: data.study_id,
-      theme: ins.theme.slice(0, 200),
-      summary: ins.summary,
-      evidence: ins.evidence ?? [],
-    }));
+    const insightsToInsert = (parsed.insights ?? []).map((ins) => {
+      const enrichedEvidence = (ins.evidence ?? []).map((ev) => {
+        const a = answersByRef.get(ev.answer_ref);
+        if (!a) {
+          return { quote: ev.quote, answer_ref: ev.answer_ref, interview_index: null, video_path: null, clip_start: null, clip_end: null };
+        }
+        const words = normalizeWords(a.words_json);
+        const located = locateQuoteClip(ev.quote, words);
+        const baseStart = a.start_seconds ?? 0;
+        const baseEnd = a.end_seconds ?? (a.duration_seconds ?? null);
+        return {
+          quote: ev.quote,
+          answer_ref: ev.answer_ref,
+          answer_id: a.id,
+          interview_index: interviewIndexById.get(a.interview_id) ?? null,
+          video_path: a.video_path ?? null,
+          clip_start: located ? located.start : baseStart,
+          clip_end: located ? located.end : baseEnd,
+          question_text: a.question_text,
+        };
+      });
+      return {
+        study_id: data.study_id,
+        theme: ins.theme.slice(0, 200),
+        summary: ins.summary,
+        evidence: enrichedEvidence,
+      };
+    });
+
     const { data: insertedInsights, error: iErr } = await supabaseAdmin
       .from("insights").insert(insightsToInsert).select("id");
     if (iErr) throw new Error(iErr.message);
