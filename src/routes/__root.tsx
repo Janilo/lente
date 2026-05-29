@@ -147,13 +147,16 @@ function AuthInvalidator() {
  const userId = session.user.id;
  const key = `lente:hubspot-synced:${userId}`;
  if (typeof window !== "undefined"&& !window.localStorage.getItem(key)) {
+ window.localStorage.setItem(key, "1");
  const path = window.location.pathname;
  const m = path.match(/^\/r_?\/([^/]+)/);
  const role: "researcher"| "respondent"= m ? "respondent": "researcher";
  const study_slug = m?.[1];
  syncHubspotSelf({ data: { role, ...(study_slug ? { study_slug } : {}) } })
- .then(() => window.localStorage.setItem(key, "1"))
- .catch((e) => console.warn("hubspot sync failed", e));
+ .catch((e) => {
+ console.warn("hubspot sync failed", e);
+ window.localStorage.removeItem(key);
+ });
  }
  }
  });
