@@ -206,5 +206,13 @@
     transition: background-color 150ms ease;
   }
   .jps-cta:hover { background-color: var(--lente-teal-deep); }
+
+  /* Lede de marca: ênfase serifada itálica sob a manchete */
+  .lede-em {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-variation-settings: "opsz" 72, "SOFT" 0, "WONK" 0;
+    color: var(--lente-teal);
+  }
 }
 

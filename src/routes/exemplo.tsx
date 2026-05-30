@@ -80,7 +80,7 @@ function DemoPage() {
  theme.confidence === "alta"
  ? "bg-primary/10 text-primary"
  : theme.confidence === "média"
- ? "bg-accent/15 text-accent"
+ ? "bg-[color:var(--lente-amber-soft)] text-[color:var(--lente-amber-ink)]"
  : "bg-muted text-muted-foreground";
 
  return (
@@ -109,7 +109,7 @@ function DemoPage() {
  <section className="border-b border-border bg-card">
  <div className="mx-auto max-w-6xl px-6 py-10">
  <div className="flex items-center gap-3 text-xs font-mono text-muted-foreground">
- <span className="px-2 py-1 rounded-sm bg-accent/15 text-accent uppercase tracking-wider">Exemplo · dados ilustrativos</span>
+ <span className="px-2 py-1 rounded-sm bg-[color:var(--lente-teal-soft)] text-[color:var(--lente-teal-ink)] uppercase tracking-wider">Exemplo · dados ilustrativos</span>
  <span>Síntese gerada pela Lente</span>
  </div>
  <h1 className="mt-4 text-3xl md:text-4xl leading-tight max-w-3xl">
@@ -138,7 +138,7 @@ function DemoPage() {
  <div className="mx-auto max-w-6xl px-6 py-12">
  <p className="jps-eyebrow">Síntese</p>
  <h2 className="mt-3 text-3xl md:text-4xl leading-tight">
- 3 temas <em className="font-display italic text-primary">acionáveis</em>, cada um com evidência em vídeo.
+ 3 temas <em className="lede-em">acionáveis</em>, cada um com evidência em vídeo.
  </h2>
 
  <div className="mt-10 grid gap-6 lg:grid-cols-5">
@@ -217,7 +217,7 @@ function DemoPage() {
  </div>
 
  <div className="mt-6 pt-6 border-t border-border">
- <p className="jps-eyebrow text-accent">Recomendação</p>
+ <p className="jps-eyebrow text-primary">Recomendação</p>
  <p className="mt-2 text-lg leading-snug">{theme.recommendation}</p>
  </div>
  </div>
@@ -231,7 +231,7 @@ function DemoPage() {
  <div className="mx-auto max-w-6xl px-6 py-16">
  <p className="jps-eyebrow">Bastidor</p>
  <h2 className="mt-3 text-3xl md:text-4xl leading-tight max-w-3xl">
- Da transcrição crua ao insight <em className="font-display italic text-primary">com fonte clicável</em>.
+ Da transcrição crua ao insight <em className="lede-em">com fonte clicável</em>.
  </h2>
 
  <div className="mt-8 grid gap-6 md:grid-cols-2">
@@ -276,7 +276,7 @@ function DemoPage() {
  <div className="max-w-xl">
  <p className="jps-eyebrow">Pronto para o seu estudo</p>
  <h2 className="mt-3 text-3xl md:text-4xl leading-tight">
- Rode com <em className="font-display italic text-primary">suas próprias entrevistas</em>.
+ Rode com <em className="lede-em">suas próprias entrevistas</em>.
  </h2>
  </div>
  <div className="flex flex-col sm:flex-row gap-3">
