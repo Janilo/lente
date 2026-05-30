@@ -110,7 +110,12 @@
   --jps-paper: none;
 
   /* Brand stays square — only circles for portraits */
-  --radius: 4px;
+  --radius: 2px;
+
+  /* Layout widths */
+  --w-app: 64rem;
+  --w-doc: 56rem;
+  --gutter: 1.5rem;
 
   /* Semantic tokens (shadcn) mapped to Lente palette */
   --background: var(--lente-paper);
