@@ -4,11 +4,10 @@ import {
  Link,
  createRootRouteWithContext,
  useRouter,
- useRouterState,
  HeadContent,
  Scripts,
 } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import appCss from "../styles.css?url";
 import { supabase } from "@/integrations/supabase/client";
@@ -173,14 +172,14 @@ function AuthInvalidator() {
  router.invalidate();
  queryClient.invalidateQueries();
 
- if (event === "SIGNED_IN"&& session?.user) {
+ if (event === "SIGNED_IN" && session?.user) {
  const userId = session.user.id;
  const key = `lente:hubspot-synced:${userId}`;
- if (typeof window !== "undefined"&& !window.localStorage.getItem(key)) {
+ if (typeof window !== "undefined" && !window.localStorage.getItem(key)) {
  window.localStorage.setItem(key, "1");
  const path = window.location.pathname;
  const m = path.match(/^\/r_?\/([^/]+)/);
- const role: "researcher"| "respondent"= m ? "respondent": "researcher";
+ const role: "researcher" | "respondent" = m ? "respondent" : "researcher";
  const study_slug = m?.[1];
  syncHubspotSelf({ data: { role, ...(study_slug ? { study_slug } : {}) } })
  .catch((e) => {
@@ -198,18 +197,8 @@ function AuthInvalidator() {
 function Header() {
  const { isAuthenticated, loading } = useAuth();
  const { isAdmin } = useIsAdmin();
- const pathname = useRouterState({ select: (s) => s.location.pathname });
- const isLanding = pathname === "/";
- const [scrolled, setScrolled] = useState(false);
- useEffect(() => {
-  if (!isLanding) { setScrolled(true); return; }
-  setScrolled(window.scrollY > 8);
-  const onScroll = () => setScrolled(window.scrollY > 8);
-  window.addEventListener("scroll", onScroll, { passive: true });
-  return () => window.removeEventListener("scroll", onScroll);
- }, [isLanding]);
  return (
- <header className={`sticky top-0 z-40 border-b h-[var(--header-height)] transition-[background-color,border-color] duration-300 ${scrolled ? "border-border bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/70" : "border-transparent bg-transparent"}`}>
+ <header className="sticky top-0 z-40 border-b border-border h-[var(--header-height)] bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/70">
  <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-8">
  <div className="inline-flex items-center gap-3">
  <Link
@@ -231,21 +220,21 @@ function Header() {
  <nav className="flex items-center gap-6 sm:gap-8">
  {loading ? null : isAuthenticated ? (
  <>
- <Link to="/dashboard"className="jps-navlink">Dashboard</Link>
- <Link to="/my-privacy"className="jps-navlink">Minha privacidade</Link>
- {isAdmin && <Link to="/admin/analytics" className="jps-navlink">Admin</Link>}
+ <Link to="/dashboard" className="text-xs font-semibold uppercase tracking-[0.18em] text-foreground/70 hover:text-foreground transition-colors">Dashboard</Link>
+ <Link to="/my-privacy" className="text-xs font-semibold uppercase tracking-[0.18em] text-foreground/70 hover:text-foreground transition-colors">Minha privacidade</Link>
+ {isAdmin && <Link to="/admin/analytics" className="text-xs font-semibold uppercase tracking-[0.18em] text-foreground/70 hover:text-foreground transition-colors">Admin</Link>}
  <button
  onClick={async () => { await supabase.auth.signOut(); }}
- className="jps-navlink"
+ className="text-xs font-semibold uppercase tracking-[0.18em] text-foreground/70 hover:text-foreground transition-colors"
  >
  Sair
  </button>
  </>
  ) : (
  <>
- <a href="/#metodo"className="jps-navlink hidden sm:inline">Metodologia</a>
- <Link to="/login"className="jps-navlink">Entrar</Link>
- <Link to="/signup"className="jps-cta">
+ <a href="/#metodo" className="hidden sm:inline text-xs font-semibold uppercase tracking-[0.18em] text-foreground/70 hover:text-foreground transition-colors">Metodologia</a>
+ <Link to="/login" className="text-xs font-semibold uppercase tracking-[0.18em] text-foreground/70 hover:text-foreground transition-colors">Entrar</Link>
+ <Link to="/signup" className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.18em] hover:opacity-90 transition-opacity">
  Criar conta <span aria-hidden>→</span>
  </Link>
  </>
