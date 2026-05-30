@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Button } from "@/components/ui/button";
+import { Eye } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -30,20 +30,32 @@ function Landing() {
             Você define o roteiro e o contexto. A Lente conduz cada entrevista com perguntas de follow-up adaptativas,
             transcreve as respostas e devolve uma síntese com recortes em vídeo das citações que sustentam cada insight.
           </p>
-          <div className="mt-10 flex flex-wrap gap-3">
-            <Button asChild variant="cta" size="lg">
-              <Link to="/exemplo">Ver síntese de exemplo →</Link>
-            </Button>
-            <Button asChild variant="outline" size="lg">
-              <Link to="/signup">Criar conta</Link>
-            </Button>
-            <Button asChild variant="link" size="lg">
-              <Link to="/login">Entrar</Link>
-            </Button>
+          <div className="mt-10 flex flex-wrap items-start gap-3">
+            <Link
+              to="/signup"
+              className="inline-flex items-center justify-center gap-2 h-10 px-8 text-xs font-semibold uppercase tracking-[0.18em] bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+            >
+              Criar conta
+            </Link>
+            <div className="inline-flex flex-col gap-1">
+              <Link
+                to="/demo"
+                className="inline-flex items-center gap-2 h-10 px-8 text-xs font-semibold uppercase tracking-[0.18em] border border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
+              >
+                <Eye className="w-4 h-4" />
+                Ver síntese de exemplo
+              </Link>
+              <p className="text-[10px] text-muted-foreground font-mono">
+                Sem cadastro · carrega na hora · dados ilustrativos
+              </p>
+            </div>
+            <Link
+              to="/login"
+              className="inline-flex items-center h-10 text-xs font-semibold uppercase tracking-[0.18em] text-foreground/70 hover:text-foreground transition-colors"
+            >
+              Entrar
+            </Link>
           </div>
-          <p className="mt-3 text-xs text-muted-foreground font-mono">
-            Sem cadastro · carrega na hora · dados ilustrativos
-          </p>
         </div>
       </section>
 
@@ -251,9 +263,12 @@ function Landing() {
           </div>
 
           <div className="mt-14 flex gap-3">
-            <Button asChild variant="cta" size="lg">
-              <Link to="/signup">Começar um estudo</Link>
-            </Button>
+            <Link
+              to="/signup"
+              className="inline-flex items-center justify-center gap-2 h-10 px-8 text-xs font-semibold uppercase tracking-[0.18em] bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
+            >
+              Começar um estudo
+            </Link>
           </div>
         </div>
       </section>
