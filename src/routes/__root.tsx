@@ -20,30 +20,54 @@ import { syncHubspotSelf } from "@/lib/hubspot.functions";
 
 
 function NotFoundComponent() {
- const pathname = typeof window !== "undefined"? window.location.pathname : "";
- const match = pathname.match(/^\/r_?\/([^/]+)/);
- const slug = match?.[1];
- return (
- <div className="flex min-h-dvh items-center justify-center bg-background px-4">
- <div className="max-w-md text-center">
- <h1 className="text-7xl font-bold text-foreground">404</h1>
- <p className="mt-4 text-muted-foreground">Página não encontrada.</p>
- {slug ? (
- <Link
- to="/r/$slug"
- params={{ slug }}
- className="mt-6 inline-flex rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
- >
- Voltar à entrevista
- </Link>
- ) : (
- <Link to="/"className="mt-6 inline-flex rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
- Voltar
- </Link>
- )}
- </div>
- </div>
- );
+  const pathname = typeof window !== "undefined" ? window.location.pathname : "";
+  const match = pathname.match(/^\/r_?\/([^/]+)/);
+  const slug = match?.[1];
+  return (
+    <div className="flex min-h-dvh flex-col items-center justify-center bg-background px-6 text-center">
+      <div className="max-w-md">
+        <p className="mb-6 text-[10px] font-bold uppercase tracking-[0.22em] text-primary">404</p>
+        <h1 className="font-display text-[44px] font-light italic leading-tight text-foreground">
+          Página não encontrada.
+        </h1>
+        <p className="mt-4 text-[16px] leading-relaxed text-muted-foreground">
+          O link pode estar desatualizado ou a página foi movida.
+        </p>
+        <div className="mt-10 flex flex-wrap justify-center gap-4">
+          {slug ? (
+            <Link
+              to="/r/$slug"
+              params={{ slug }}
+              className="inline-flex items-center bg-primary px-6 py-3 text-[11px] font-bold uppercase tracking-[0.22em] text-primary-foreground transition-opacity hover:opacity-85"
+            >
+              Voltar à entrevista
+            </Link>
+          ) : (
+            <Link
+              to="/login"
+              className="inline-flex items-center bg-primary px-6 py-3 text-[11px] font-bold uppercase tracking-[0.22em] text-primary-foreground transition-opacity hover:opacity-85"
+            >
+              Entrar
+            </Link>
+          )}
+          <a
+            href="https://pereirasaraiva.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center border border-border px-6 py-3 text-[11px] font-bold uppercase tracking-[0.22em] text-foreground transition-opacity hover:opacity-85"
+          >
+            J P Saraiva
+          </a>
+          <Link
+            to="/"
+            className="inline-flex items-center text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground hover:text-foreground"
+          >
+            Ir para o início
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
