@@ -77,6 +77,9 @@
 }
 
 :root {
+  /* --header-height aqui garante que var(--header-height) resolva em runtime */
+  --header-height: 4.25rem;
+
   /* ============================
      LENTE — brand primitives
      (independent brand inheriting only technical primitives from JPS core)
@@ -181,37 +184,6 @@
     color: var(--lente-mute);
     font-weight: 600;
   }
-  /* Brand utility: nav link (uppercase, tracked, header-canonical) */
-  .jps-navlink {
-    font-family: var(--font-sans);
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--color-foreground);
-    font-weight: 600;
-    transition: opacity 150ms ease;
-  }
-  .jps-navlink:hover {
-    opacity: 0.7;
-  }
-  /* Brand utility: CTA button (filled teal, tracked, arrow) */
-  .jps-cta {
-    font-family: var(--font-sans);
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    font-weight: 600;
-    color: var(--color-primary-foreground);
-    background-color: var(--color-primary);
-    padding: 0.625rem 1rem;
-    border-radius: calc(var(--radius) - 2px);
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: background-color 150ms ease;
-  }
-  .jps-cta:hover { background-color: var(--lente-teal-deep); }
-
   /* Lede de marca: ênfase serifada itálica sob a manchete */
   .lede-em {
     font-family: var(--font-serif);
@@ -220,4 +192,3 @@
     color: var(--lente-teal);
   }
 }
-
