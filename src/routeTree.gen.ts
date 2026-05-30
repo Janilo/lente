@@ -9,9 +9,11 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermosRouteImport } from './routes/termos'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as ExemploRouteImport } from './routes/exemplo'
@@ -34,6 +36,11 @@ import { Route as AuthenticatedAdminRespondentesIdRouteImport } from './routes/_
 import { Route as AuthenticatedStudiesIdInterviewsUploadRouteImport } from './routes/_authenticated/studies.$id.interviews.upload'
 import { Route as AuthenticatedStudiesIdInterviewsInterviewIdRouteImport } from './routes/_authenticated/studies.$id.interviews.$interviewId'
 
+const TermosRoute = TermosRouteImport.update({
+  id: '/termos',
+  path: '/termos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -47,6 +54,11 @@ const SignupRoute = SignupRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacidadeRoute = PrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -170,9 +182,11 @@ export interface FileRoutesByFullPath {
   '/exemplo': typeof ExemploRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/privacidade': typeof PrivacidadeRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/termos': typeof TermosRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/my-privacy': typeof AuthenticatedMyPrivacyRoute
   '/qualificacao': typeof AuthenticatedQualificacaoRoute
@@ -195,9 +209,11 @@ export interface FileRoutesByTo {
   '/exemplo': typeof ExemploRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/privacidade': typeof PrivacidadeRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/termos': typeof TermosRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/my-privacy': typeof AuthenticatedMyPrivacyRoute
   '/qualificacao': typeof AuthenticatedQualificacaoRoute
@@ -222,9 +238,11 @@ export interface FileRoutesById {
   '/exemplo': typeof ExemploRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/privacidade': typeof PrivacidadeRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/termos': typeof TermosRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/my-privacy': typeof AuthenticatedMyPrivacyRoute
   '/_authenticated/qualificacao': typeof AuthenticatedQualificacaoRoute
@@ -249,9 +267,11 @@ export interface FileRouteTypes {
     | '/exemplo'
     | '/forgot-password'
     | '/login'
+    | '/privacidade'
     | '/reset-password'
     | '/signup'
     | '/sitemap.xml'
+    | '/termos'
     | '/dashboard'
     | '/my-privacy'
     | '/qualificacao'
@@ -274,9 +294,11 @@ export interface FileRouteTypes {
     | '/exemplo'
     | '/forgot-password'
     | '/login'
+    | '/privacidade'
     | '/reset-password'
     | '/signup'
     | '/sitemap.xml'
+    | '/termos'
     | '/dashboard'
     | '/my-privacy'
     | '/qualificacao'
@@ -300,9 +322,11 @@ export interface FileRouteTypes {
     | '/exemplo'
     | '/forgot-password'
     | '/login'
+    | '/privacidade'
     | '/reset-password'
     | '/signup'
     | '/sitemap.xml'
+    | '/termos'
     | '/_authenticated/dashboard'
     | '/_authenticated/my-privacy'
     | '/_authenticated/qualificacao'
@@ -327,15 +351,24 @@ export interface RootRouteChildren {
   ExemploRoute: typeof ExemploRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
+  PrivacidadeRoute: typeof PrivacidadeRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TermosRoute: typeof TermosRoute
   RSlugRoute: typeof RSlugRouteWithChildren
   ApiPublicTelegramWebhookRoute: typeof ApiPublicTelegramWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/termos': {
+      id: '/termos'
+      path: '/termos'
+      fullPath: '/termos'
+      preLoaderRoute: typeof TermosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -355,6 +388,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacidade': {
+      id: '/privacidade'
+      path: '/privacidade'
+      fullPath: '/privacidade'
+      preLoaderRoute: typeof PrivacidadeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -587,12 +627,24 @@ const rootRouteChildren: RootRouteChildren = {
   ExemploRoute: ExemploRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
+  PrivacidadeRoute: PrivacidadeRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TermosRoute: TermosRoute,
   RSlugRoute: RSlugRouteWithChildren,
   ApiPublicTelegramWebhookRoute: ApiPublicTelegramWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
