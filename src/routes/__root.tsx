@@ -4,10 +4,11 @@ import {
  Link,
  createRootRouteWithContext,
  useRouter,
+ useRouterState,
  HeadContent,
  Scripts,
 } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import appCss from "../styles.css?url";
 import { supabase } from "@/integrations/supabase/client";
@@ -197,8 +198,18 @@ function AuthInvalidator() {
 function Header() {
  const { isAuthenticated, loading } = useAuth();
  const { isAdmin } = useIsAdmin();
+ const pathname = useRouterState({ select: (s) => s.location.pathname });
+ const isLanding = pathname === "/";
+ const [scrolled, setScrolled] = useState(false);
+ useEffect(() => {
+  if (!isLanding) { setScrolled(true); return; }
+  setScrolled(window.scrollY > 8);
+  const onScroll = () => setScrolled(window.scrollY > 8);
+  window.addEventListener("scroll", onScroll, { passive: true });
+  return () => window.removeEventListener("scroll", onScroll);
+ }, [isLanding]);
  return (
- <header className="border-b border-border bg-background sticky top-0 z-40 h-[var(--header-height)]">
+ <header className={`sticky top-0 z-40 border-b h-[var(--header-height)] transition-[background-color,border-color] duration-300 ${scrolled ? "border-border bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/70" : "border-transparent bg-transparent"}`}>
  <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-8">
  <div className="inline-flex items-center gap-3">
  <Link
