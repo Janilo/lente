@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-const ADMIN_EMAIL = "janilo@pereirasaraiva.com";
+import { ADMIN_EMAIL } from "./config";
 
 function assertAdmin(claims: { email?: string } | undefined) {
   const email = (claims?.email ?? "").toLowerCase();
