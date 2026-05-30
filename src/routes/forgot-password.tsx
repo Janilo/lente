@@ -59,7 +59,7 @@ function ForgotPasswordPage() {
  type="submit"
  className="w-full rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground disabled:opacity-50"
  >
- {busy ? "Enviando...": "Enviar link"}
+ {busy ? "Enviando…": "Enviar link"}
  </button>
  </form>
  )}

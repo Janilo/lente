@@ -97,7 +97,7 @@ function ResetPasswordPage() {
  type="submit"
  className="w-full rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground disabled:opacity-50"
  >
- {busy ? "Salvando...": "Salvar nova senha"}
+ {busy ? "Salvando…": "Salvar nova senha"}
  </button>
  </form>
  )}

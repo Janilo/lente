@@ -77,7 +77,7 @@ function SignupPage() {
  <input type="password"required minLength={6} placeholder="senha (mín. 6 caracteres)"value={password} onChange={(e) => setPassword(e.target.value)}
  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"/>
  <button disabled={busy} type="submit"className="w-full rounded-md bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground disabled:opacity-50">
- {busy ? "Criando...": "Criar conta"}
+ {busy ? "Criando…": "Criar conta"}
  </button>
  </form>
  <p className="mt-6 text-sm text-muted-foreground">

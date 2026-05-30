@@ -8,18 +8,18 @@ const badgeVariants = cva(
  {
  variants: {
  variant: {
- default: "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
+ default: "border-transparent bg-primary text-primary-foreground hover:bg-[color:var(--lente-teal-deep)]",
  secondary:
  "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
  destructive:
  "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
  outline: "text-foreground",
  success:
- "border-transparent bg-[color:var(--lente-teal-soft)] text-[color:var(--lente-teal-ink)] dark:bg-[color:var(--lente-teal-deep)] dark:text-[color:var(--lente-teal-soft)]",
+ "border-transparent bg-[color:var(--lente-teal-soft)] text-[color:var(--lente-teal-ink)]",
  warning:
- "border-transparent bg-[color:var(--lente-amber-soft)] text-[color:var(--lente-amber-ink)] dark:bg-[color:var(--lente-amber)]/20 dark:text-[color:var(--lente-amber-soft)]",
+ "border-transparent bg-[color:var(--lente-amber-soft)] text-[color:var(--lente-amber-ink)]",
  ai:
- "border-transparent bg-[color:var(--lente-coral-soft)] text-[color:var(--lente-coral-deep)] dark:bg-[color:var(--lente-coral-deep)]/30 dark:text-[color:var(--lente-coral-soft)]",
+ "border-transparent bg-[color:var(--lente-coral-soft)] text-[color:var(--lente-coral-deep)]",
  },
  },
  defaultVariants: {

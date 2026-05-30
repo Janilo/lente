@@ -110,7 +110,12 @@
   --jps-paper: none;
 
   /* Brand stays square — only circles for portraits */
-  --radius: 4px;
+  --radius: 2px;
+
+  /* Layout widths */
+  --w-app: 64rem;
+  --w-doc: 56rem;
+  --gutter: 1.5rem;
 
   /* Semantic tokens (shadcn) mapped to Lente palette */
   --background: var(--lente-paper);
@@ -206,5 +211,13 @@
     transition: background-color 150ms ease;
   }
   .jps-cta:hover { background-color: var(--lente-teal-deep); }
+
+  /* Lede de marca: ênfase serifada itálica sob a manchete */
+  .lede-em {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-variation-settings: "opsz" 72, "SOFT" 0, "WONK" 0;
+    color: var(--lente-teal);
+  }
 }
 

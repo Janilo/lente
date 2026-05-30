@@ -155,7 +155,7 @@ function StudyEditor() {
  <div className="flex justify-end">
  <button onClick={() => save.mutate()} disabled={save.isPending}
  className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50">
- {save.isPending ? "Salvando...": "Salvar"}
+ {save.isPending ? "Salvando…": "Salvar"}
  </button>
  </div>
  </section>

@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -23,28 +24,22 @@ function Landing() {
           <p className="jps-eyebrow">Pesquisa qualitativa · IA</p>
           <h1 className="mt-5 text-6xl md:text-7xl leading-[0.95]">
             Entrevistas em vídeo que{""}
-            <em className="font-display italic text-primary">{"\u00A0"}se aprofundam</em> sozinhas.
+            <em className="lede-em">{"\u00A0"}se aprofundam</em> sozinhas.
           </h1>
           <p className="mt-6 max-w-2xl text-lg text-muted-foreground leading-relaxed">
             Você define o roteiro e o contexto. A Lente conduz cada entrevista com perguntas de follow-up adaptativas,
             transcreve as respostas e devolve uma síntese com recortes em vídeo das citações que sustentam cada insight.
           </p>
           <div className="mt-10 flex flex-wrap gap-3">
-            <Link to="/exemplo" className="rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground">
-              Ver síntese de exemplo →
-            </Link>
-            <Link
-              to="/signup"
-              className="rounded-md border border-border px-5 py-3 text-sm font-medium text-foreground hover:bg-accent"
-            >
-              Criar conta
-            </Link>
-            <Link
-              to="/login"
-              className="rounded-md px-5 py-3 text-sm font-medium text-muted-foreground hover:text-foreground"
-            >
-              Entrar
-            </Link>
+            <Button asChild variant="cta" size="lg">
+              <Link to="/exemplo">Ver síntese de exemplo →</Link>
+            </Button>
+            <Button asChild variant="outline" size="lg">
+              <Link to="/signup">Criar conta</Link>
+            </Button>
+            <Button asChild variant="link" size="lg">
+              <Link to="/login">Entrar</Link>
+            </Button>
           </div>
           <p className="mt-3 text-xs text-muted-foreground font-mono">
             Sem cadastro · carrega na hora · dados ilustrativos
@@ -59,8 +54,7 @@ function Landing() {
             <div>
               <p className="jps-eyebrow">O que você recebe</p>
               <h2 className="mt-4 text-4xl md:text-5xl leading-[1.05] max-w-2xl">
-                Uma síntese <em className="font-display italic text-primary">com evidência em vídeo</em>, não um
-                relatório de PDF.
+                Uma síntese <em className="lede-em">com evidência em vídeo</em>: cada insight abre o clipe original.
               </h2>
             </div>
             <p className="hidden md:block text-sm text-muted-foreground max-w-xs">
@@ -83,14 +77,14 @@ function Landing() {
               </div>
 
               <div className="p-6">
-                <p className="jps-eyebrow text-accent">Tema recorrente</p>
+                <p className="jps-eyebrow text-primary">Tema recorrente</p>
                 <h3 className="mt-3 text-2xl leading-tight">
                   Usuários abandonam o onboarding no{" "}
-                  <em className="font-display italic text-primary">passo de verificação bancária</em>.
+                  <em className="lede-em">passo de verificação bancária</em>.
                 </h3>
                 <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-                  Apareceu em 9 das 12 entrevistas. A objeção não é segurança — é falta de contexto sobre por que o dado
-                  é pedido naquele momento.
+                  Apareceu em 9 das 12 entrevistas. A objeção é de contexto: falta explicar por que o dado
+                  é pedido naquele momento do fluxo.
                 </p>
 
                 {/* Clipes de vídeo citáveis */}
@@ -137,7 +131,7 @@ function Landing() {
             {/* Coluna lateral — recomendação + métricas */}
             <div className="lg:col-span-2 space-y-6">
               <div className="rounded-md border border-border bg-background p-6">
-                <p className="jps-eyebrow text-accent">Recomendação</p>
+                <p className="jps-eyebrow text-primary">Recomendação</p>
                 <p className="mt-3 text-lg leading-snug">
                   Mover a verificação bancária para depois do primeiro uso, ou adicionar contexto inline antes do
                   pedido.
@@ -179,7 +173,7 @@ function Landing() {
         <div className="mx-auto max-w-5xl px-6 py-20">
           <p className="jps-eyebrow">Antes / depois</p>
           <h2 className="mt-4 text-4xl md:text-5xl leading-[1.05] max-w-3xl">
-            Da entrevista bruta ao insight <em className="font-display italic text-primary">com fonte clicável</em>.
+            Da entrevista bruta ao insight <em className="lede-em">com fonte clicável</em>.
           </h2>
 
           <div className="mt-10 grid gap-6 md:grid-cols-2">
@@ -249,7 +243,7 @@ function Landing() {
               },
             ].map((s) => (
               <div key={s.n} className="border-t border-border pt-5">
-                <div className="font-display text-4xl text-accent">{s.n}</div>
+                <div className="font-display text-4xl text-primary">{s.n}</div>
                 <h3 className="mt-4 text-2xl">{s.t}</h3>
                 <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{s.d}</p>
               </div>
@@ -257,9 +251,9 @@ function Landing() {
           </div>
 
           <div className="mt-14 flex gap-3">
-            <Link to="/signup" className="rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground">
-              Começar um estudo
-            </Link>
+            <Button asChild variant="cta" size="lg">
+              <Link to="/signup">Começar um estudo</Link>
+            </Button>
           </div>
         </div>
       </section>
