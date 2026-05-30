@@ -61,7 +61,7 @@ function Landing() {
 
       {/* PRODUCT PREVIEW — o que sai */}
       <section className="border-t border-border bg-card">
-        <div className="mx-auto max-w-6xl px-6 py-20">
+        <div className="mx-auto max-w-5xl px-6 py-20">
           <div className="flex items-end justify-between gap-8 mb-10">
             <div>
               <p className="jps-eyebrow">O que você recebe</p>
