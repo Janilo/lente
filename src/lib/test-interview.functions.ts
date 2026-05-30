@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { ADMIN_EMAIL } from "./config";
 
 type SeedQ = { text: string; intent: string; transcript: string; duration: number; score: number; reasoning: string };
 
@@ -48,7 +49,7 @@ export const createTestInterview = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     const { userId, claims } = context;
     const email = (claims as { email?: string } | undefined)?.email?.toLowerCase();
-    const isAdmin = email === "janilo@pereirasaraiva.com";
+    const isAdmin = email === ADMIN_EMAIL;
     if (!isAdmin) {
       const { data: profile } = await supabaseAdmin
         .from("profiles").select("can_publish").eq("id", userId).maybeSingle();

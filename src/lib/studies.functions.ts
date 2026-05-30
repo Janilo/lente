@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { ADMIN_EMAIL } from "./config";
 
 export const listMyStudies = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -79,7 +80,7 @@ export const updateStudy = createServerFn({ method: "POST" })
     const { supabase, userId, claims } = context;
     if (data.status === "published") {
       const email = (claims as { email?: string } | undefined)?.email?.toLowerCase();
-      const isAdmin = email === "janilo@pereirasaraiva.com";
+      const isAdmin = email === ADMIN_EMAIL;
       if (!isAdmin) {
         const { data: profile } = await supabase
           .from("profiles").select("can_publish").eq("id", userId).maybeSingle();

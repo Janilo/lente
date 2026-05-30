@@ -80,11 +80,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
  { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/821c4956-afdc-4651-b3a0-6801ad9b5d37/id-preview-3a98dd85--19daec10-d6e6-48b0-85d3-7e3715904e7f.lovable.app-1779670696225.png"},
  { name: "twitter:card", content: "summary_large_image"},
  { property: "og:type", content: "website"},
+ { property: "og:url", content: "https://lente.pereirasaraiva.com/" },
+ { property: "og:locale", content: "pt_BR" },
  { name: "google-site-verification", content: "kbiLQWHuF0-ziT6y9mGuE2Cj7PqUFiphcc9AbbG12bE"},
  ],
  links: [
  { rel: "icon", type: "image/svg+xml", href: "/favicon.svg"},
  { rel: "stylesheet", href: appCss },
+ { rel: "canonical", href: "https://lente.pereirasaraiva.com/" },
+ { rel: "preload", href: "/fonts/Fraunces-VariableFont_SOFT_WONK_opsz_wght.ttf", as: "font", type: "font/ttf", crossOrigin: "anonymous" },
+ { rel: "preload", href: "/fonts/InterTight-VariableFont_wght.ttf", as: "font", type: "font/ttf", crossOrigin: "anonymous" },
  ],
  scripts: [
  { src: "https://www.googletagmanager.com/gtag/js?id=G-QDHKZ82GE0", async: true },
