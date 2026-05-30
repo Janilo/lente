@@ -142,7 +142,7 @@ function SynthesisPage() {
  <button onClick={() => gen.mutate()} disabled={gen.isPending}
  className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50">
  <Sparkles className="h-4 w-4 text-[color:var(--lente-coral)]"/>
- {gen.isPending ? "Sintetizando...": insights.length > 0 ? "Regenerar síntese": "Gerar síntese"}
+ {gen.isPending ? "Sintetizando…": insights.length > 0 ? "Regenerar síntese": "Gerar síntese"}
  </button>
  </div>
  </div>
