@@ -36,7 +36,7 @@ const THEMES = [
  id: 1,
  tag: "Tema recorrente · alta confiança",
  title: "Abandono no passo de verificação bancária por falta de contexto",
- summary: "Apareceu em 9 das 12 entrevistas. A objeção não é segurança — é falta de contexto sobre por que o dado é pedido naquele momento do fluxo.",
+ summary: "Apareceu em 9 das 12 entrevistas. A objeção é de contexto: falta explicar por que o dado é pedido naquele momento do fluxo.",
  coverage: "9 / 12",
  confidence: "alta",
  clips: [
