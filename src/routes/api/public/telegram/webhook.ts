@@ -255,6 +255,12 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
  server: {
  handlers: {
  POST: async ({ request }) => {
+ // Config guard — fail loudly before the Telegram try/catch (which always
+ // returns 200 to suppress retries), so misconfiguration is clearly visible.
+ if (!process.env.TELEGRAM_API_KEY) {
+ console.error("[telegram-webhook] TELEGRAM_API_KEY is not configured");
+ return new Response("Internal Server Error", { status: 500 });
+ }
  try {
  const expectedSecret = deriveTelegramWebhookSecret();
  const actual = request.headers.get("X-Telegram-Bot-Api-Secret-Token") ?? "";

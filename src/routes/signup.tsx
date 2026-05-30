@@ -83,6 +83,12 @@ function SignupPage() {
  <p className="mt-6 text-sm text-muted-foreground">
  Já tem conta? <Link to="/login"search={{ returnTo }} className="text-primary underline">Entrar</Link>
  </p>
+ <p className="mt-4 text-xs text-muted-foreground">
+ Ao criar uma conta você concorda com os{" "}
+ <Link to="/termos" className="underline underline-offset-2 hover:text-foreground">Termos de Uso</Link>{" "}
+ e a{" "}
+ <Link to="/privacidade" className="underline underline-offset-2 hover:text-foreground">Política de Privacidade</Link>.
+ </p>
  </div>
  );
 }

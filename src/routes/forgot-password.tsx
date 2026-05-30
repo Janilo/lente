@@ -4,7 +4,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/forgot-password")({
- head: () => ({ meta: [{ title: "Esqueci a senha — Lente"}] }),
+ head: () => ({
+ meta: [
+ { title: "Esqueci a senha — Lente" },
+ { property: "og:title", content: "Esqueci a senha — Lente" },
+ { property: "og:image", content: "/og-social.png" },
+ { name: "twitter:card", content: "summary_large_image" },
+ { name: "twitter:image", content: "/og-social.png" },
+ ],
+ }),
  component: ForgotPasswordPage,
 });
 
