@@ -51,7 +51,7 @@ export function BrandFooter() {
             rel="noopener noreferrer"
             className="hover:opacity-70 transition-opacity"
           >
-            Cascata · Price Waterfall
+            Cascata
           </a>
         </div>
         <div className="flex flex-row flex-nowrap items-center justify-between gap-3 border-t border-border/70 py-6">
