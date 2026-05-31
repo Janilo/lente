@@ -200,13 +200,13 @@ function Header() {
  return (
  <header className="sticky top-0 z-40 border-b border-border h-[var(--header-height)] bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/70">
  <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-8">
- <div className="inline-flex items-baseline gap-3">
+ <div className="inline-flex items-center gap-3 h-8">
  <Link
  to="/"
  aria-label="Lente — início"
  className="inline-flex items-center text-[color:var(--lente-teal-deep)] hover:opacity-80 transition-opacity"
  >
- <LenteWordmark className="h-7 w-auto" />
+ <LenteWordmark className="h-[22px] w-auto" />
  </Link>
  <a
  href="https://pereirasaraiva.com"
