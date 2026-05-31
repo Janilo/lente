@@ -21,7 +21,7 @@ function Landing() {
       {/* HERO */}
       <section className="mx-auto max-w-5xl px-6 pt-24 pb-16">
         <div className="max-w-3xl">
-          <p className="jps-eyebrow">Pesquisa qualitativa · IA</p>
+          <p className="jps-eyebrow">Pesquisa qualitativa com IA</p>
           <h1 className="mt-5 text-6xl md:text-7xl leading-[0.95]">
             Entrevistas em vídeo que{""}
             <em className="lede-em">{"\u00A0"}se aprofundam</em> sozinhas.
