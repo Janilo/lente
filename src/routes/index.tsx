@@ -22,9 +22,8 @@ function Landing() {
       <section className="mx-auto max-w-5xl px-6 pt-24 pb-16">
         <div className="max-w-3xl">
           <p className="jps-eyebrow">Pesquisa qualitativa · IA</p>
-          <h1 className="mt-5 text-6xl md:text-7xl leading-[0.95]">
-            Entrevistas em vídeo que{""}
-            <em className="lede-em">{"\u00A0"}se aprofundam</em> sozinhas.
+          <h1 className="mt-5 text-6xl md:text-7xl leading-[0.95] italic">
+            Entrevistas em vídeo que{" "}<em>se aprofundam</em> sozinhas.
           </h1>
           <p className="mt-6 max-w-2xl text-lg text-muted-foreground leading-relaxed">
             Você define o roteiro e o contexto. A Lente conduz cada entrevista com perguntas de follow-up adaptativas,
