@@ -94,10 +94,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
  meta: [
  { charSet: "utf-8"},
  { name: "viewport", content: "width=device-width, initial-scale=1"},
- { title: "Lente: Pesquisa qualitativa em vídeo com IA"},
+ { title: "Lente · Pesquisa qualitativa em vídeo com IA"},
  { name: "description", content: "Pesquisa qualitativa em vídeo com IA. Entrevistas com follow-ups adaptativos, transcrição automática e síntese de insights com recortes."},
- { property: "og:title", content: "Lente: Pesquisa qualitativa em vídeo com IA"},
- { name: "twitter:title", content: "Lente: Pesquisa qualitativa em vídeo com IA"},
+ { property: "og:title", content: "Lente · Pesquisa qualitativa em vídeo com IA"},
+ { name: "twitter:title", content: "Lente · Pesquisa qualitativa em vídeo com IA"},
  { property: "og:description", content: "Pesquisa qualitativa em vídeo com IA. Entrevistas com follow-ups adaptativos, transcrição automática e síntese de insights com recortes."},
  { name: "twitter:description", content: "Pesquisa qualitativa em vídeo com IA. Entrevistas com follow-ups adaptativos, transcrição automática e síntese de insights com recortes."},
  { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/821c4956-afdc-4651-b3a0-6801ad9b5d37/id-preview-3a98dd85--19daec10-d6e6-48b0-85d3-7e3715904e7f.lovable.app-1779670696225.png"},
@@ -200,7 +200,7 @@ function Header() {
  return (
  <header className="sticky top-0 z-40 border-b border-border h-[var(--header-height)] bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/70">
  <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-8">
- <div className="inline-flex items-center gap-3">
+ <div className="inline-flex items-baseline gap-3">
  <Link
  to="/"
  aria-label="Lente — início"
@@ -212,7 +212,7 @@ function Header() {
  href="https://pereirasaraiva.com"
  target="_blank"
  rel="noopener noreferrer"
- className="jps-eyebrow hidden sm:inline hover:opacity-70 transition-opacity"
+ className="hidden sm:inline text-[13px] font-normal text-[#5F5B55] tracking-normal normal-case hover:opacity-70 transition-opacity"
  >
  por J P Saraiva
  </a>
