@@ -29,7 +29,7 @@ function Landing() {
             Você define o roteiro e o contexto. A Lente conduz cada entrevista com perguntas de follow-up adaptativas,
             transcreve as respostas e devolve uma síntese com recortes em vídeo das citações que sustentam cada insight.
           </p>
-          <div className="mt-10 flex flex-wrap items-center gap-3">
+          <div className="mt-10 flex flex-wrap items-start gap-3">
             <Link
               to="/signup"
               className="inline-flex items-center justify-center gap-2 h-10 px-8 text-xs font-semibold uppercase tracking-[0.18em] bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
@@ -52,7 +52,7 @@ function Landing() {
             </div>
             <Link
               to="/login"
-              className="inline-flex items-center h-10 text-xs font-semibold uppercase tracking-[0.18em] text-foreground/70 hover:text-foreground transition-colors"
+              className="inline-flex items-center self-start mt-3 text-xs font-semibold uppercase tracking-[0.18em] text-foreground/70 hover:text-foreground transition-colors"
             >
               Entrar
             </Link>
@@ -263,14 +263,6 @@ function Landing() {
             ))}
           </div>
 
-          <div className="mt-14 flex gap-3">
-            <Link
-              to="/signup"
-              className="inline-flex items-center justify-center gap-2 h-10 px-8 text-xs font-semibold uppercase tracking-[0.18em] bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
-            >
-              Começar um estudo
-            </Link>
-          </div>
         </div>
       </section>
     </div>
