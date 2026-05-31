@@ -4,7 +4,7 @@ import { Eye } from "lucide-react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Lente — Pesquisa qualitativa em vídeo com IA" },
+      { title: "Lente · Pesquisa qualitativa em vídeo com IA" },
       {
         name: "description",
         content:
@@ -22,31 +22,32 @@ function Landing() {
       <section className="mx-auto max-w-5xl px-6 pt-24 pb-16">
         <div className="max-w-3xl">
           <p className="jps-eyebrow">Pesquisa qualitativa · IA</p>
-          <h1 className="mt-5 text-6xl md:text-7xl leading-[0.95]">
-            Entrevistas em vídeo que{""}
-            <em className="lede-em">{"\u00A0"}se aprofundam</em> sozinhas.
+          <h1 className="mt-5 text-6xl md:text-7xl leading-[0.95] italic">
+            Entrevistas em vídeo que{" "}<em>se aprofundam</em> sozinhas.
           </h1>
           <p className="mt-6 max-w-2xl text-lg text-muted-foreground leading-relaxed">
             Você define o roteiro e o contexto. A Lente conduz cada entrevista com perguntas de follow-up adaptativas,
             transcreve as respostas e devolve uma síntese com recortes em vídeo das citações que sustentam cada insight.
           </p>
-          <div className="mt-10 flex flex-wrap items-start gap-3">
+          <div className="mt-10 flex flex-wrap items-center gap-3">
             <Link
               to="/signup"
               className="inline-flex items-center justify-center gap-2 h-10 px-8 text-xs font-semibold uppercase tracking-[0.18em] bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
             >
               Criar conta
             </Link>
-            <div className="inline-flex flex-col gap-1">
+            <div className="inline-flex flex-col gap-1.5">
               <Link
                 to="/demo"
-                className="inline-flex items-center gap-2 h-10 px-8 text-xs font-semibold uppercase tracking-[0.18em] border border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
+                className="inline-flex items-center justify-center gap-2 h-10 px-8 text-xs font-semibold uppercase tracking-[0.18em] border-[1.5px] border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
               >
                 <Eye className="w-4 h-4" />
-                Ver síntese de exemplo
+                Ver demo
               </Link>
-              <p className="text-[10px] text-muted-foreground font-mono">
-                Sem cadastro · carrega na hora · dados ilustrativos
+              <p className="text-[11px] text-[#5F5B55] leading-[1.7]">
+                Sem cadastro<br />
+                carrega na hora<br />
+                dados ilustrativos
               </p>
             </div>
             <Link
