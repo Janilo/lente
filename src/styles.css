@@ -175,8 +175,9 @@
     font-family: var(--font-serif);
     font-variation-settings: "opsz" 96, "SOFT" 0, "WONK" 0;
   }
-  /* Brand utility: eyebrow label */
-  .jps-eyebrow {
+  /* Brand utility: eyebrow label — .jps-eyebrow kept for backward compat */
+  .jps-eyebrow,
+  .eyebrow {
     font-family: var(--font-sans);
     font-size: 11px;
     letter-spacing: 0.18em;
