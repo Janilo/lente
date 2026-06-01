@@ -92,7 +92,7 @@ function DemoPage() {
       <main className="flex-1">
         {/* Faixa demo-ready */}
         <div className="border-b border-primary/20 bg-primary/5">
-          <div className="mx-auto max-w-6xl px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="mx-auto max-w-5xl px-6 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2 text-primary">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/60" />
@@ -112,7 +112,7 @@ function DemoPage() {
 
         {/* Header da demo */}
         <section className="border-b border-border bg-card">
-          <div className="mx-auto max-w-6xl px-6 py-10">
+          <div className="mx-auto max-w-5xl px-6 py-10">
             <div className="flex items-center gap-3 text-xs font-mono text-muted-foreground">
               <span className="px-2 py-1 rounded-sm bg-[color:var(--lente-teal-soft)] text-[color:var(--lente-teal-ink)] uppercase tracking-wider">Demo · dados fictícios</span>
               <span>Síntese gerada pela Lente</span>
@@ -139,7 +139,7 @@ function DemoPage() {
 
         {/* Síntese — temas + detalhe */}
         <section>
-          <div className="mx-auto max-w-6xl px-6 py-12">
+          <div className="mx-auto max-w-5xl px-6 py-12">
             <p className="eyebrow">Síntese</p>
             <h2 className="mt-3 text-3xl md:text-4xl leading-tight">
               3 temas <em className="lede-em">acionáveis</em>, cada um com evidência em vídeo.
@@ -230,7 +230,7 @@ function DemoPage() {
 
         {/* Antes / depois */}
         <section className="border-t border-border bg-card">
-          <div className="mx-auto max-w-6xl px-6 py-16">
+          <div className="mx-auto max-w-5xl px-6 py-16">
             <p className="eyebrow">Bastidor</p>
             <h2 className="mt-3 text-3xl md:text-4xl leading-tight max-w-3xl">
               Da transcrição crua ao insight <em className="lede-em">com fonte clicável</em>.
