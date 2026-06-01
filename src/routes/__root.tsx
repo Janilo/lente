@@ -6,6 +6,7 @@ import {
  useRouter,
  HeadContent,
  Scripts,
+ useRouterState,
 } from "@tanstack/react-router";
 import { useEffect } from "react";
 
@@ -89,7 +90,8 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
  );
 }
 
-export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
+{
  head: () => ({
  meta: [
  { charSet: "utf-8"},
@@ -247,14 +249,20 @@ function Header() {
 
 function RootComponent() {
  const { queryClient } = Route.useRouteContext();
+ const { location } = useRouterState();
+ const isDemo = location.pathname === "/demo";
  return (
  <QueryClientProvider client={queryClient}>
  <AuthInvalidator />
+ {isDemo ? (
+ <Outlet />
+ ) : (
  <div className="min-h-dvh flex flex-col">
  <Header />
  <main className="flex-1"><Outlet /></main>
  <BrandFooter />
  </div>
+ )}
  <Toaster />
  </QueryClientProvider>
  );
