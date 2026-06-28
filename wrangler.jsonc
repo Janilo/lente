@@ -1,7 +1,13 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "tanstack-start-app",
+  "name": "lente",
   "compatibility_date": "2025-09-24",
   "compatibility_flags": ["nodejs_compat"],
   "main": "src/server.ts",
+  "routes": [{ "pattern": "lente.pereirasaraiva.com", "custom_domain": true }],
+  "vars": {
+    "SUPABASE_URL": "https://nuolncddavudliabqsdx.supabase.co",
+    "SUPABASE_PROJECT_ID": "nuolncddavudliabqsdx",
+    "SUPABASE_PUBLISHABLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51b2xuY2RkYXZ1ZGxpYWJxc2R4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2MjQ0NzAsImV4cCI6MjA5ODIwMDQ3MH0.7CfYS1I8tVhw8QVQqjblROrxM8jpO3kor5MudX4pyS4",
+  },
 }
