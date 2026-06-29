@@ -1,0 +1,35 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Vite + Nitro (cloudflare-module) gera o Worker em dist/ e o config de
+      # deploy em .wrangler/deploy/config.json (lido automaticamente pelo wrangler).
+      # As VITE_ são chaves públicas (anon) — mesmas de wrangler.jsonc/.env.example —
+      # injetadas no bundle client em build-time. Secrets reais ficam no Worker.
+      - name: Build (Vite + Nitro cloudflare-module)
+        run: pnpm build
+        env:
+          VITE_SUPABASE_URL: https://nuolncddavudliabqsdx.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51b2xuY2RkYXZ1ZGxpYWJxc2R4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI2MjQ0NzAsImV4cCI6MjA5ODIwMDQ3MH0.7CfYS1I8tVhw8QVQqjblROrxM8jpO3kor5MudX4pyS4
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "latest"
+          command: deploy
