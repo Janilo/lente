@@ -4,6 +4,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { aiChatUrl } from "./ai.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const MODEL = "google/gemini-2.5-pro";
@@ -18,7 +19,7 @@ type EnrichmentResult = {
 };
 
 export async function enrichInterviewInternal(interview_id: string): Promise<void> {
-  const apiKey = process.env.LOVABLE_API_KEY;
+  const apiKey = process.env.AI_API_KEY ?? process.env.LOVABLE_API_KEY;
   if (!apiKey) {
     console.warn("LOVABLE_API_KEY missing — skipping enrichment");
     return;
@@ -125,7 +126,7 @@ Use a ferramenta "save_insights" com:
   }];
 
   try {
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await fetch(aiChatUrl(), {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({

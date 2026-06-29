@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { aiChatUrl } from "./ai.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 async function assertOwner(study_id: string, userId: string) {
@@ -188,7 +189,7 @@ export const generateSynthesis = createServerFn({ method: "POST" })
     let corpus = transcriptBlocks.join("\n\n");
     if (corpus.length > 60000) corpus = corpus.slice(0, 60000) + "\n\n[truncado]";
 
-    const apiKey = process.env.LOVABLE_API_KEY;
+    const apiKey = process.env.AI_API_KEY ?? process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("LOVABLE_API_KEY ausente.");
 
     const system = `Você é um pesquisador sênior de UX/Insights. Sintetize entrevistas em profundidade em temas (insights) e recomendações acionáveis. Sempre responda em PORTUGUÊS. Cada evidência DEVE referenciar o código [Ax] da resposta de onde a citação saiu — copie a quote literalmente da transcrição daquela resposta.`;
@@ -256,7 +257,7 @@ Tarefa: extraia 4-8 INSIGHTS e 3-6 RECOMENDAÇÕES acionáveis. Para cada evidê
       },
     };
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await fetch(aiChatUrl(), {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
