@@ -7,6 +7,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { aiChatUrl } from "./ai.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { enrichInterviewInternal } from "./interview-enrichment.functions";
 
@@ -149,7 +150,7 @@ async function segmentTranscriptByQuestion(args: {
   transcript: string;
   questions: { id: string; text: string; intent: string }[];
 }): Promise<Segment[]> {
-  const apiKey = process.env.LOVABLE_API_KEY;
+  const apiKey = process.env.AI_API_KEY ?? process.env.LOVABLE_API_KEY;
   if (!apiKey) throw new Error("LOVABLE_API_KEY não configurada.");
 
   const qBlock = args.questions.map((q, i) => `Q${i + 1} (id=${q.id}): ${q.text}${q.intent ? `\n  Intenção: ${q.intent}` : ""}`).join("\n");
@@ -192,7 +193,7 @@ Use a ferramenta "segment_answers" com um item por pergunta (use o question_id e
     },
   }];
 
-  const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+  const res = await fetch(aiChatUrl(), {
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({

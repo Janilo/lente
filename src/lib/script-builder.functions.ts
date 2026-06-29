@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { aiChatUrl } from "./ai.server";
 
 async function assertOwnership(supabase: any, userId: string, studyId: string) {
   const { data, error } = await supabase
@@ -34,7 +35,7 @@ type ParsedBlock = {
 type ParsedScript = { header: string; blocks: ParsedBlock[] };
 
 async function structureWithAI(rawText: string): Promise<ParsedScript | null> {
-  const apiKey = process.env.LOVABLE_API_KEY;
+  const apiKey = process.env.AI_API_KEY ?? process.env.LOVABLE_API_KEY;
   if (!apiKey) return null;
 
   const truncated = rawText.slice(0, 30000);
@@ -95,7 +96,7 @@ Regras:
   } as const;
 
   try {
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await fetch(aiChatUrl(), {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -237,7 +238,7 @@ export const generateQuestionScript = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const study = await assertOwnership(supabase, userId, data.study_id);
 
-    const apiKey = process.env.LOVABLE_API_KEY;
+    const apiKey = process.env.AI_API_KEY ?? process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("LOVABLE_API_KEY ausente");
 
     const contextBlock = [
@@ -293,7 +294,7 @@ Se o contexto do estudo for insuficiente para gerar um roteiro útil, devolva ap
       },
     } as const;
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const res = await fetch(aiChatUrl(), {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
