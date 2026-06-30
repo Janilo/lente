@@ -1,9 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
-import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/signup")({
@@ -54,8 +52,11 @@ function SignupPage() {
  };
 
  const handleGoogle = async () => {
- const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin + postSignupTarget });
- if (result.error) toast.error(result.error.message);
+ const { error } = await supabase.auth.signInWithOAuth({
+ provider: "google",
+ options: { redirectTo: window.location.origin + postSignupTarget },
+ });
+ if (error) toast.error(error.message);
  };
 
  return (
