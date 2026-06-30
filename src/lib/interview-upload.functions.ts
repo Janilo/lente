@@ -150,8 +150,8 @@ async function segmentTranscriptByQuestion(args: {
   transcript: string;
   questions: { id: string; text: string; intent: string }[];
 }): Promise<Segment[]> {
-  const apiKey = process.env.AI_API_KEY ?? process.env.LOVABLE_API_KEY;
-  if (!apiKey) throw new Error("LOVABLE_API_KEY não configurada.");
+  const apiKey = process.env.AI_API_KEY;
+  if (!apiKey) throw new Error("AI_API_KEY não configurada.");
 
   const qBlock = args.questions.map((q, i) => `Q${i + 1} (id=${q.id}): ${q.text}${q.intent ? `\n  Intenção: ${q.intent}` : ""}`).join("\n");
 
@@ -197,7 +197,7 @@ Use a ferramenta "segment_answers" com um item por pergunta (use o question_id e
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "google/gemini-2.5-pro",
+      model: "gemini-2.5-pro",
       messages: [
         { role: "system", content: system },
         { role: "user", content: user },

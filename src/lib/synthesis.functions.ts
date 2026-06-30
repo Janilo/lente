@@ -189,8 +189,8 @@ export const generateSynthesis = createServerFn({ method: "POST" })
     let corpus = transcriptBlocks.join("\n\n");
     if (corpus.length > 60000) corpus = corpus.slice(0, 60000) + "\n\n[truncado]";
 
-    const apiKey = process.env.AI_API_KEY ?? process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("LOVABLE_API_KEY ausente.");
+    const apiKey = process.env.AI_API_KEY;
+    if (!apiKey) throw new Error("AI_API_KEY ausente.");
 
     const system = `Você é um pesquisador sênior de UX/Insights. Sintetize entrevistas em profundidade em temas (insights) e recomendações acionáveis. Sempre responda em PORTUGUÊS. Cada evidência DEVE referenciar o código [Ax] da resposta de onde a citação saiu — copie a quote literalmente da transcrição daquela resposta.`;
 
@@ -261,7 +261,7 @@ Tarefa: extraia 4-8 INSIGHTS e 3-6 RECOMENDAÇÕES acionáveis. Para cada evidê
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
+        model: "gemini-2.5-pro",
         messages: [{ role: "system", content: system }, { role: "user", content: user }],
         tools: [tool],
         tool_choice: { type: "function", function: { name: "submit_synthesis" } },
