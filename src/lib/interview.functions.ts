@@ -185,7 +185,7 @@ async function maybeGenerateFollowup(args: {
   previousFollowups: string;
   followupsRemaining: number;
 }): Promise<string | null> {
-  const apiKey = process.env.AI_API_KEY ?? process.env.LOVABLE_API_KEY;
+  const apiKey = process.env.AI_API_KEY;
   if (!apiKey) return null;
   const system = `Você é um pesquisador de UX conduzindo uma entrevista em profundidade. Decida se vale a pena fazer UMA pergunta de aprofundamento (follow-up) com base no que o respondente disse.
 
@@ -212,7 +212,7 @@ Gere o follow-up (ou "SKIP").`;
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "gemini-2.5-flash",
         messages: [{ role: "system", content: system }, { role: "user", content: user }],
       }),
     });
@@ -522,7 +522,7 @@ export const getInterviewPipelineStatus = createServerFn({ method: "GET" })
 
 // ===== Quality scoring helper (shared with respondents.functions) =====
 export async function scoreAnswerInternal(answer_id: string, transcript?: string) {
-  const apiKey = process.env.AI_API_KEY ?? process.env.LOVABLE_API_KEY;
+  const apiKey = process.env.AI_API_KEY;
   if (!apiKey) return;
 
   const { data: ans } = await supabaseAdmin
@@ -550,7 +550,7 @@ ${intent ? `Intenção da pergunta: ${intent}\n` : ""}Resposta transcrita: ${tex
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: "gemini-2.5-flash",
         messages: [{ role: "system", content: system }, { role: "user", content: user }],
         response_format: { type: "json_object" },
       }),

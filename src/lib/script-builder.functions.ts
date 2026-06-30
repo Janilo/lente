@@ -35,7 +35,7 @@ type ParsedBlock = {
 type ParsedScript = { header: string; blocks: ParsedBlock[] };
 
 async function structureWithAI(rawText: string): Promise<ParsedScript | null> {
-  const apiKey = process.env.AI_API_KEY ?? process.env.LOVABLE_API_KEY;
+  const apiKey = process.env.AI_API_KEY;
   if (!apiKey) return null;
 
   const truncated = rawText.slice(0, 30000);
@@ -103,7 +103,7 @@ Regras:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: truncated },
@@ -238,8 +238,8 @@ export const generateQuestionScript = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const study = await assertOwnership(supabase, userId, data.study_id);
 
-    const apiKey = process.env.AI_API_KEY ?? process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("LOVABLE_API_KEY ausente");
+    const apiKey = process.env.AI_API_KEY;
+    if (!apiKey) throw new Error("AI_API_KEY ausente");
 
     const contextBlock = [
       `Título do estudo: ${study.title ?? "—"}`,
@@ -301,7 +301,7 @@ Se o contexto do estudo for insuficiente para gerar um roteiro útil, devolva ap
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: contextBlock },

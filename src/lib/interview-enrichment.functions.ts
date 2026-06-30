@@ -7,7 +7,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { aiChatUrl } from "./ai.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-const MODEL = "google/gemini-2.5-pro";
+const MODEL = "gemini-2.5-pro";
 
 type EnrichmentResult = {
   quality: "excellent" | "good" | "average" | "low";
@@ -19,9 +19,9 @@ type EnrichmentResult = {
 };
 
 export async function enrichInterviewInternal(interview_id: string): Promise<void> {
-  const apiKey = process.env.AI_API_KEY ?? process.env.LOVABLE_API_KEY;
+  const apiKey = process.env.AI_API_KEY;
   if (!apiKey) {
-    console.warn("LOVABLE_API_KEY missing — skipping enrichment");
+    console.warn("AI_API_KEY missing — skipping enrichment");
     return;
   }
 
