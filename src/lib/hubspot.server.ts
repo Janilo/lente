@@ -1,14 +1,12 @@
-// Server-only HubSpot helpers via Lovable connector gateway.
-const GATEWAY_URL = "https://connector-gateway.lovable.dev/hubspot";
+// Server-only HubSpot helpers — direct HubSpot CRM API (api.hubapi.com).
+// Auth: HUBSPOT_API_KEY = token de Private App (Bearer). Sem Lovable.
+const GATEWAY_URL = "https://api.hubapi.com";
 
 function authHeaders() {
-  const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
-  if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
   const HUBSPOT_API_KEY = process.env.HUBSPOT_API_KEY;
   if (!HUBSPOT_API_KEY) throw new Error("HUBSPOT_API_KEY is not configured");
   return {
-    Authorization: `Bearer ${LOVABLE_API_KEY}`,
-    "X-Connection-Api-Key": HUBSPOT_API_KEY,
+    Authorization: `Bearer ${HUBSPOT_API_KEY}`,
     "Content-Type": "application/json",
   };
 }

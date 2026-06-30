@@ -1,18 +1,15 @@
-// Telegram Bot API helpers via Lovable connector gateway.
+// Telegram Bot API helpers — direct api.telegram.org.
+// Auth: TELEGRAM_API_KEY = bot token (do BotFather), usado no path /bot<token>. Sem Lovable.
 import { createHash, timingSafeEqual } from "crypto";
 
-const GATEWAY_URL = "https://connector-gateway.lovable.dev/telegram";
-
-function getKeys() {
-  const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
-  if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+function getBotToken(): string {
   const TELEGRAM_API_KEY = process.env.TELEGRAM_API_KEY;
   if (!TELEGRAM_API_KEY) throw new Error("TELEGRAM_API_KEY is not configured");
-  return { LOVABLE_API_KEY, TELEGRAM_API_KEY };
+  return TELEGRAM_API_KEY;
 }
 
 export function deriveTelegramWebhookSecret(): string {
-  const { TELEGRAM_API_KEY } = getKeys();
+  const TELEGRAM_API_KEY = getBotToken();
   return createHash("sha256").update(`telegram-webhook:${TELEGRAM_API_KEY}`).digest("base64url");
 }
 
@@ -23,14 +20,10 @@ export function safeEqualString(a: string, b: string): boolean {
 }
 
 export async function tg<T = any>(method: string, body: Record<string, unknown>): Promise<T> {
-  const { LOVABLE_API_KEY, TELEGRAM_API_KEY } = getKeys();
-  const res = await fetch(`${GATEWAY_URL}/${method}`, {
+  const token = getBotToken();
+  const res = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      "X-Connection-Api-Key": TELEGRAM_API_KEY,
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
   const data = await res.json();
@@ -49,15 +42,10 @@ export async function sendChatAction(chat_id: number, action: "typing" | "record
 }
 
 export async function downloadTelegramFile(file_id: string): Promise<Blob> {
-  const { LOVABLE_API_KEY, TELEGRAM_API_KEY } = getKeys();
+  const token = getBotToken();
   const meta = await tg<{ result: { file_path: string } }>("getFile", { file_id });
   const file_path = meta.result.file_path;
-  const res = await fetch(`${GATEWAY_URL}/file/${file_path}`, {
-    headers: {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      "X-Connection-Api-Key": TELEGRAM_API_KEY,
-    },
-  });
+  const res = await fetch(`https://api.telegram.org/file/bot${token}/${file_path}`);
   if (!res.ok) throw new Error(`Telegram file download failed [${res.status}]`);
   return await res.blob();
 }

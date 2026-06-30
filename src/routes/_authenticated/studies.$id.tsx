@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { ScriptBuilderActions } from "@/components/study/ScriptBuilderActions";
 import { ScreenerBuilder } from "@/components/study/ScreenerBuilder";
 
-const PUBLISHED_ORIGIN = "https://lentejps.lovable.app";
+const PUBLISHED_ORIGIN = "https://lente.pereirasaraiva.com";
 
 function getRespondentOrigin() {
  if (typeof window === "undefined") return PUBLISHED_ORIGIN;
