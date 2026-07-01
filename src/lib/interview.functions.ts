@@ -5,6 +5,7 @@ import { aiChatUrl } from "./ai.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { syncContact } from "./hubspot.server";
 import { decideNextStep, type DecisionAnswer, type DecisionQuestion } from "./interview-decision";
+import { assertInterviewRespondent, assertStudyOwner } from "./authz";
 
 const BUCKET = "interview-videos";
 
@@ -181,8 +182,7 @@ export const getNextStep = createServerFn({ method: "GET" })
   .inputValidator((input) => z.object({ interview_id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { data: iv } = await supabase.from("interviews").select("id, study_id, respondent_id").eq("id", data.interview_id).maybeSingle();
-    if (!iv || iv.respondent_id !== userId) throw new Error("Acesso negado.");
+    const iv = await assertInterviewRespondent(supabase, data.interview_id, userId);
     const next = await computeNextStep(data.interview_id);
 
     const { count: question_count } = await supabaseAdmin
@@ -229,8 +229,7 @@ export const createAnswer = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { data: iv } = await supabase.from("interviews").select("id, respondent_id").eq("id", data.interview_id).maybeSingle();
-    if (!iv || iv.respondent_id !== userId) throw new Error("Acesso negado.");
+    await assertInterviewRespondent(supabase, data.interview_id, userId);
     const { data: ans, error } = await supabase.from("answers").insert({
       interview_id: data.interview_id,
       question_id: data.question_id,
@@ -314,8 +313,7 @@ export const finishInterview = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ interview_id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { data: iv } = await supabase.from("interviews").select("id, respondent_id").eq("id", data.interview_id).maybeSingle();
-    if (!iv || iv.respondent_id !== userId) throw new Error("Acesso negado.");
+    await assertInterviewRespondent(supabase, data.interview_id, userId);
     await supabase.from("interviews").update({ status: "completed", finished_at: new Date().toISOString() }).eq("id", data.interview_id);
     return { ok: true };
   });
@@ -326,8 +324,7 @@ export const listStudyInterviews = createServerFn({ method: "GET" })
   .inputValidator((input) => z.object({ study_id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { data: study } = await supabase.from("studies").select("id, owner_id, title").eq("id", data.study_id).maybeSingle();
-    if (!study || study.owner_id !== userId) throw new Error("Acesso negado.");
+    const study = await assertStudyOwner(supabase, data.study_id, userId);
     const { data: interviews, error } = await supabase
       .from("interviews")
       .select("id, status, started_at, finished_at, respondent_id")
@@ -523,9 +520,7 @@ export const listStudyInterviewsTable = createServerFn({ method: "GET" })
   .inputValidator((input) => z.object({ study_id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { userId } = context;
-    const { data: study } = await supabaseAdmin
-      .from("studies").select("id, owner_id, title").eq("id", data.study_id).maybeSingle();
-    if (!study || study.owner_id !== userId) throw new Error("Acesso negado.");
+    const study = await assertStudyOwner(supabaseAdmin, data.study_id, userId);
 
     const { data: questions } = await supabaseAdmin
       .from("questions").select("id, text, position").eq("study_id", data.study_id).order("position");

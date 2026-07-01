@@ -10,6 +10,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { aiChatUrl } from "./ai.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { enrichInterviewInternal } from "./interview-enrichment.functions";
+import { assertStudyOwner } from "./authz";
 
 const BUCKET = "interview-videos";
 const ALLOWED_EXT = new Set(["mp4", "webm", "mov", "m4v", "mkv"]);
@@ -38,9 +39,7 @@ export const createUploadedInterview = createServerFn({ method: "POST" })
     const ext = data.video_ext.toLowerCase().replace(/^\./, "");
     if (!ALLOWED_EXT.has(ext)) throw new Error(`Formato não suportado: ${ext}`);
 
-    const { data: study } = await supabaseAdmin
-      .from("studies").select("id, owner_id").eq("id", data.study_id).maybeSingle();
-    if (!study || study.owner_id !== userId) throw new Error("Acesso negado.");
+    await assertStudyOwner(supabaseAdmin, data.study_id, userId);
 
     const { data: created, error } = await supabaseAdmin
       .from("interviews")

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { scoreAnswerInternal } from "@/lib/interview.functions";
+import { assertStudyOwner } from "./authz";
 
 const BUCKET = "interview-videos";
 
@@ -12,9 +13,7 @@ export const listStudyRespondents = createServerFn({ method: "GET" })
   .inputValidator((input) => z.object({ study_id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { userId } = context;
-    const { data: study } = await supabaseAdmin
-      .from("studies").select("id, owner_id, title").eq("id", data.study_id).maybeSingle();
-    if (!study || study.owner_id !== userId) throw new Error("Acesso negado.");
+    const study = await assertStudyOwner(supabaseAdmin, data.study_id, userId);
 
     const { data: qCount } = await supabaseAdmin
       .from("questions").select("id", { count: "exact" }).eq("study_id", data.study_id);
