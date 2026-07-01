@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { deriveTelegramWebhookSecret, safeEqualString, sendMessage, sendChatAction, downloadTelegramFile } from "@/lib/telegram.server";
-import { computeNextStep, scoreAnswerInternal } from "@/lib/interview.functions";
+import { computeNextStep } from "@/lib/interview.functions";
+import { scoreAnswerInternal } from "@/lib/answer-quality";
 import { transcribeAudio } from "@/lib/stt.server";
 
 const BUCKET = "interview-videos";

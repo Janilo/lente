@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { scoreAnswerInternal } from "@/lib/interview.functions";
+import { scoreAnswerInternal } from "@/lib/answer-quality";
 import { assertStudyOwner } from "./authz";
 
 const BUCKET = "interview-videos";
