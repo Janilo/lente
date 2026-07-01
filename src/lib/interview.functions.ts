@@ -4,6 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { aiChatUrl } from "./ai.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { syncContact } from "./hubspot.server";
+import { decideNextStep, type DecisionAnswer, type DecisionQuestion } from "./interview-decision";
 
 const BUCKET = "interview-videos";
 
@@ -107,74 +108,23 @@ export async function computeNextStep(interview_id: string) {
   const { data: interview, error: iErr } = await supabaseAdmin
     .from("interviews").select("id, study_id, status").eq("id", interview_id).single();
   if (iErr || !interview) throw new Error("Entrevista não encontrada.");
-  if (interview.status === "completed") return { type: "done" as const };
 
   const { data: questions } = await supabaseAdmin
     .from("questions").select("id, text, intent, position").eq("study_id", interview.study_id).order("position");
   const { data: answers } = await supabaseAdmin
     .from("answers").select("id, question_id, is_followup, parent_answer_id, transcript, question_text, status")
     .eq("interview_id", interview_id);
-
   const { data: study } = await supabaseAdmin
     .from("studies").select("max_followups, context, target_audience, business_goal, title").eq("id", interview.study_id).single();
-  const maxFollowups = study?.max_followups ?? 2;
 
-  const qs = questions ?? [];
-  const ans = answers ?? [];
-
-  for (const q of qs) {
-    // Ignore failed answers: respondent will be prompted again for the same question/followup.
-    const forQ = ans.filter((a) => a.question_id === q.id && a.status !== "failed");
-    if (forQ.length === 0) {
-      return { type: "question" as const, question_id: q.id, text: q.text, intent: q.intent ?? "", position: q.position };
-    }
-    const ready = forQ.filter((a) => a.status === "ready" && a.transcript);
-    if (ready.length < forQ.length) {
-      // still processing (uploading/transcribing — not failed)
-      return { type: "processing" as const };
-    }
-    // If the latest answer for this question was a failed followup, re-ask it.
-    const allForQ = ans.filter((a) => a.question_id === q.id);
-    const lastForQ = allForQ[allForQ.length - 1];
-    if (lastForQ && lastForQ.status === "failed" && lastForQ.is_followup) {
-      return {
-        type: "followup" as const,
-        question_id: q.id,
-        text: lastForQ.question_text,
-        intent: q.intent ?? "",
-        parent_answer_id: lastForQ.parent_answer_id ?? null,
-        position: q.position,
-      };
-    }
-    const followups = forQ.filter((a) => a.is_followup);
-    if (followups.length < maxFollowups) {
-      // ask AI if a followup is needed
-      const lastAnswer = forQ[forQ.length - 1];
-      const previousFollowups = followups.map((f) => `- Pergunta: ${f.question_text}\n  Resposta: ${f.transcript}`).join("\n");
-      const transcripts = forQ.map((a) => `[${a.is_followup ? "Follow-up" : "Original"}] ${a.question_text}\n→ ${a.transcript}`).join("\n\n");
-      const fu = await maybeGenerateFollowup({
-        studyContext: `${study?.title ?? ""}\n${study?.business_goal ?? ""}\n${study?.context ?? ""}\nPúblico: ${study?.target_audience ?? ""}`,
-        originalQuestion: q.text,
-        originalIntent: q.intent ?? "",
-        transcripts,
-        previousFollowups,
-        followupsRemaining: maxFollowups - followups.length,
-      });
-      if (fu) {
-        return {
-          type: "followup" as const,
-          question_id: q.id,
-          text: fu,
-          intent: q.intent ?? "",
-          parent_answer_id: lastAnswer.id,
-          position: q.position,
-        };
-      }
-    }
-    // move on
-  }
-  // all questions handled
-  return { type: "done" as const };
+  return decideNextStep({
+    interviewStatus: interview.status,
+    questions: (questions ?? []) as DecisionQuestion[],
+    answers: (answers ?? []) as DecisionAnswer[],
+    maxFollowups: study?.max_followups ?? 2,
+    studyContext: `${study?.title ?? ""}\n${study?.business_goal ?? ""}\n${study?.context ?? ""}\nPúblico: ${study?.target_audience ?? ""}`,
+    askFollowup: maybeGenerateFollowup,
+  });
 }
 
 async function maybeGenerateFollowup(args: {
