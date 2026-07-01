@@ -21,7 +21,12 @@ type Recommendation = {
 };
 
 type ExportData = {
-  study: { title: string; business_goal: string | null; context: string | null; target_audience: string | null };
+  study: {
+    title: string;
+    business_goal: string | null;
+    context: string | null;
+    target_audience: string | null;
+  };
   interview_count: number;
   insights: Insight[];
   recommendations: Recommendation[];
@@ -73,7 +78,8 @@ class Doc {
     this.pdf.setFont("helvetica", "normal");
     this.pdf.setTextColor(...MUTED);
     this.pdf.setFontSize(8);
-    const right = this.studyTitle.length > 80 ? this.studyTitle.slice(0, 77) + "…" : this.studyTitle;
+    const right =
+      this.studyTitle.length > 80 ? this.studyTitle.slice(0, 77) + "…" : this.studyTitle;
     this.pdf.text(right, PAGE_W - MARGIN_X, 12, { align: "right" });
     this.pdf.setDrawColor(...RULE);
     this.pdf.setLineWidth(0.2);
@@ -180,7 +186,8 @@ class Doc {
     const w = this.pdf.getTextWidth(label) + 4;
     const x = PAGE_W - MARGIN_X - w;
     const yTop = this.y - 4;
-    const fill: [number, number, number] = p === 1 ? [217, 97, 79] : p === 2 ? TEAL : [180, 185, 183];
+    const fill: [number, number, number] =
+      p === 1 ? [217, 97, 79] : p === 2 ? TEAL : [180, 185, 183];
     this.pdf.setFillColor(...fill);
     this.pdf.roundedRect(x, yTop, w, 5.5, 1, 1, "F");
     this.pdf.setTextColor(255, 255, 255);
@@ -271,6 +278,10 @@ export function exportSynthesisPDF(data: ExportData) {
     }
   }
 
-  const safe = data.study.title.replace(/[^a-z0-9-_ ]/gi, "").slice(0, 60).trim() || "sintese";
+  const safe =
+    data.study.title
+      .replace(/[^a-z0-9-_ ]/gi, "")
+      .slice(0, 60)
+      .trim() || "sintese";
   doc.save(`Lente — ${safe}.pdf`);
 }

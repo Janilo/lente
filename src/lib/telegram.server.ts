@@ -27,18 +27,28 @@ export async function tg<T = any>(method: string, body: Record<string, unknown>)
     body: JSON.stringify(body),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(`Telegram ${method} failed [${res.status}]: ${JSON.stringify(data)}`);
+  if (!res.ok)
+    throw new Error(`Telegram ${method} failed [${res.status}]: ${JSON.stringify(data)}`);
   return data as T;
 }
 
-export async function sendMessage(chat_id: number, text: string, extra: Record<string, unknown> = {}) {
+export async function sendMessage(
+  chat_id: number,
+  text: string,
+  extra: Record<string, unknown> = {},
+) {
   return tg("sendMessage", { chat_id, text, parse_mode: "HTML", ...extra });
 }
 
-export async function sendChatAction(chat_id: number, action: "typing" | "record_voice" | "upload_voice") {
+export async function sendChatAction(
+  chat_id: number,
+  action: "typing" | "record_voice" | "upload_voice",
+) {
   try {
     await tg("sendChatAction", { chat_id, action });
-  } catch { /* non-fatal */ }
+  } catch {
+    /* non-fatal */
+  }
 }
 
 export async function downloadTelegramFile(file_id: string): Promise<Blob> {

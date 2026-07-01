@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { adminGetUserEmail } from "./admin-ops.server";
 
 import { ADMIN_EMAIL } from "./config";
 
@@ -47,10 +48,8 @@ export const adminListStudies = createServerFn({ method: "GET" })
 
     const emailMap = new Map<string, string>();
     for (const uid of ownerIds) {
-      try {
-        const { data: u } = await supabaseAdmin.auth.admin.getUserById(uid);
-        if (u?.user?.email) emailMap.set(uid, u.user.email);
-      } catch { /* ignore */ }
+      const email = await adminGetUserEmail(uid);
+      if (email) emailMap.set(uid, email);
     }
 
     const studyIds = (studies ?? []).map((s) => s.id);
@@ -76,7 +75,9 @@ export const adminListUsers = createServerFn({ method: "GET" })
     assertAdmin(context.claims as { email?: string });
     const { data: profiles, error } = await supabaseAdmin
       .from("profiles")
-      .select("id, full_name, can_publish, created_at, city, state, age_range, occupation, industry, research_interests")
+      .select(
+        "id, full_name, can_publish, created_at, city, state, age_range, occupation, industry, research_interests",
+      )
       .order("created_at", { ascending: false })
       .limit(1000);
     if (error) throw new Error(error.message);
@@ -91,10 +92,8 @@ export const adminListUsers = createServerFn({ method: "GET" })
 
     const emailMap = new Map<string, string>();
     for (const p of profiles ?? []) {
-      try {
-        const { data: u } = await supabaseAdmin.auth.admin.getUserById(p.id);
-        if (u?.user?.email) emailMap.set(p.id, u.user.email);
-      } catch { /* ignore */ }
+      const email = await adminGetUserEmail(p.id);
+      if (email) emailMap.set(p.id, email);
     }
 
     return {
@@ -124,15 +123,17 @@ export const adminListRespondents = createServerFn({ method: "POST" })
     assertAdmin(context.claims as { email?: string });
 
     // Only users that have at least one interview = respondents
-    const { data: ivs } = await supabaseAdmin
-      .from("interviews")
-      .select("respondent_id");
-    const respondentIds = Array.from(new Set((ivs ?? []).map((i) => i.respondent_id).filter((x): x is string => !!x)));
+    const { data: ivs } = await supabaseAdmin.from("interviews").select("respondent_id");
+    const respondentIds = Array.from(
+      new Set((ivs ?? []).map((i) => i.respondent_id).filter((x): x is string => !!x)),
+    );
     if (respondentIds.length === 0) return { respondents: [] };
 
     let q = supabaseAdmin
       .from("profiles")
-      .select("id, full_name, city, state, age_range, occupation, industry, research_interests, created_at")
+      .select(
+        "id, full_name, city, state, age_range, occupation, industry, research_interests, created_at",
+      )
       .in("id", respondentIds);
 
     if (data.name) q = q.ilike("full_name", `%${data.name}%`);
@@ -147,14 +148,14 @@ export const adminListRespondents = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     const ivCount = new Map<string, number>();
-    for (const i of ivs ?? []) { if (i.respondent_id) ivCount.set(i.respondent_id, (ivCount.get(i.respondent_id) ?? 0) + 1); }
+    for (const i of ivs ?? []) {
+      if (i.respondent_id) ivCount.set(i.respondent_id, (ivCount.get(i.respondent_id) ?? 0) + 1);
+    }
 
     const emailMap = new Map<string, string>();
     for (const p of profiles ?? []) {
-      try {
-        const { data: u } = await supabaseAdmin.auth.admin.getUserById(p.id);
-        if (u?.user?.email) emailMap.set(p.id, u.user.email);
-      } catch { /* ignore */ }
+      const email = await adminGetUserEmail(p.id);
+      if (email) emailMap.set(p.id, email);
     }
 
     let filtered = (profiles ?? []).map((p) => ({
@@ -188,7 +189,11 @@ export const adminGetSettings = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     assertAdmin(context.claims as { email?: string });
-    const { data } = await supabaseAdmin.from("app_settings").select("stt_provider").eq("id", true).maybeSingle();
+    const { data } = await supabaseAdmin
+      .from("app_settings")
+      .select("stt_provider")
+      .eq("id", true)
+      .maybeSingle();
     return { stt_provider: (data?.stt_provider ?? "elevenlabs") as "elevenlabs" | "assemblyai" };
   });
 
@@ -228,6 +233,10 @@ export const getMyPublishPermission = createServerFn({ method: "GET" })
     const { userId, claims } = context;
     const email = ((claims as { email?: string })?.email ?? "").toLowerCase();
     if (email === ADMIN_EMAIL) return { can_publish: true, is_admin: true };
-    const { data } = await supabaseAdmin.from("profiles").select("can_publish").eq("id", userId).maybeSingle();
+    const { data } = await supabaseAdmin
+      .from("profiles")
+      .select("can_publish")
+      .eq("id", userId)
+      .maybeSingle();
     return { can_publish: !!data?.can_publish, is_admin: false };
   });

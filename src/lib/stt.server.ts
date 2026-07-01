@@ -16,9 +16,15 @@ async function getProvider(): Promise<string> {
   if (cachedProvider && cachedProvider.expiresAt > now) return cachedProvider.value;
   let provider = (process.env.STT_PROVIDER ?? "elevenlabs").toLowerCase();
   try {
-    const { data } = await supabaseAdmin.from("app_settings").select("stt_provider").eq("id", true).maybeSingle();
+    const { data } = await supabaseAdmin
+      .from("app_settings")
+      .select("stt_provider")
+      .eq("id", true)
+      .maybeSingle();
     if (data?.stt_provider) provider = data.stt_provider.toLowerCase();
-  } catch { /* fall back to env */ }
+  } catch {
+    /* fall back to env */
+  }
   cachedProvider = { value: provider, expiresAt: now + CACHE_TTL_MS };
   return provider;
 }
@@ -71,15 +77,23 @@ async function transcribeAssemblyAI(file: Blob): Promise<SttResult> {
     headers: { authorization: apiKey, "content-type": "application/octet-stream" },
     body: buf,
   });
-  if (!upRes.ok) throw new Error(`AssemblyAI upload: ${upRes.status} ${(await upRes.text()).slice(0, 200)}`);
+  if (!upRes.ok)
+    throw new Error(`AssemblyAI upload: ${upRes.status} ${(await upRes.text()).slice(0, 200)}`);
   const { upload_url } = (await upRes.json()) as { upload_url: string };
 
   const createRes = await fetch("https://api.assemblyai.com/v2/transcript", {
     method: "POST",
     headers: { authorization: apiKey, "content-type": "application/json" },
-    body: JSON.stringify({ audio_url: upload_url, language_code: "pt", speech_models: ["universal-3-pro"] }),
+    body: JSON.stringify({
+      audio_url: upload_url,
+      language_code: "pt",
+      speech_models: ["universal-3-pro"],
+    }),
   });
-  if (!createRes.ok) throw new Error(`AssemblyAI create: ${createRes.status} ${(await createRes.text()).slice(0, 200)}`);
+  if (!createRes.ok)
+    throw new Error(
+      `AssemblyAI create: ${createRes.status} ${(await createRes.text()).slice(0, 200)}`,
+    );
   const created = (await createRes.json()) as { id: string };
 
   const deadline = Date.now() + 5 * 60 * 1000;
@@ -89,8 +103,14 @@ async function transcribeAssemblyAI(file: Blob): Promise<SttResult> {
       headers: { authorization: apiKey },
     });
     if (!pollRes.ok) throw new Error(`AssemblyAI poll: ${pollRes.status}`);
-    const t = (await pollRes.json()) as { status: string; text?: string; words?: unknown; error?: string };
-    if (t.status === "completed") return { transcript: (t.text ?? "").trim(), words: t.words ?? null };
+    const t = (await pollRes.json()) as {
+      status: string;
+      text?: string;
+      words?: unknown;
+      error?: string;
+    };
+    if (t.status === "completed")
+      return { transcript: (t.text ?? "").trim(), words: t.words ?? null };
     if (t.status === "error") throw new Error(`AssemblyAI: ${t.error ?? "erro desconhecido"}`);
   }
   throw new Error("AssemblyAI: timeout aguardando transcrição.");

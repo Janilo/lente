@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { adminGetUserEmail } from "./admin-ops.server";
 
 import { ADMIN_EMAIL } from "./config";
 
@@ -41,12 +42,19 @@ export const adminListTagDimensions = createServerFn({ method: "GET" })
 export const adminCreateTagValue = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      dimension_id: z.string().uuid(),
-      slug: z.string().trim().min(1).max(64).regex(slugRegex, "slug inválido (use a-z, 0-9, _, -)"),
-      label: z.string().trim().min(1).max(120),
-      position: z.number().int().min(0).max(9999).optional().default(0),
-    }).parse(input),
+    z
+      .object({
+        dimension_id: z.string().uuid(),
+        slug: z
+          .string()
+          .trim()
+          .min(1)
+          .max(64)
+          .regex(slugRegex, "slug inválido (use a-z, 0-9, _, -)"),
+        label: z.string().trim().min(1).max(120),
+        position: z.number().int().min(0).max(9999).optional().default(0),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     assertAdmin(context.claims as { email?: string });
@@ -58,11 +66,13 @@ export const adminCreateTagValue = createServerFn({ method: "POST" })
 export const adminUpdateTagValue = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      id: z.string().uuid(),
-      label: z.string().trim().min(1).max(120),
-      position: z.number().int().min(0).max(9999).optional(),
-    }).parse(input),
+    z
+      .object({
+        id: z.string().uuid(),
+        label: z.string().trim().min(1).max(120),
+        position: z.number().int().min(0).max(9999).optional(),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     assertAdmin(context.claims as { email?: string });
@@ -118,7 +128,9 @@ export const adminListRespondentPool = createServerFn({ method: "POST" })
 
     let q = supabaseAdmin
       .from("respondent_profile")
-      .select("id, user_id, full_name, email, phone, city, state, age_range, occupation, company, source, active, created_at");
+      .select(
+        "id, user_id, full_name, email, phone, city, state, age_range, occupation, company, source, active, created_at",
+      );
     if (data.onlyActive) q = q.eq("active", true);
     if (allowedIds) q = q.in("id", Array.from(allowedIds));
     if (data.search) {
@@ -135,29 +147,29 @@ export const adminListRespondentPool = createServerFn({ method: "POST" })
     const [statsRes, tagsRes, emailFallback] = await Promise.all([
       supabaseAdmin
         .from("respondent_stats")
-        .select("respondent_id, studies_count, completed_count, interviews_count, last_participation_at, avg_quality_score")
+        .select(
+          "respondent_id, studies_count, completed_count, interviews_count, last_participation_at, avg_quality_score",
+        )
         .in("respondent_id", respondentIds),
       supabaseAdmin
         .from("respondent_tags")
-        .select("respondent_id, tag_value_id, tag_values(label, dimension_id, tag_dimensions(label))")
+        .select(
+          "respondent_id, tag_value_id, tag_values(label, dimension_id, tag_dimensions(label))",
+        )
         .in("respondent_id", respondentIds),
       // for respondents without an email column, look up via auth
       Promise.all(
         profiles
           .filter((p) => !p.email)
-          .map(async (p) => {
-            try {
-              const { data: u } = await supabaseAdmin.auth.admin.getUserById(p.user_id);
-              return [p.id, u?.user?.email ?? null] as const;
-            } catch {
-              return [p.id, null] as const;
-            }
-          }),
+          .map(async (p) => [p.id, await adminGetUserEmail(p.user_id)] as const),
       ),
     ]);
 
     const statsMap = new Map((statsRes.data ?? []).map((s) => [s.respondent_id, s]));
-    const tagsByResp = new Map<string, { tag_value_id: string; label: string; dimension: string }[]>();
+    const tagsByResp = new Map<
+      string,
+      { tag_value_id: string; label: string; dimension: string }[]
+    >();
     for (const t of (tagsRes.data ?? []) as Array<{
       respondent_id: string;
       tag_value_id: string;
@@ -195,10 +207,12 @@ export const adminListRespondentPool = createServerFn({ method: "POST" })
 export const adminAssignTag = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      respondent_id: z.string().uuid(),
-      tag_value_id: z.string().uuid(),
-    }).parse(input),
+    z
+      .object({
+        respondent_id: z.string().uuid(),
+        tag_value_id: z.string().uuid(),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     assertAdmin(context.claims as { email?: string });
@@ -212,10 +226,12 @@ export const adminAssignTag = createServerFn({ method: "POST" })
 export const adminUnassignTag = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      respondent_id: z.string().uuid(),
-      tag_value_id: z.string().uuid(),
-    }).parse(input),
+    z
+      .object({
+        respondent_id: z.string().uuid(),
+        tag_value_id: z.string().uuid(),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     assertAdmin(context.claims as { email?: string });

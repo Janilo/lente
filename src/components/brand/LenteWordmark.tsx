@@ -9,7 +9,7 @@ type Props = {
   title?: string;
 };
 
-export function LenteWordmark({ className = "h-7 w-auto", title = "Lente"}: Props) {
+export function LenteWordmark({ className = "h-7 w-auto", title = "Lente" }: Props) {
   return (
     <svg
       viewBox="0 0 180 44"
@@ -18,9 +18,9 @@ export function LenteWordmark({ className = "h-7 w-auto", title = "Lente"}: Prop
       className={className}
       fill="currentColor"
     >
-      <circle cx="22" cy="22" r="16" fill="none" stroke="currentColor" strokeWidth="1.5"/>
-      <circle cx="22" cy="22" r="10" fill="none" stroke="currentColor" strokeWidth="1.5"/>
-      <circle cx="22" cy="22" r="4.5"/>
+      <circle cx="22" cy="22" r="16" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="22" cy="22" r="10" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="22" cy="22" r="4.5" />
       <text
         x="50"
         y="29.5"
@@ -28,7 +28,9 @@ export function LenteWordmark({ className = "h-7 w-auto", title = "Lente"}: Prop
         fontWeight={700}
         fontSize={24}
         letterSpacing="-0.02em"
-      >lente</text>
+      >
+        lente
+      </text>
     </svg>
   );
 }

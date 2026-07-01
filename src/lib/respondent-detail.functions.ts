@@ -41,7 +41,9 @@ export const adminGetRespondentDetail = createServerFn({ method: "POST" })
         .order("started_at", { ascending: false }),
       supabaseAdmin
         .from("compensation_log")
-        .select("id, amount, currency, method, status, paid_at, created_at, study_id, studies(title)")
+        .select(
+          "id, amount, currency, method, status, paid_at, created_at, study_id, studies(title)",
+        )
         .eq("respondent_id", data.id)
         .order("created_at", { ascending: false }),
     ]);

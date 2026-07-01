@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { adminGetUserContact } from "./admin-ops.server";
 import { syncContact } from "./hubspot.server";
 
 // Called from /signup after a successful signup (email or Google).
@@ -19,8 +20,8 @@ export const syncHubspotSelf = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { userId } = context;
     try {
-      const { data: userRes } = await supabaseAdmin.auth.admin.getUserById(userId);
-      const email = userRes?.user?.email;
+      const contact = await adminGetUserContact(userId);
+      const email = contact.email;
       if (!email) return { ok: false, reason: "no_email" };
 
       const { data: profile } = await supabaseAdmin
@@ -41,7 +42,7 @@ export const syncHubspotSelf = createServerFn({ method: "POST" })
 
       await syncContact({
         email,
-        full_name: profile?.full_name ?? userRes?.user?.user_metadata?.full_name ?? null,
+        full_name: profile?.full_name ?? contact.fullName,
         role: data.role,
         study,
       });

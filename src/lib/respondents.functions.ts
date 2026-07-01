@@ -2,7 +2,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { scoreAnswerInternal } from "@/lib/interview.functions";
+import { adminGetUserEmail, signedVideoUrl } from "./admin-ops.server";
+import { scoreAnswerInternal } from "@/lib/answer-quality";
+import { assertStudyOwner } from "./authz";
 
 const BUCKET = "interview-videos";
 
@@ -12,12 +14,12 @@ export const listStudyRespondents = createServerFn({ method: "GET" })
   .inputValidator((input) => z.object({ study_id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { userId } = context;
-    const { data: study } = await supabaseAdmin
-      .from("studies").select("id, owner_id, title").eq("id", data.study_id).maybeSingle();
-    if (!study || study.owner_id !== userId) throw new Error("Acesso negado.");
+    const study = await assertStudyOwner(supabaseAdmin, data.study_id, userId);
 
     const { data: qCount } = await supabaseAdmin
-      .from("questions").select("id", { count: "exact" }).eq("study_id", data.study_id);
+      .from("questions")
+      .select("id", { count: "exact" })
+      .eq("study_id", data.study_id);
     const totalQuestions = qCount?.length ?? 0;
 
     const { data: interviews } = await supabaseAdmin
@@ -27,7 +29,9 @@ export const listStudyRespondents = createServerFn({ method: "GET" })
       .order("started_at", { ascending: false });
     const ivs = interviews ?? [];
     const ivIds = ivs.map((i) => i.id);
-    const userIds = Array.from(new Set(ivs.map((i) => i.respondent_id).filter((x): x is string => !!x)));
+    const userIds = Array.from(
+      new Set(ivs.map((i) => i.respondent_id).filter((x): x is string => !!x)),
+    );
 
     // Profiles
     const { data: profiles } = userIds.length
@@ -38,16 +42,24 @@ export const listStudyRespondents = createServerFn({ method: "GET" })
     // Emails — admin only
     const emailMap = new Map<string, string>();
     for (const uid of userIds) {
-      try {
-        const { data: u } = await supabaseAdmin.auth.admin.getUserById(uid);
-        if (u?.user?.email) emailMap.set(uid, u.user.email);
-      } catch { /* ignore */ }
+      const email = await adminGetUserEmail(uid);
+      if (email) emailMap.set(uid, email);
     }
 
     // Answers aggregates
     const { data: ans } = ivIds.length
-      ? await supabaseAdmin.from("answers").select("interview_id, status, quality_score, is_followup").in("interview_id", ivIds)
-      : { data: [] as { interview_id: string; status: string; quality_score: number | null; is_followup: boolean }[] };
+      ? await supabaseAdmin
+          .from("answers")
+          .select("interview_id, status, quality_score, is_followup")
+          .in("interview_id", ivIds)
+      : {
+          data: [] as {
+            interview_id: string;
+            status: string;
+            quality_score: number | null;
+            is_followup: boolean;
+          }[],
+        };
     const ansByIv: Record<string, { ready: number; total: number; scores: number[] }> = {};
     for (const a of ans ?? []) {
       const row = (ansByIv[a.interview_id] ??= { ready: 0, total: 0, scores: [] });
@@ -59,7 +71,10 @@ export const listStudyRespondents = createServerFn({ method: "GET" })
 
     // Consents
     const { data: consents } = ivIds.length
-      ? await supabaseAdmin.from("consents").select("interview_id, consent_version, accepted_at").in("interview_id", ivIds)
+      ? await supabaseAdmin
+          .from("consents")
+          .select("interview_id, consent_version, accepted_at")
+          .in("interview_id", ivIds)
       : { data: [] as { interview_id: string; consent_version: string; accepted_at: string }[] };
     const consentMap = new Map((consents ?? []).map((c) => [c.interview_id, c]));
 
@@ -69,7 +84,9 @@ export const listStudyRespondents = createServerFn({ method: "GET" })
         const profile = iv.respondent_id ? profileMap.get(iv.respondent_id) : null;
         const agg = ansByIv[iv.id];
         const scores = agg?.scores ?? [];
-        const avg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+        const avg = scores.length
+          ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
+          : null;
         const consent = consentMap.get(iv.id);
         return {
           interview_id: iv.id,
@@ -96,47 +113,95 @@ export const exportInterviewRawData = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ interview_id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { userId } = context;
-    const { data: iv } = await supabaseAdmin
+    const { data: iv } = (await supabaseAdmin
       .from("interviews")
-      .select("id, study_id, respondent_id, status, started_at, finished_at, studies:study_id(id, title, owner_id, business_goal, context, target_audience)")
+      .select(
+        "id, study_id, respondent_id, status, started_at, finished_at, studies:study_id(id, title, owner_id, business_goal, context, target_audience)",
+      )
       .eq("id", data.interview_id)
-      .maybeSingle() as { data: { id: string; study_id: string; respondent_id: string; status: string; started_at: string; finished_at: string | null; studies: { id: string; title: string; owner_id: string; business_goal: string | null; context: string | null; target_audience: string | null } | null } | null };
+      .maybeSingle()) as {
+      data: {
+        id: string;
+        study_id: string;
+        respondent_id: string;
+        status: string;
+        started_at: string;
+        finished_at: string | null;
+        studies: {
+          id: string;
+          title: string;
+          owner_id: string;
+          business_goal: string | null;
+          context: string | null;
+          target_audience: string | null;
+        } | null;
+      } | null;
+    };
     if (!iv) throw new Error("Entrevista não encontrada.");
     const isOwner = iv.studies?.owner_id === userId;
     const isRespondent = iv.respondent_id === userId;
     if (!isOwner && !isRespondent) throw new Error("Acesso negado.");
 
-    const [{ data: questions }, { data: answers }, { data: consent }, { data: profile }] = await Promise.all([
-      supabaseAdmin.from("questions").select("id, position, text, intent").eq("study_id", iv.study_id).order("position"),
-      supabaseAdmin.from("answers").select("*").eq("interview_id", iv.id).order("created_at"),
-      supabaseAdmin.from("consents").select("consent_version, accepted_at, ip_address, user_agent").eq("interview_id", iv.id).maybeSingle(),
-      supabaseAdmin.from("profiles").select("full_name, created_at").eq("id", iv.respondent_id).maybeSingle(),
-    ]);
+    const [{ data: questions }, { data: answers }, { data: consent }, { data: profile }] =
+      await Promise.all([
+        supabaseAdmin
+          .from("questions")
+          .select("id, position, text, intent")
+          .eq("study_id", iv.study_id)
+          .order("position"),
+        supabaseAdmin.from("answers").select("*").eq("interview_id", iv.id).order("created_at"),
+        supabaseAdmin
+          .from("consents")
+          .select("consent_version, accepted_at, ip_address, user_agent")
+          .eq("interview_id", iv.id)
+          .maybeSingle(),
+        supabaseAdmin
+          .from("profiles")
+          .select("full_name, created_at")
+          .eq("id", iv.respondent_id)
+          .maybeSingle(),
+      ]);
 
-    let respondentEmail: string | null = null;
-    try {
-      const { data: u } = await supabaseAdmin.auth.admin.getUserById(iv.respondent_id);
-      respondentEmail = u?.user?.email ?? null;
-    } catch { /* ignore */ }
+    const respondentEmail = await adminGetUserEmail(iv.respondent_id);
 
     const enrichedAnswers = await Promise.all(
       (answers ?? []).map(async (a) => {
         const path = `${iv.id}/${a.id}.webm`;
-        const { data: signed } = await supabaseAdmin.storage.from(BUCKET).createSignedUrl(path, 60 * 60);
-        return { ...a, video_signed_url: signed?.signedUrl ?? null, video_url_expires_in_seconds: 3600 };
+        return {
+          ...a,
+          video_signed_url: await signedVideoUrl(path),
+          video_url_expires_in_seconds: 3600,
+        };
       }),
     );
 
     const studyForCaller = isOwner
-      ? { id: iv.studies?.id, title: iv.studies?.title, business_goal: iv.studies?.business_goal, context: iv.studies?.context, target_audience: iv.studies?.target_audience }
+      ? {
+          id: iv.studies?.id,
+          title: iv.studies?.title,
+          business_goal: iv.studies?.business_goal,
+          context: iv.studies?.context,
+          target_audience: iv.studies?.target_audience,
+        }
       : { id: iv.studies?.id, title: iv.studies?.title };
 
     return {
       exported_at: new Date().toISOString(),
-      lgpd_notice: "Dados pessoais — uso restrito conforme termo de consentimento aceito pelo entrevistado. URLs de vídeo expiram em 1h.",
-      interview: { id: iv.id, status: iv.status, started_at: iv.started_at, finished_at: iv.finished_at },
+      lgpd_notice:
+        "Dados pessoais — uso restrito conforme termo de consentimento aceito pelo entrevistado. URLs de vídeo expiram em 1h.",
+      interview: {
+        id: iv.id,
+        status: iv.status,
+        started_at: iv.started_at,
+        finished_at: iv.finished_at,
+      },
       study: studyForCaller,
-      respondent: { id: iv.respondent_id, full_name: profile?.full_name ?? null, email: respondentEmail, signup_at: profile?.created_at ?? null },
+      respondent: {
+        id: iv.respondent_id,
+        full_name: profile?.full_name ?? null,
+        email: respondentEmail,
+        signup_at: profile?.created_at ?? null,
+      },
       consent: consent ?? null,
       questions,
       answers: enrichedAnswers,
@@ -149,13 +214,21 @@ export const deleteRespondentData = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ interview_id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { userId } = context;
-    const { data: iv } = await supabaseAdmin
+    const { data: iv } = (await supabaseAdmin
       .from("interviews")
       .select("id, respondent_id, study_id, studies:study_id(owner_id)")
       .eq("id", data.interview_id)
-      .maybeSingle() as { data: { id: string; respondent_id: string; study_id: string; studies: { owner_id: string } | null } | null };
+      .maybeSingle()) as {
+      data: {
+        id: string;
+        respondent_id: string;
+        study_id: string;
+        studies: { owner_id: string } | null;
+      } | null;
+    };
     if (!iv) throw new Error("Entrevista não encontrada.");
-    if (iv.respondent_id !== userId && iv.studies?.owner_id !== userId) throw new Error("Acesso negado.");
+    if (iv.respondent_id !== userId && iv.studies?.owner_id !== userId)
+      throw new Error("Acesso negado.");
 
     // Remove storage objects
     const { data: list } = await supabaseAdmin.storage.from(BUCKET).list(iv.id);
@@ -175,14 +248,24 @@ export const rescoreAnswer = createServerFn({ method: "POST" })
   .inputValidator((input) => z.object({ answer_id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { userId } = context;
-    const { data: ans } = await supabaseAdmin
+    const { data: ans } = (await supabaseAdmin
       .from("answers")
       .select("id, interview_id, interviews:interview_id(study_id, studies:study_id(owner_id))")
       .eq("id", data.answer_id)
-      .maybeSingle() as { data: { id: string; interview_id: string; interviews: { study_id: string; studies: { owner_id: string } | null } | null } | null };
+      .maybeSingle()) as {
+      data: {
+        id: string;
+        interview_id: string;
+        interviews: { study_id: string; studies: { owner_id: string } | null } | null;
+      } | null;
+    };
     if (!ans || ans.interviews?.studies?.owner_id !== userId) throw new Error("Acesso negado.");
     await scoreAnswerInternal(data.answer_id);
-    const { data: updated } = await supabaseAdmin.from("answers").select("quality_score, quality_reasoning").eq("id", data.answer_id).single();
+    const { data: updated } = await supabaseAdmin
+      .from("answers")
+      .select("quality_score, quality_reasoning")
+      .eq("id", data.answer_id)
+      .single();
     return updated;
   });
 
@@ -191,11 +274,22 @@ export const listMyInterviews = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { userId } = context;
-    const { data: ivs } = await supabaseAdmin
+    const { data: ivs } = (await supabaseAdmin
       .from("interviews")
       .select("id, study_id, status, started_at, finished_at, studies:study_id(title)")
       .eq("respondent_id", userId)
-      .order("started_at", { ascending: false }) as { data: { id: string; study_id: string; status: string; started_at: string; finished_at: string | null; studies: { title: string } | null }[] | null };
+      .order("started_at", { ascending: false })) as {
+      data:
+        | {
+            id: string;
+            study_id: string;
+            status: string;
+            started_at: string;
+            finished_at: string | null;
+            studies: { title: string } | null;
+          }[]
+        | null;
+    };
     return {
       interviews: (ivs ?? []).map((i) => ({
         id: i.id,

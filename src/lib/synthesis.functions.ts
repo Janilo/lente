@@ -3,9 +3,14 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { aiChatUrl } from "./ai.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { signedVideoUrls } from "./admin-ops.server";
 
 async function assertOwner(study_id: string, userId: string) {
-  const { data: s } = await supabaseAdmin.from("studies").select("id, owner_id, title, business_goal, context, target_audience").eq("id", study_id).maybeSingle();
+  const { data: s } = await supabaseAdmin
+    .from("studies")
+    .select("id, owner_id, title, business_goal, context, target_audience")
+    .eq("id", study_id)
+    .maybeSingle();
   if (!s || s.owner_id !== userId) throw new Error("Acesso negado.");
   return s;
 }
@@ -40,7 +45,13 @@ function normalizeWords(raw: unknown): NormWord[] {
 }
 
 function normalizeForMatch(s: string): string {
-  return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9\s]/g, " ").replace(/\s+/g, " ").trim();
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 /** Locate quote span inside words_json. Returns [start, end] seconds or null. */
@@ -93,9 +104,20 @@ export const listSynthesis = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     const study = await assertOwner(data.study_id, context.userId);
     const [{ data: insights }, { data: recs }, { count: interviewCount }] = await Promise.all([
-      supabaseAdmin.from("insights").select("id, theme, summary, evidence, created_at").eq("study_id", data.study_id).order("created_at", { ascending: false }),
-      supabaseAdmin.from("recommendations").select("id, title, rationale, priority, supporting_insight_ids, created_at").eq("study_id", data.study_id).order("priority", { ascending: true, nullsFirst: false }),
-      supabaseAdmin.from("interviews").select("id", { count: "exact", head: true }).eq("study_id", data.study_id),
+      supabaseAdmin
+        .from("insights")
+        .select("id, theme, summary, evidence, created_at")
+        .eq("study_id", data.study_id)
+        .order("created_at", { ascending: false }),
+      supabaseAdmin
+        .from("recommendations")
+        .select("id, title, rationale, priority, supporting_insight_ids, created_at")
+        .eq("study_id", data.study_id)
+        .order("priority", { ascending: true, nullsFirst: false }),
+      supabaseAdmin
+        .from("interviews")
+        .select("id", { count: "exact", head: true })
+        .eq("study_id", data.study_id),
     ]);
 
     // Collect unique video paths from evidence and sign them.
@@ -104,15 +126,7 @@ export const listSynthesis = createServerFn({ method: "GET" })
       const ev = (ins.evidence as Array<{ video_path?: string | null }> | null) ?? [];
       for (const e of ev) if (e.video_path) paths.add(e.video_path);
     }
-    const signed = new Map<string, string>();
-    if (paths.size > 0) {
-      const { data: signedList } = await supabaseAdmin.storage
-        .from("interview-videos")
-        .createSignedUrls([...paths], 60 * 60);
-      for (const s of signedList ?? []) {
-        if (s.path && s.signedUrl) signed.set(s.path, s.signedUrl);
-      }
-    }
+    const signed = await signedVideoUrls([...paths]);
 
     // Inject signed URL onto each evidence item.
     const enriched = (insights ?? []).map((ins) => {
@@ -121,7 +135,7 @@ export const listSynthesis = createServerFn({ method: "GET" })
         ...ins,
         evidence: ev.map((e) => ({
           ...e,
-          video_url: typeof e.video_path === "string" ? signed.get(e.video_path) ?? null : null,
+          video_url: typeof e.video_path === "string" ? (signed.get(e.video_path) ?? null) : null,
         })),
       };
     });
@@ -149,13 +163,17 @@ export const generateSynthesis = createServerFn({ method: "POST" })
     const study = await assertOwner(data.study_id, context.userId);
 
     const { data: interviews } = await supabaseAdmin
-      .from("interviews").select("id, status").eq("study_id", data.study_id);
+      .from("interviews")
+      .select("id, status")
+      .eq("study_id", data.study_id);
     const ids = (interviews ?? []).map((i) => i.id);
     if (ids.length === 0) throw new Error("Nenhuma entrevista para sintetizar ainda.");
 
     const { data: answers } = await supabaseAdmin
       .from("answers")
-      .select("id, interview_id, question_text, transcript, is_followup, status, video_path, start_seconds, end_seconds, words_json")
+      .select(
+        "id, interview_id, question_text, transcript, is_followup, status, video_path, start_seconds, end_seconds, words_json",
+      )
       .in("interview_id", ids)
       .eq("status", "ready");
 
@@ -224,8 +242,15 @@ Tarefa: extraia 4-8 INSIGHTS e 3-6 RECOMENDAÇÕES acionáveis. Para cada evidê
                     items: {
                       type: "object",
                       properties: {
-                        quote: { type: "string", description: "Trecho LITERAL da fala (até 280 chars) — copiado da resposta referenciada." },
-                        answer_ref: { type: "string", description: "Código da resposta no formato 'Ax' (ex: A12)." },
+                        quote: {
+                          type: "string",
+                          description:
+                            "Trecho LITERAL da fala (até 280 chars) — copiado da resposta referenciada.",
+                        },
+                        answer_ref: {
+                          type: "string",
+                          description: "Código da resposta no formato 'Ax' (ex: A12).",
+                        },
                       },
                       required: ["quote", "answer_ref"],
                     },
@@ -240,12 +265,21 @@ Tarefa: extraia 4-8 INSIGHTS e 3-6 RECOMENDAÇÕES acionáveis. Para cada evidê
                 type: "object",
                 properties: {
                   title: { type: "string", description: "Recomendação acionável (até 120 chars)." },
-                  rationale: { type: "string", description: "2-4 frases justificando com base nos insights." },
-                  priority: { type: "integer", description: "1=alta, 2=média, 3=baixa.", minimum: 1, maximum: 3 },
+                  rationale: {
+                    type: "string",
+                    description: "2-4 frases justificando com base nos insights.",
+                  },
+                  priority: {
+                    type: "integer",
+                    description: "1=alta, 2=média, 3=baixa.",
+                    minimum: 1,
+                    maximum: 3,
+                  },
                   supporting_insight_indices: {
                     type: "array",
                     items: { type: "integer" },
-                    description: "Índices (1-based) dos insights desta resposta que suportam a recomendação.",
+                    description:
+                      "Índices (1-based) dos insights desta resposta que suportam a recomendação.",
                   },
                 },
                 required: ["title", "rationale", "priority", "supporting_insight_indices"],
@@ -262,20 +296,34 @@ Tarefa: extraia 4-8 INSIGHTS e 3-6 RECOMENDAÇÕES acionáveis. Para cada evidê
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "gemini-2.5-pro",
-        messages: [{ role: "system", content: system }, { role: "user", content: user }],
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: user },
+        ],
         tools: [tool],
         tool_choice: { type: "function", function: { name: "submit_synthesis" } },
       }),
     });
-    if (res.status === 429) throw new Error("Limite de requisições da IA atingido. Tente novamente em instantes.");
-    if (res.status === 402) throw new Error("Créditos de IA esgotados. Adicione créditos no workspace.");
+    if (res.status === 429)
+      throw new Error("Limite de requisições da IA atingido. Tente novamente em instantes.");
+    if (res.status === 402)
+      throw new Error("Créditos de IA esgotados. Adicione créditos no workspace.");
     if (!res.ok) throw new Error(`IA: ${res.status}`);
     const json = await res.json();
     const call = json.choices?.[0]?.message?.tool_calls?.[0];
     if (!call) throw new Error("IA não retornou síntese estruturada.");
     let parsed: {
-      insights: Array<{ theme: string; summary: string; evidence: Array<{ quote: string; answer_ref: string }> }>;
-      recommendations: Array<{ title: string; rationale: string; priority: number; supporting_insight_indices: number[] }>;
+      insights: Array<{
+        theme: string;
+        summary: string;
+        evidence: Array<{ quote: string; answer_ref: string }>;
+      }>;
+      recommendations: Array<{
+        title: string;
+        rationale: string;
+        priority: number;
+        supporting_insight_indices: number[];
+      }>;
     };
     try {
       parsed = JSON.parse(call.function.arguments);
@@ -301,7 +349,14 @@ Tarefa: extraia 4-8 INSIGHTS e 3-6 RECOMENDAÇÕES acionáveis. Para cada evidê
       const enrichedEvidence = (ins.evidence ?? []).map((ev) => {
         const a = answersByRef.get(ev.answer_ref);
         if (!a) {
-          return { quote: ev.quote, answer_ref: ev.answer_ref, interview_index: null, video_path: null, clip_start: null, clip_end: null };
+          return {
+            quote: ev.quote,
+            answer_ref: ev.answer_ref,
+            interview_index: null,
+            video_path: null,
+            clip_start: null,
+            clip_end: null,
+          };
         }
         const words = normalizeWords(a.words_json);
         const located = locateQuoteClip(ev.quote, words);
@@ -327,7 +382,9 @@ Tarefa: extraia 4-8 INSIGHTS e 3-6 RECOMENDAÇÕES acionáveis. Para cada evidê
     });
 
     const { data: insertedInsights, error: iErr } = await supabaseAdmin
-      .from("insights").insert(insightsToInsert).select("id");
+      .from("insights")
+      .insert(insightsToInsert)
+      .select("id");
     if (iErr) throw new Error(iErr.message);
     const insightIds = (insertedInsights ?? []).map((r) => r.id);
 
@@ -345,5 +402,9 @@ Tarefa: extraia 4-8 INSIGHTS e 3-6 RECOMENDAÇÕES acionáveis. Para cada evidê
       if (rErr) throw new Error(rErr.message);
     }
 
-    return { ok: true, insight_count: insightsToInsert.length, recommendation_count: recsToInsert.length };
+    return {
+      ok: true,
+      insight_count: insightsToInsert.length,
+      recommendation_count: recsToInsert.length,
+    };
   });

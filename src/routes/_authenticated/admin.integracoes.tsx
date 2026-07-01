@@ -19,13 +19,18 @@ function AdminIntegracoesPage() {
     if (!loading && !isAdmin) navigate({ to: "/dashboard" });
   }, [loading, isAdmin, navigate]);
 
-  if (loading) return <div className="mx-auto max-w-3xl px-6 py-12 text-sm text-muted-foreground">Carregando…</div>;
+  if (loading)
+    return (
+      <div className="mx-auto max-w-3xl px-6 py-12 text-sm text-muted-foreground">Carregando…</div>
+    );
   if (!isAdmin) return null;
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-10 space-y-8">
       <div>
-        <Link to="/admin/analytics" className="text-sm text-muted-foreground hover:text-foreground">← Admin</Link>
+        <Link to="/admin/analytics" className="text-sm text-muted-foreground hover:text-foreground">
+          ← Admin
+        </Link>
         <h1 className="mt-2 text-4xl">Integrações</h1>
         <p className="mt-1 text-sm text-muted-foreground">Conexões externas do lente.</p>
       </div>
@@ -61,7 +66,8 @@ function TelegramWebhookCard() {
         <h2 className="text-lg">Bot do Telegram</h2>
         <p className="mt-1 text-xs text-muted-foreground">
           Registra o webhook do bot para apontar pro domínio de produção. Rode uma vez depois de
-          configurar o secret <code>TELEGRAM_API_KEY</code> no Worker — ou se trocar o token/domínio.
+          configurar o secret <code>TELEGRAM_API_KEY</code> no Worker — ou se trocar o
+          token/domínio.
         </p>
       </div>
 
@@ -81,16 +87,30 @@ function TelegramWebhookCard() {
               className={`inline-block h-2.5 w-2.5 rounded-full ${data.matches ? "bg-emerald-500" : "bg-amber-500"}`}
             />
             <span className="font-medium">
-              {data.matches ? "Ativo e correto" : data.currentUrl ? "Aponta pra outro endereço" : "Não registrado"}
+              {data.matches
+                ? "Ativo e correto"
+                : data.currentUrl
+                  ? "Aponta pra outro endereço"
+                  : "Não registrado"}
             </span>
           </div>
-          {data.currentUrl && <div className="text-xs text-muted-foreground break-all">Atual: {data.currentUrl}</div>}
-          {!data.matches && <div className="text-xs text-muted-foreground break-all">Esperado: {data.expectedUrl}</div>}
+          {data.currentUrl && (
+            <div className="text-xs text-muted-foreground break-all">Atual: {data.currentUrl}</div>
+          )}
+          {!data.matches && (
+            <div className="text-xs text-muted-foreground break-all">
+              Esperado: {data.expectedUrl}
+            </div>
+          )}
           {data.pendingUpdates > 0 && (
-            <div className="text-xs text-amber-600">{data.pendingUpdates} atualização(ões) pendente(s) na fila</div>
+            <div className="text-xs text-amber-600">
+              {data.pendingUpdates} atualização(ões) pendente(s) na fila
+            </div>
           )}
           {data.lastErrorMessage && (
-            <div className="text-xs text-destructive">Último erro reportado pelo Telegram: {data.lastErrorMessage}</div>
+            <div className="text-xs text-destructive">
+              Último erro reportado pelo Telegram: {data.lastErrorMessage}
+            </div>
           )}
         </div>
       ) : null}
@@ -100,7 +120,11 @@ function TelegramWebhookCard() {
         disabled={reg.isPending}
         className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
       >
-        {reg.isPending ? "Registrando…" : data?.matches ? "Re-registrar webhook" : "Registrar webhook"}
+        {reg.isPending
+          ? "Registrando…"
+          : data?.matches
+            ? "Re-registrar webhook"
+            : "Registrar webhook"}
       </button>
     </div>
   );

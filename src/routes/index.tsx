@@ -27,8 +27,9 @@ function Landing() {
             <em className="lede-em">{"\u00A0"}se aprofundam</em> sozinhas.
           </h1>
           <p className="mt-6 max-w-2xl text-lg text-muted-foreground leading-relaxed">
-            Você define o roteiro e o contexto. A Lente conduz cada entrevista com perguntas de follow-up adaptativas,
-            transcreve as respostas e devolve uma síntese com recortes em vídeo das citações que sustentam cada insight.
+            Você define o roteiro e o contexto. A Lente conduz cada entrevista com perguntas de
+            follow-up adaptativas, transcreve as respostas e devolve uma síntese com recortes em
+            vídeo das citações que sustentam cada insight.
           </p>
           <div className="mt-10 flex flex-wrap items-start gap-3">
             <Link
@@ -45,9 +46,7 @@ function Landing() {
                 <Eye className="w-4 h-4" />
                 Ver demo
               </Link>
-              <p className="text-[11px] text-[#5F5B55] leading-[1.7]">
-                Não precisa de cadastro
-              </p>
+              <p className="text-[11px] text-[#5F5B55] leading-[1.7]">Não precisa de cadastro</p>
             </div>
             <Link
               to="/login"
@@ -66,12 +65,13 @@ function Landing() {
             <div>
               <p className="jps-eyebrow">O que você recebe</p>
               <h2 className="mt-4 text-4xl md:text-5xl leading-[1.05] max-w-2xl">
-                Uma síntese <em className="lede-em">com evidência em vídeo</em>: cada insight abre o clipe original.
+                Uma síntese <em className="lede-em">com evidência em vídeo</em>: cada insight abre o
+                clipe original.
               </h2>
             </div>
             <p className="hidden md:block text-sm text-muted-foreground max-w-xs">
-              Cada insight vem ancorado em clipes citáveis dos próprios entrevistados — você clica e ouve a fala
-              original.
+              Cada insight vem ancorado em clipes citáveis dos próprios entrevistados — você clica e
+              ouve a fala original.
             </p>
           </div>
 
@@ -85,7 +85,9 @@ function Landing() {
                   <span className="h-2.5 w-2.5 rounded-full bg-accent/70" />
                   <span className="h-2.5 w-2.5 rounded-full bg-primary/60" />
                 </div>
-                <span className="text-xs text-muted-foreground font-mono">síntese / tema 03 de 07</span>
+                <span className="text-xs text-muted-foreground font-mono">
+                  síntese / tema 03 de 07
+                </span>
               </div>
 
               <div className="p-6">
@@ -95,8 +97,8 @@ function Landing() {
                   <em className="lede-em">passo de verificação bancária</em>.
                 </h3>
                 <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-                  Apareceu em 9 das 12 entrevistas. A objeção é de contexto: falta explicar por que o dado
-                  é pedido naquele momento do fluxo.
+                  Apareceu em 9 das 12 entrevistas. A objeção é de contexto: falta explicar por que
+                  o dado é pedido naquele momento do fluxo.
                 </p>
 
                 {/* Clipes de vídeo citáveis */}
@@ -123,7 +125,11 @@ function Landing() {
                       className="flex gap-4 p-3 rounded-sm border border-border bg-card hover:border-primary/40 transition-colors"
                     >
                       <div className="relative shrink-0 w-24 h-16 rounded-sm bg-muted flex items-center justify-center">
-                        <svg className="w-6 h-6 text-background" viewBox="0 0 24 24" fill="currentColor">
+                        <svg
+                          className="w-6 h-6 text-background"
+                          viewBox="0 0 24 24"
+                          fill="currentColor"
+                        >
                           <path d="M8 5v14l11-7z" />
                         </svg>
                         <span className="absolute bottom-1 right-1 text-[10px] font-mono text-background bg-foreground/70 px-1 rounded-sm">
@@ -145,8 +151,8 @@ function Landing() {
               <div className="rounded-md border border-border bg-background p-6">
                 <p className="jps-eyebrow text-primary">Recomendação</p>
                 <p className="mt-3 text-lg leading-snug">
-                  Mover a verificação bancária para depois do primeiro uso, ou adicionar contexto inline antes do
-                  pedido.
+                  Mover a verificação bancária para depois do primeiro uso, ou adicionar contexto
+                  inline antes do pedido.
                 </p>
                 <div className="mt-5 pt-5 border-t border-border flex items-center gap-3">
                   <span className="text-xs px-2 py-1 rounded-sm bg-primary/10 text-primary font-mono">
@@ -195,8 +201,8 @@ function Landing() {
               <div className="mt-4 space-y-2 text-sm text-muted-foreground font-mono leading-relaxed">
                 <p>[00:03:12] entrevistador: e como foi sua experiência abrindo a conta?</p>
                 <p>
-                  [00:03:18] entrevistado: ah, foi… começou bem, sabe, gostei do design, mas aí num certo ponto pediram
-                  meu banco e eu não entendi…
+                  [00:03:18] entrevistado: ah, foi… começou bem, sabe, gostei do design, mas aí num
+                  certo ponto pediram meu banco e eu não entendi…
                 </p>
                 <p>[00:03:34] entrevistador: pode falar mais sobre esse momento?</p>
                 <p>[00:03:38] entrevistado: então, eu acho que… não sei, travei. fechei o app.</p>
@@ -217,7 +223,8 @@ function Landing() {
                 <div>
                   <p className="text-xs font-mono text-muted-foreground">EVIDÊNCIA</p>
                   <p className="mt-1 text-base leading-snug italic">
-                    "travei. fechei o app."— Marina, 00:03:38 <span className="text-primary">▶</span>
+                    "travei. fechei o app."— Marina, 00:03:38{" "}
+                    <span className="text-primary">▶</span>
                   </p>
                 </div>
                 <div>
@@ -233,7 +240,10 @@ function Landing() {
       </section>
 
       {/* MÉTODO — 3 passos */}
-      <section id="metodo" className="border-t border-border bg-card scroll-mt-[var(--header-height)]">
+      <section
+        id="metodo"
+        className="border-t border-border bg-card scroll-mt-[var(--header-height)]"
+      >
         <div className="mx-auto max-w-5xl px-6 py-20">
           <p className="jps-eyebrow">Método</p>
           <div className="mt-10 grid gap-12 md:grid-cols-3">
@@ -261,7 +271,6 @@ function Landing() {
               </div>
             ))}
           </div>
-
         </div>
       </section>
     </div>

@@ -21,11 +21,15 @@ export const getTelegramShareLink = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     const { userId } = context;
     const { data: study } = await supabaseAdmin
-      .from("studies").select("id, owner_id, public_slug, status").eq("id", data.study_id).maybeSingle();
+      .from("studies")
+      .select("id, owner_id, public_slug, status")
+      .eq("id", data.study_id)
+      .maybeSingle();
     if (!study || study.owner_id !== userId) throw new Error("Acesso negado.");
 
     const now = Date.now();
-    let username = cachedBotUsername && cachedBotUsername.expiresAt > now ? cachedBotUsername.value : null;
+    let username =
+      cachedBotUsername && cachedBotUsername.expiresAt > now ? cachedBotUsername.value : null;
     if (!username) {
       try {
         username = await getBotUsername();

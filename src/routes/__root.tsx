@@ -1,12 +1,12 @@
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import {
- Outlet,
- Link,
- createRootRouteWithContext,
- useRouter,
- HeadContent,
- Scripts,
- useRouterState,
+  Outlet,
+  Link,
+  createRootRouteWithContext,
+  useRouter,
+  HeadContent,
+  Scripts,
+  useRouterState,
 } from "@tanstack/react-router";
 import { useEffect } from "react";
 
@@ -18,7 +18,6 @@ import { Toaster } from "@/components/ui/sonner";
 import { BrandFooter } from "@/components/brand/BrandFooter";
 import { LenteWordmark } from "@/components/brand/LenteWordmark";
 import { syncHubspotSelf } from "@/lib/hubspot.functions";
-
 
 function NotFoundComponent() {
   const pathname = typeof window !== "undefined" ? window.location.pathname : "";
@@ -72,198 +71,265 @@ function NotFoundComponent() {
 }
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
- console.error(error);
- const router = useRouter();
- return (
- <div className="flex min-h-dvh items-center justify-center bg-background px-4">
- <div className="max-w-md text-center">
- <h1 className="text-xl font-semibold">Algo deu errado</h1>
- <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
- <button
- onClick={() => { router.invalidate(); reset(); }}
- className="mt-6 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
- >
- Tentar novamente
- </button>
- </div>
- </div>
- );
+  console.error(error);
+  const router = useRouter();
+  return (
+    <div className="flex min-h-dvh items-center justify-center bg-background px-4">
+      <div className="max-w-md text-center">
+        <h1 className="text-xl font-semibold">Algo deu errado</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
+        <button
+          onClick={() => {
+            router.invalidate();
+            reset();
+          }}
+          className="mt-6 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    </div>
+  );
 }
 
-export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
-{
- head: () => ({
- meta: [
- { charSet: "utf-8"},
- { name: "viewport", content: "width=device-width, initial-scale=1"},
- { title: "Lente · Pesquisa qualitativa em vídeo com IA"},
- { name: "description", content: "Pesquisa qualitativa em vídeo com IA. Entrevistas com follow-ups adaptativos, transcrição automática e síntese de insights com recortes."},
- { property: "og:title", content: "Lente · Pesquisa qualitativa em vídeo com IA"},
- { name: "twitter:title", content: "Lente · Pesquisa qualitativa em vídeo com IA"},
- { property: "og:description", content: "Pesquisa qualitativa em vídeo com IA. Entrevistas com follow-ups adaptativos, transcrição automática e síntese de insights com recortes."},
- { name: "twitter:description", content: "Pesquisa qualitativa em vídeo com IA. Entrevistas com follow-ups adaptativos, transcrição automática e síntese de insights com recortes."},
- { property: "og:image", content: "https://lente.pereirasaraiva.com/og-social.png"},
- { name: "twitter:image", content: "https://lente.pereirasaraiva.com/og-social.png"},
- { name: "twitter:card", content: "summary_large_image"},
- { property: "og:type", content: "website"},
- { property: "og:url", content: "https://lente.pereirasaraiva.com/" },
- { property: "og:locale", content: "pt_BR" },
- { name: "google-site-verification", content: "kbiLQWHuF0-ziT6y9mGuE2Cj7PqUFiphcc9AbbG12bE"},
- ],
- links: [
- { rel: "icon", type: "image/svg+xml", href: "/favicon.svg"},
- { rel: "stylesheet", href: appCss },
- { rel: "canonical", href: "https://lente.pereirasaraiva.com/" },
- { rel: "preload", href: "/fonts/Fraunces-VariableFont_SOFT_WONK_opsz_wght.ttf", as: "font", type: "font/ttf", crossOrigin: "anonymous" },
- { rel: "preload", href: "/fonts/InterTight-VariableFont_wght.ttf", as: "font", type: "font/ttf", crossOrigin: "anonymous" },
- ],
- scripts: [
- { src: "https://www.googletagmanager.com/gtag/js?id=G-QDHKZ82GE0", async: true },
- {
- children: `window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', 'G-QDHKZ82GE0');`,
- },
- {
- type: "application/ld+json",
- children: JSON.stringify({
- "@context": "https://schema.org",
- "@graph": [
- {
- "@type": "Organization",
- name: "Lente",
- url: "https://lente.pereirasaraiva.com",
- logo: "https://lente.pereirasaraiva.com/favicon.svg",
- },
- {
- "@type": "WebSite",
- name: "Lente",
- url: "https://lente.pereirasaraiva.com",
- },
- {
- "@type": "SoftwareApplication",
- name: "Lente",
- applicationCategory: "BusinessApplication",
- operatingSystem: "Web",
- description: "Pesquisa qualitativa em vídeo com IA: entrevistas com follow-ups adaptativos, transcrição automática e síntese de insights.",
- offers: { "@type": "Offer", price: "0", priceCurrency: "BRL"},
- },
- ],
- }),
- },
- ],
- }),
- shellComponent: RootShell,
- component: RootComponent,
- notFoundComponent: NotFoundComponent,
- errorComponent: ErrorComponent,
+export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  head: () => ({
+    meta: [
+      { charSet: "utf-8" },
+      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { title: "Lente · Pesquisa qualitativa em vídeo com IA" },
+      {
+        name: "description",
+        content:
+          "Pesquisa qualitativa em vídeo com IA. Entrevistas com follow-ups adaptativos, transcrição automática e síntese de insights com recortes.",
+      },
+      { property: "og:title", content: "Lente · Pesquisa qualitativa em vídeo com IA" },
+      { name: "twitter:title", content: "Lente · Pesquisa qualitativa em vídeo com IA" },
+      {
+        property: "og:description",
+        content:
+          "Pesquisa qualitativa em vídeo com IA. Entrevistas com follow-ups adaptativos, transcrição automática e síntese de insights com recortes.",
+      },
+      {
+        name: "twitter:description",
+        content:
+          "Pesquisa qualitativa em vídeo com IA. Entrevistas com follow-ups adaptativos, transcrição automática e síntese de insights com recortes.",
+      },
+      { property: "og:image", content: "https://lente.pereirasaraiva.com/og-social.png" },
+      { name: "twitter:image", content: "https://lente.pereirasaraiva.com/og-social.png" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://lente.pereirasaraiva.com/" },
+      { property: "og:locale", content: "pt_BR" },
+      { name: "google-site-verification", content: "kbiLQWHuF0-ziT6y9mGuE2Cj7PqUFiphcc9AbbG12bE" },
+    ],
+    links: [
+      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+      { rel: "stylesheet", href: appCss },
+      { rel: "canonical", href: "https://lente.pereirasaraiva.com/" },
+      {
+        rel: "preload",
+        href: "/fonts/Fraunces-VariableFont_SOFT_WONK_opsz_wght.ttf",
+        as: "font",
+        type: "font/ttf",
+        crossOrigin: "anonymous",
+      },
+      {
+        rel: "preload",
+        href: "/fonts/InterTight-VariableFont_wght.ttf",
+        as: "font",
+        type: "font/ttf",
+        crossOrigin: "anonymous",
+      },
+    ],
+    scripts: [
+      { src: "https://www.googletagmanager.com/gtag/js?id=G-QDHKZ82GE0", async: true },
+      {
+        children: `window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', 'G-QDHKZ82GE0');`,
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              name: "Lente",
+              url: "https://lente.pereirasaraiva.com",
+              logo: "https://lente.pereirasaraiva.com/favicon.svg",
+            },
+            {
+              "@type": "WebSite",
+              name: "Lente",
+              url: "https://lente.pereirasaraiva.com",
+            },
+            {
+              "@type": "SoftwareApplication",
+              name: "Lente",
+              applicationCategory: "BusinessApplication",
+              operatingSystem: "Web",
+              description:
+                "Pesquisa qualitativa em vídeo com IA: entrevistas com follow-ups adaptativos, transcrição automática e síntese de insights.",
+              offers: { "@type": "Offer", price: "0", priceCurrency: "BRL" },
+            },
+          ],
+        }),
+      },
+    ],
+  }),
+  shellComponent: RootShell,
+  component: RootComponent,
+  notFoundComponent: NotFoundComponent,
+  errorComponent: ErrorComponent,
 });
 
 function RootShell({ children }: { children: React.ReactNode }) {
- return (
- <html lang="pt-BR">
- <head><HeadContent /></head>
- <body>{children}<Scripts /></body>
- </html>
- );
+  return (
+    <html lang="pt-BR">
+      <head>
+        <HeadContent />
+      </head>
+      <body>
+        {children}
+        <Scripts />
+      </body>
+    </html>
+  );
 }
 
 function AuthInvalidator() {
- const router = useRouter();
- const queryClient = useQueryClient();
- useEffect(() => {
- const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
- router.invalidate();
- queryClient.invalidateQueries();
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      router.invalidate();
+      queryClient.invalidateQueries();
 
- if (event === "SIGNED_IN" && session?.user) {
- const userId = session.user.id;
- const key = `lente:hubspot-synced:${userId}`;
- if (typeof window !== "undefined" && !window.localStorage.getItem(key)) {
- window.localStorage.setItem(key, "1");
- const path = window.location.pathname;
- const m = path.match(/^\/r_?\/([^/]+)/);
- const role: "researcher" | "respondent" = m ? "respondent" : "researcher";
- const study_slug = m?.[1];
- syncHubspotSelf({ data: { role, ...(study_slug ? { study_slug } : {}) } })
- .catch((e) => {
- console.warn("hubspot sync failed", e);
- window.localStorage.removeItem(key);
- });
- }
- }
- });
- return () => subscription.unsubscribe();
- }, [router, queryClient]);
- return null;
+      if (event === "SIGNED_IN" && session?.user) {
+        const userId = session.user.id;
+        const key = `lente:hubspot-synced:${userId}`;
+        if (typeof window !== "undefined" && !window.localStorage.getItem(key)) {
+          window.localStorage.setItem(key, "1");
+          const path = window.location.pathname;
+          const m = path.match(/^\/r_?\/([^/]+)/);
+          const role: "researcher" | "respondent" = m ? "respondent" : "researcher";
+          const study_slug = m?.[1];
+          syncHubspotSelf({ data: { role, ...(study_slug ? { study_slug } : {}) } }).catch((e) => {
+            console.warn("hubspot sync failed", e);
+            window.localStorage.removeItem(key);
+          });
+        }
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [router, queryClient]);
+  return null;
 }
 
 function Header() {
- const { isAuthenticated, loading } = useAuth();
- const { isAdmin } = useIsAdmin();
- return (
- <header className="sticky top-0 z-40 border-b border-border h-[var(--header-height)] bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/70">
- <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-8">
- <div className="inline-flex items-center gap-3 h-8">
- <Link
- to="/"
- aria-label="Lente — início"
- className="inline-flex items-center text-[color:var(--lente-teal-deep)] hover:opacity-80 transition-opacity"
- >
- <LenteWordmark className="h-[22px] w-auto" />
- </Link>
- <a
- href="https://pereirasaraiva.com"
- target="_blank"
- rel="noopener noreferrer"
- className="hidden sm:inline text-[13px] font-normal text-[#5F5B55] tracking-normal normal-case hover:opacity-70 transition-opacity"
- >
- por J P Saraiva
- </a>
- </div>
- <nav className="flex items-center gap-6 sm:gap-8">
- {loading ? null : isAuthenticated ? (
- <>
- <Link to="/dashboard" className="text-xs font-semibold uppercase tracking-[0.18em] text-foreground/70 hover:text-foreground transition-colors">Dashboard</Link>
- <Link to="/my-privacy" className="text-xs font-semibold uppercase tracking-[0.18em] text-foreground/70 hover:text-foreground transition-colors">Minha privacidade</Link>
- {isAdmin && <Link to="/admin/analytics" className="text-xs font-semibold uppercase tracking-[0.18em] text-foreground/70 hover:text-foreground transition-colors">Admin</Link>}
- <button
- onClick={async () => { await supabase.auth.signOut(); }}
- className="text-xs font-semibold uppercase tracking-[0.18em] text-foreground/70 hover:text-foreground transition-colors"
- >
- Sair
- </button>
- </>
- ) : (
- <>
- <a href="/#metodo" className="hidden sm:inline text-xs font-semibold uppercase tracking-[0.18em] text-foreground/70 hover:text-foreground transition-colors">Metodologia</a>
- <Link to="/login" className="text-xs font-semibold uppercase tracking-[0.18em] text-foreground/70 hover:text-foreground transition-colors">Entrar</Link>
- <Link to="/signup" className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.18em] hover:opacity-90 transition-opacity">
- Criar conta <span aria-hidden>→</span>
- </Link>
- </>
- )}
- </nav>
- </div>
- </header>
- );
+  const { isAuthenticated, loading } = useAuth();
+  const { isAdmin } = useIsAdmin();
+  return (
+    <header className="sticky top-0 z-40 border-b border-border h-[var(--header-height)] bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+      <div className="mx-auto flex h-full max-w-6xl items-center justify-between px-8">
+        <div className="inline-flex items-center gap-3 h-8">
+          <Link
+            to="/"
+            aria-label="Lente — início"
+            className="inline-flex items-center text-[color:var(--lente-teal-deep)] hover:opacity-80 transition-opacity"
+          >
+            <LenteWordmark className="h-[22px] w-auto" />
+          </Link>
+          <a
+            href="https://pereirasaraiva.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden sm:inline text-[13px] font-normal text-[#5F5B55] tracking-normal normal-case hover:opacity-70 transition-opacity"
+          >
+            por J P Saraiva
+          </a>
+        </div>
+        <nav className="flex items-center gap-6 sm:gap-8">
+          {loading ? null : isAuthenticated ? (
+            <>
+              <Link
+                to="/dashboard"
+                className="text-xs font-semibold uppercase tracking-[0.18em] text-foreground/70 hover:text-foreground transition-colors"
+              >
+                Dashboard
+              </Link>
+              <Link
+                to="/my-privacy"
+                className="text-xs font-semibold uppercase tracking-[0.18em] text-foreground/70 hover:text-foreground transition-colors"
+              >
+                Minha privacidade
+              </Link>
+              {isAdmin && (
+                <Link
+                  to="/admin/analytics"
+                  className="text-xs font-semibold uppercase tracking-[0.18em] text-foreground/70 hover:text-foreground transition-colors"
+                >
+                  Admin
+                </Link>
+              )}
+              <button
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                }}
+                className="text-xs font-semibold uppercase tracking-[0.18em] text-foreground/70 hover:text-foreground transition-colors"
+              >
+                Sair
+              </button>
+            </>
+          ) : (
+            <>
+              <a
+                href="/#metodo"
+                className="hidden sm:inline text-xs font-semibold uppercase tracking-[0.18em] text-foreground/70 hover:text-foreground transition-colors"
+              >
+                Metodologia
+              </a>
+              <Link
+                to="/login"
+                className="text-xs font-semibold uppercase tracking-[0.18em] text-foreground/70 hover:text-foreground transition-colors"
+              >
+                Entrar
+              </Link>
+              <Link
+                to="/signup"
+                className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.18em] hover:opacity-90 transition-opacity"
+              >
+                Criar conta <span aria-hidden>→</span>
+              </Link>
+            </>
+          )}
+        </nav>
+      </div>
+    </header>
+  );
 }
 
 function RootComponent() {
- const { queryClient } = Route.useRouteContext();
- const { location } = useRouterState();
- const isDemo = location.pathname === "/demo";
- return (
- <QueryClientProvider client={queryClient}>
- <AuthInvalidator />
- {isDemo ? (
- <Outlet />
- ) : (
- <div className="min-h-dvh flex flex-col">
- <Header />
- <main className="flex-1"><Outlet /></main>
- <BrandFooter />
- </div>
- )}
- <Toaster />
- </QueryClientProvider>
- );
+  const { queryClient } = Route.useRouteContext();
+  const { location } = useRouterState();
+  const isDemo = location.pathname === "/demo";
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AuthInvalidator />
+      {isDemo ? (
+        <Outlet />
+      ) : (
+        <div className="min-h-dvh flex flex-col">
+          <Header />
+          <main className="flex-1">
+            <Outlet />
+          </main>
+          <BrandFooter />
+        </div>
+      )}
+      <Toaster />
+    </QueryClientProvider>
+  );
 }

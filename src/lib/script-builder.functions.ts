@@ -19,7 +19,7 @@ function splitLinesToQuestions(text: string): string[] {
     .split(/\r?\n/)
     .map((l) =>
       l
-        .replace(/^\s*(?:\d+[\.\)]|[-•*–])\s+/, "")
+        .replace(/^\s*(?:\d+[.)]|[-•*–])\s+/, "")
         .replace(/^\s*"|"\s*$/g, "")
         .trim(),
     )
@@ -112,8 +112,10 @@ Regras:
         tool_choice: { type: "function", function: { name: "return_structure" } },
       }),
     });
-    if (res.status === 429) throw new Error("Limite de requisições atingido. Tente novamente em alguns instantes.");
-    if (res.status === 402) throw new Error("Créditos da IA esgotados. Adicione créditos em Configurações > Workspace.");
+    if (res.status === 429)
+      throw new Error("Limite de requisições atingido. Tente novamente em alguns instantes.");
+    if (res.status === 402)
+      throw new Error("Créditos da IA esgotados. Adicione créditos em Configurações > Workspace.");
     if (!res.ok) {
       console.error("AI structure error", res.status, await res.text());
       return null;
@@ -311,8 +313,10 @@ Se o contexto do estudo for insuficiente para gerar um roteiro útil, devolva ap
       }),
     });
 
-    if (res.status === 429) throw new Error("Limite de requisições atingido. Tente novamente em alguns instantes.");
-    if (res.status === 402) throw new Error("Créditos da IA esgotados. Adicione créditos em Configurações > Workspace.");
+    if (res.status === 429)
+      throw new Error("Limite de requisições atingido. Tente novamente em alguns instantes.");
+    if (res.status === 402)
+      throw new Error("Créditos da IA esgotados. Adicione créditos em Configurações > Workspace.");
     if (!res.ok) {
       const t = await res.text();
       console.error("AI gateway error", res.status, t);

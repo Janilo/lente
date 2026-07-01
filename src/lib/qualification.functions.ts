@@ -11,11 +11,7 @@ export const getQualificationData = createServerFn({ method: "GET" })
     const [dims, vals, profileRes] = await Promise.all([
       supabaseAdmin.from("tag_dimensions").select("*").order("position"),
       supabaseAdmin.from("tag_values").select("*").order("position"),
-      supabaseAdmin
-        .from("respondent_profile")
-        .select("*")
-        .eq("user_id", userId)
-        .maybeSingle(),
+      supabaseAdmin.from("respondent_profile").select("*").eq("user_id", userId).maybeSingle(),
     ]);
     if (dims.error) throw new Error(dims.error.message);
     if (vals.error) throw new Error(vals.error.message);
@@ -62,11 +58,13 @@ const profileSchema = z.object({
 export const saveQualification = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      profile: profileSchema,
-      // one value per dimension (uuid), filtered by caller; we re-validate count
-      tag_value_ids: z.array(z.string().uuid()).max(20).default([]),
-    }).parse(input),
+    z
+      .object({
+        profile: profileSchema,
+        // one value per dimension (uuid), filtered by caller; we re-validate count
+        tag_value_ids: z.array(z.string().uuid()).max(20).default([]),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     const userId = context.userId;
