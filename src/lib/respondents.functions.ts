@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { adminGetUserEmail, signedVideoUrl } from "./admin-ops.server";
 import { scoreAnswerInternal } from "@/lib/answer-quality";
 import { assertStudyOwner } from "./authz";
 
@@ -41,12 +42,8 @@ export const listStudyRespondents = createServerFn({ method: "GET" })
     // Emails — admin only
     const emailMap = new Map<string, string>();
     for (const uid of userIds) {
-      try {
-        const { data: u } = await supabaseAdmin.auth.admin.getUserById(uid);
-        if (u?.user?.email) emailMap.set(uid, u.user.email);
-      } catch {
-        /* ignore */
-      }
+      const email = await adminGetUserEmail(uid);
+      if (email) emailMap.set(uid, email);
     }
 
     // Answers aggregates
@@ -165,23 +162,14 @@ export const exportInterviewRawData = createServerFn({ method: "POST" })
           .maybeSingle(),
       ]);
 
-    let respondentEmail: string | null = null;
-    try {
-      const { data: u } = await supabaseAdmin.auth.admin.getUserById(iv.respondent_id);
-      respondentEmail = u?.user?.email ?? null;
-    } catch {
-      /* ignore */
-    }
+    const respondentEmail = await adminGetUserEmail(iv.respondent_id);
 
     const enrichedAnswers = await Promise.all(
       (answers ?? []).map(async (a) => {
         const path = `${iv.id}/${a.id}.webm`;
-        const { data: signed } = await supabaseAdmin.storage
-          .from(BUCKET)
-          .createSignedUrl(path, 60 * 60);
         return {
           ...a,
-          video_signed_url: signed?.signedUrl ?? null,
+          video_signed_url: await signedVideoUrl(path),
           video_url_expires_in_seconds: 3600,
         };
       }),

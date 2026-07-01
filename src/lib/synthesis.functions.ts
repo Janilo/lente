@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { aiChatUrl } from "./ai.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { signedVideoUrls } from "./admin-ops.server";
 
 async function assertOwner(study_id: string, userId: string) {
   const { data: s } = await supabaseAdmin
@@ -125,15 +126,7 @@ export const listSynthesis = createServerFn({ method: "GET" })
       const ev = (ins.evidence as Array<{ video_path?: string | null }> | null) ?? [];
       for (const e of ev) if (e.video_path) paths.add(e.video_path);
     }
-    const signed = new Map<string, string>();
-    if (paths.size > 0) {
-      const { data: signedList } = await supabaseAdmin.storage
-        .from("interview-videos")
-        .createSignedUrls([...paths], 60 * 60);
-      for (const s of signedList ?? []) {
-        if (s.path && s.signedUrl) signed.set(s.path, s.signedUrl);
-      }
-    }
+    const signed = await signedVideoUrls([...paths]);
 
     // Inject signed URL onto each evidence item.
     const enriched = (insights ?? []).map((ins) => {

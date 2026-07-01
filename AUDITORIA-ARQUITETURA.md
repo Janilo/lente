@@ -344,6 +344,9 @@ Mapear `AppError.status` no boundary (`start.ts` `errorMiddleware`, hoje só tra
 3. Documentar a regra (ver F-A5): *"`supabaseAdmin` só para operações que a RLS não cobre; leitura do próprio usuário vai por `context.supabase`."*
 **Aceite:** nenhum handler mistura `supabase` e `supabaseAdmin` para a **mesma** tabela sem comentário justificando; usos de admin restam concentrados em helpers nomeados; a contagem de arquivos que importam `supabaseAdmin` cai.
 
+**Status — Parte A aplicada (passo 2):** os poderes que a RLS legitimamente **não** cobre — `auth.admin.getUserById` e Storage signed URLs — foram concentrados em `src/lib/admin-ops.server.ts` atrás de funções de intenção: `adminGetUserEmail(userId)`, `adminGetUserContact(userId)` (e-mail + `full_name` do metadata numa só chamada), `signedVideoUrl(path)` e `signedVideoUrls(paths)`. Depois do refactor, `auth.admin.getUserById` e `createSignedUrl*` aparecem em **um único arquivo** (grep); antes estavam espalhados por 6 fatias (`admin`, `respondents`, `respondent-pool`, `synthesis`, `interview`, `hubspot`). Comportamento preservado (mesmos `null`-em-erro/miss). Verificado: lint 0 erros, `build` ok, testes 7/7, `tsc` limpo nos arquivos tocados.
+**Parte B adiada (passo 1):** trocar leituras do próprio usuário de `supabaseAdmin.from(...)` para `context.supabase` (deixar o Postgres autorizar) exige revisão das políticas RLS granulares (respondente/pesquisador/admin por tabela) **com** teste de integração contra o banco — que este repo ainda não tem. Fazer isso às cegas arriscaria negar acessos legítimos ou (pior) mascarar uma falha de autorização. Fica para quando houver ambiente de teste de RLS; até lá a Parte A já reduz a superfície perigosa (o "poder" agora tem uma porta estreita e nomeada).
+
 ---
 
 ### F-A5 · Documentar a arquitetura: glossário + mapa de módulos (P2)
@@ -386,7 +389,7 @@ Mapear `AppError.status` no boundary (`start.ts` `errorMiddleware`, hoje só tra
 - [ ] **Runner de teste existe** (`vitest`) e `npm run test` passa (F-A2/F-A3).
 - [ ] **`decideNextStep` puro e testado** nos 5 ramos; não importa `supabaseAdmin` (F-A2).
 - [ ] **Erros tipados** (`AppError` + status) mapeados no boundary; controle de fluxo não usa `throw new Error("string")` em código novo (F-A3).
-- [ ] **`supabaseAdmin` contido**: usos de bypass concentrados em helpers nomeados; nenhum handler mistura RLS e bypass na mesma tabela sem justificativa (F-A4).
+- [x] **`supabaseAdmin` contido (Parte A)**: `auth.admin` + Storage signed URLs concentrados em `admin-ops.server.ts` (helpers nomeados); só aparecem em 1 arquivo agora (F-A4). — [ ] **Parte B** (trocar leitura do próprio usuário para `context.supabase`) adiada até haver teste de RLS.
 - [ ] **`ARCHITECTURE.md` + `GLOSSARY.md`** presentes; regra de client e grão dos substantivos escritos (F-A5).
 - [ ] **Composição entre fatias padronizada** (import estático vs dinâmico documentado) (F-A6).
 - [ ] `npm run build` e typecheck passam após os refactors.

@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { adminGetUserEmail } from "./admin-ops.server";
 
 import { ADMIN_EMAIL } from "./config";
 
@@ -47,12 +48,8 @@ export const adminListStudies = createServerFn({ method: "GET" })
 
     const emailMap = new Map<string, string>();
     for (const uid of ownerIds) {
-      try {
-        const { data: u } = await supabaseAdmin.auth.admin.getUserById(uid);
-        if (u?.user?.email) emailMap.set(uid, u.user.email);
-      } catch {
-        /* ignore */
-      }
+      const email = await adminGetUserEmail(uid);
+      if (email) emailMap.set(uid, email);
     }
 
     const studyIds = (studies ?? []).map((s) => s.id);
@@ -95,12 +92,8 @@ export const adminListUsers = createServerFn({ method: "GET" })
 
     const emailMap = new Map<string, string>();
     for (const p of profiles ?? []) {
-      try {
-        const { data: u } = await supabaseAdmin.auth.admin.getUserById(p.id);
-        if (u?.user?.email) emailMap.set(p.id, u.user.email);
-      } catch {
-        /* ignore */
-      }
+      const email = await adminGetUserEmail(p.id);
+      if (email) emailMap.set(p.id, email);
     }
 
     return {
@@ -161,12 +154,8 @@ export const adminListRespondents = createServerFn({ method: "POST" })
 
     const emailMap = new Map<string, string>();
     for (const p of profiles ?? []) {
-      try {
-        const { data: u } = await supabaseAdmin.auth.admin.getUserById(p.id);
-        if (u?.user?.email) emailMap.set(p.id, u.user.email);
-      } catch {
-        /* ignore */
-      }
+      const email = await adminGetUserEmail(p.id);
+      if (email) emailMap.set(p.id, email);
     }
 
     let filtered = (profiles ?? []).map((p) => ({

@@ -7,6 +7,7 @@ import { syncContact } from "./hubspot.server";
 import { decideNextStep, type DecisionAnswer, type DecisionQuestion } from "./interview-decision";
 import { assertInterviewRespondent, assertStudyOwner } from "./authz";
 import { scoreAnswerInternal } from "./answer-quality";
+import { signedVideoUrl, adminGetUserContact } from "./admin-ops.server";
 
 const BUCKET = "interview-videos";
 
@@ -94,17 +95,17 @@ export const startInterview = createServerFn({ method: "POST" })
         .select("id, title, public_slug")
         .eq("id", study.id)
         .maybeSingle();
-      const { data: userRes } = await supabaseAdmin.auth.admin.getUserById(userId);
+      const contact = await adminGetUserContact(userId);
       const { data: profile } = await supabaseAdmin
         .from("profiles")
         .select("full_name")
         .eq("id", userId)
         .maybeSingle();
-      const email = userRes?.user?.email;
+      const email = contact.email;
       if (email && studyFull) {
         await syncContact({
           email,
-          full_name: profile?.full_name ?? userRes?.user?.user_metadata?.full_name ?? null,
+          full_name: profile?.full_name ?? contact.fullName,
           role: "respondent",
           study: { id: studyFull.id, title: studyFull.title, slug: studyFull.public_slug },
         });
@@ -464,10 +465,7 @@ export const getInterviewDetail = createServerFn({ method: "GET" })
     const enriched = await Promise.all(
       (answers ?? []).map(async (a) => {
         const path = a.video_path ?? `${data.interview_id}/${a.id}.webm`;
-        const { data: signed } = await supabaseAdmin.storage
-          .from(BUCKET)
-          .createSignedUrl(path, 60 * 60);
-        return { ...a, video_url: signed?.signedUrl ?? null };
+        return { ...a, video_url: await signedVideoUrl(path) };
       }),
     );
 

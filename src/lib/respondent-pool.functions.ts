@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { adminGetUserEmail } from "./admin-ops.server";
 
 import { ADMIN_EMAIL } from "./config";
 
@@ -160,14 +161,7 @@ export const adminListRespondentPool = createServerFn({ method: "POST" })
       Promise.all(
         profiles
           .filter((p) => !p.email)
-          .map(async (p) => {
-            try {
-              const { data: u } = await supabaseAdmin.auth.admin.getUserById(p.user_id);
-              return [p.id, u?.user?.email ?? null] as const;
-            } catch {
-              return [p.id, null] as const;
-            }
-          }),
+          .map(async (p) => [p.id, await adminGetUserEmail(p.user_id)] as const),
       ),
     ]);
 
