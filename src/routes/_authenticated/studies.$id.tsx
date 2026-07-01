@@ -13,10 +13,6 @@ const PUBLISHED_ORIGIN = "https://lente.pereirasaraiva.com";
 
 function getRespondentOrigin() {
  if (typeof window === "undefined") return PUBLISHED_ORIGIN;
- const host = window.location.hostname;
- if (host.includes("lovableproject.com") || host.includes("id-preview--") || host.includes("-preview--")) {
- return PUBLISHED_ORIGIN;
- }
  return window.location.origin;
 }
 
