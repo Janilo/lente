@@ -37,10 +37,7 @@ export const adminListCompensation = createServerFn({ method: "GET" })
             .in("id", respondentIds)
         : Promise.resolve({ data: [], error: null }),
       studyIds.length
-        ? supabaseAdmin
-            .from("studies")
-            .select("id, title")
-            .in("id", studyIds)
+        ? supabaseAdmin.from("studies").select("id, title").in("id", studyIds)
         : Promise.resolve({ data: [], error: null }),
     ]);
 
@@ -68,7 +65,7 @@ export const adminListCompensation = createServerFn({ method: "GET" })
       entries: (entries ?? []).map((e) => ({
         ...e,
         respondent: respondents.get(e.respondent_id) ?? null,
-        study: e.study_id ? studies.get(e.study_id) ?? null : null,
+        study: e.study_id ? (studies.get(e.study_id) ?? null) : null,
       })),
       totals,
     };
@@ -175,10 +172,7 @@ export const adminDeleteCompensation = createServerFn({ method: "POST" })
   .inputValidator((input: { id: string }) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     assertAdmin(context.claims as { email?: string });
-    const { error } = await supabaseAdmin
-      .from("compensation_log")
-      .delete()
-      .eq("id", data.id);
+    const { error } = await supabaseAdmin.from("compensation_log").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });

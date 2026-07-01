@@ -84,7 +84,9 @@ export const adminListRecruitmentPool = createServerFn({ method: "POST" })
     const [statsRes, tagsRes] = await Promise.all([
       supabaseAdmin
         .from("respondent_stats")
-        .select("respondent_id, studies_count, completed_count, avg_quality_score, last_participation_at")
+        .select(
+          "respondent_id, studies_count, completed_count, avg_quality_score, last_participation_at",
+        )
         .in("respondent_id", respondentIds),
       supabaseAdmin
         .from("respondent_tags")
@@ -113,9 +115,7 @@ export const adminListRecruitmentPool = createServerFn({ method: "POST" })
         avg_quality_score: s?.avg_quality_score ?? null,
         last_participation_at: s?.last_participation_at ?? null,
         tags: tagsByResp.get(p.id) ?? [],
-        invitation: inv
-          ? { status: inv.status, channel: inv.channel, sent_at: inv.sent_at }
-          : null,
+        invitation: inv ? { status: inv.status, channel: inv.channel, sent_at: inv.sent_at } : null,
       };
     });
 
@@ -160,10 +160,12 @@ export const adminCreateInvitations = createServerFn({ method: "POST" })
 export const adminUpdateInvitationStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      id: z.string().uuid(),
-      status: z.enum(["queued", "sent", "failed", "accepted", "declined"]),
-    }).parse(input),
+    z
+      .object({
+        id: z.string().uuid(),
+        status: z.enum(["queued", "sent", "failed", "accepted", "declined"]),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     assertAdmin(context.claims as { email?: string });

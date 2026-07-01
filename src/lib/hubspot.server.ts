@@ -29,9 +29,27 @@ async function ensureCustomProperties(): Promise<boolean> {
           { label: "Respondent", value: "respondent", displayOrder: 2 },
         ],
       },
-      { name: "lente_signup_source", label: "Lente Signup Source", type: "string", fieldType: "text", groupName },
-      { name: "lente_last_study_title", label: "Lente Last Study Title", type: "string", fieldType: "text", groupName },
-      { name: "lente_last_study_slug", label: "Lente Last Study Slug", type: "string", fieldType: "text", groupName },
+      {
+        name: "lente_signup_source",
+        label: "Lente Signup Source",
+        type: "string",
+        fieldType: "text",
+        groupName,
+      },
+      {
+        name: "lente_last_study_title",
+        label: "Lente Last Study Title",
+        type: "string",
+        fieldType: "text",
+        groupName,
+      },
+      {
+        name: "lente_last_study_slug",
+        label: "Lente Last Study Slug",
+        type: "string",
+        fieldType: "text",
+        groupName,
+      },
     ];
     try {
       for (const def of defs) {

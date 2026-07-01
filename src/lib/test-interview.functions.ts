@@ -3,7 +3,14 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { ADMIN_EMAIL } from "./config";
 
-type SeedQ = { text: string; intent: string; transcript: string; duration: number; score: number; reasoning: string };
+type SeedQ = {
+  text: string;
+  intent: string;
+  transcript: string;
+  duration: number;
+  score: number;
+  reasoning: string;
+};
 
 const SEED_QUESTIONS: SeedQ[] = [
   {
@@ -13,7 +20,8 @@ const SEED_QUESTIONS: SeedQ[] = [
       "Abri o app procurando um tênis de corrida. A busca encontrou rápido, mas tive que aplicar vários filtros porque apareceram modelos fora da minha numeração. Coloquei no carrinho e fui para o checkout. O cálculo de frete demorou e me deixou ansioso achando que tinha travado.",
     duration: 178,
     score: 87,
-    reasoning: "Resposta detalhada cobrindo busca, filtro, carrinho e checkout com exemplos concretos.",
+    reasoning:
+      "Resposta detalhada cobrindo busca, filtro, carrinho e checkout com exemplos concretos.",
   },
   {
     text: "O que mais te incomodou ou gerou dúvida durante o processo?",
@@ -52,10 +60,19 @@ export const createTestInterview = createServerFn({ method: "POST" })
     const isAdmin = email === ADMIN_EMAIL;
     if (!isAdmin) {
       const { data: profile } = await supabaseAdmin
-        .from("profiles").select("can_publish").eq("id", userId).maybeSingle();
-      if (!profile?.can_publish) throw new Error("Sem permissão para publicar estudos de teste. Solicite ao administrador.");
+        .from("profiles")
+        .select("can_publish")
+        .eq("id", userId)
+        .maybeSingle();
+      if (!profile?.can_publish)
+        throw new Error("Sem permissão para publicar estudos de teste. Solicite ao administrador.");
     }
-    const stamp = new Date().toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+    const stamp = new Date().toLocaleString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
 
     // 1. Study
     const { data: study, error: sErr } = await supabaseAdmin
@@ -64,9 +81,11 @@ export const createTestInterview = createServerFn({ method: "POST" })
         owner_id: userId,
         title: `Teste · Experiência de checkout (${stamp})`,
         status: "published",
-        business_goal: "Validar o fluxo completo de pesquisa: roteiro → entrevista simulada → transcrição → síntese.",
+        business_goal:
+          "Validar o fluxo completo de pesquisa: roteiro → entrevista simulada → transcrição → síntese.",
         target_audience: "Consumidores que compraram pelo app nos últimos 30 dias.",
-        context: "Estudo de teste criado automaticamente. Dados simulados para validar o pipeline ponta a ponta.",
+        context:
+          "Estudo de teste criado automaticamente. Dados simulados para validar o pipeline ponta a ponta.",
         max_followups: 2,
       })
       .select("id, public_slug")

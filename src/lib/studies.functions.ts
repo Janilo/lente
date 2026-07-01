@@ -19,12 +19,14 @@ export const listMyStudies = createServerFn({ method: "GET" })
 export const createStudy = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      title: z.string().trim().min(1).max(200),
-      business_goal: z.string().trim().max(2000).optional().default(""),
-      context: z.string().trim().max(5000).optional().default(""),
-      target_audience: z.string().trim().max(2000).optional().default(""),
-    }).parse(input),
+    z
+      .object({
+        title: z.string().trim().min(1).max(200),
+        business_goal: z.string().trim().max(2000).optional().default(""),
+        context: z.string().trim().max(5000).optional().default(""),
+        target_audience: z.string().trim().max(2000).optional().default(""),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
@@ -66,15 +68,17 @@ export const getStudy = createServerFn({ method: "GET" })
 export const updateStudy = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      id: z.string().uuid(),
-      title: z.string().trim().min(1).max(200),
-      business_goal: z.string().trim().max(2000).optional().default(""),
-      context: z.string().trim().max(5000).optional().default(""),
-      target_audience: z.string().trim().max(2000).optional().default(""),
-      max_followups: z.number().int().min(0).max(5),
-      status: z.enum(["draft", "published", "closed"]),
-    }).parse(input),
+    z
+      .object({
+        id: z.string().uuid(),
+        title: z.string().trim().min(1).max(200),
+        business_goal: z.string().trim().max(2000).optional().default(""),
+        context: z.string().trim().max(5000).optional().default(""),
+        target_audience: z.string().trim().max(2000).optional().default(""),
+        max_followups: z.number().int().min(0).max(5),
+        status: z.enum(["draft", "published", "closed"]),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId, claims } = context;
@@ -83,8 +87,12 @@ export const updateStudy = createServerFn({ method: "POST" })
       const isAdmin = email === ADMIN_EMAIL;
       if (!isAdmin) {
         const { data: profile } = await supabase
-          .from("profiles").select("can_publish").eq("id", userId).maybeSingle();
-        if (!profile?.can_publish) throw new Error("Sem permissão para publicar. Solicite ao administrador.");
+          .from("profiles")
+          .select("can_publish")
+          .eq("id", userId)
+          .maybeSingle();
+        if (!profile?.can_publish)
+          throw new Error("Sem permissão para publicar. Solicite ao administrador.");
       }
     }
     const { error } = await supabase
@@ -106,40 +114,65 @@ export const updateStudy = createServerFn({ method: "POST" })
 export const upsertQuestion = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      id: z.string().uuid().optional(),
-      study_id: z.string().uuid(),
-      position: z.number().int().min(0),
-      text: z.string().trim().min(1).max(1000),
-      intent: z.string().trim().max(1000).optional().default(""),
-    }).parse(input),
+    z
+      .object({
+        id: z.string().uuid().optional(),
+        study_id: z.string().uuid(),
+        position: z.number().int().min(0),
+        text: z.string().trim().min(1).max(1000),
+        intent: z.string().trim().max(1000).optional().default(""),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { data: owned, error: ownErr } = await supabase
-      .from("studies").select("id").eq("id", data.study_id).eq("owner_id", userId).single();
+      .from("studies")
+      .select("id")
+      .eq("id", data.study_id)
+      .eq("owner_id", userId)
+      .single();
     if (ownErr || !owned) throw new Error("Not allowed");
     if (data.id) {
-      const { error } = await supabase.from("questions").update({
-        position: data.position, text: data.text, intent: data.intent || null,
-      }).eq("id", data.id).eq("study_id", data.study_id);
+      const { error } = await supabase
+        .from("questions")
+        .update({
+          position: data.position,
+          text: data.text,
+          intent: data.intent || null,
+        })
+        .eq("id", data.id)
+        .eq("study_id", data.study_id);
       if (error) throw new Error(error.message);
       return { id: data.id };
     }
-    const { data: q, error } = await supabase.from("questions").insert({
-      study_id: data.study_id, position: data.position, text: data.text, intent: data.intent || null,
-    }).select("id").single();
+    const { data: q, error } = await supabase
+      .from("questions")
+      .insert({
+        study_id: data.study_id,
+        position: data.position,
+        text: data.text,
+        intent: data.intent || null,
+      })
+      .select("id")
+      .single();
     if (error) throw new Error(error.message);
     return { id: q.id };
   });
 
 export const deleteQuestion = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ id: z.string().uuid(), study_id: z.string().uuid() }).parse(input))
+  .inputValidator((input) =>
+    z.object({ id: z.string().uuid(), study_id: z.string().uuid() }).parse(input),
+  )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { data: owned } = await supabase
-      .from("studies").select("id").eq("id", data.study_id).eq("owner_id", userId).single();
+      .from("studies")
+      .select("id")
+      .eq("id", data.study_id)
+      .eq("owner_id", userId)
+      .single();
     if (!owned) throw new Error("Not allowed");
     const { error } = await supabase.from("questions").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
