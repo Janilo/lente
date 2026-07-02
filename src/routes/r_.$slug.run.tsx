@@ -3,12 +3,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  startInterview,
-  getNextStep,
-  createAnswer,
-  processAnswer,
-} from "@/lib/interview.functions";
+import { startInterview, getNextStep } from "@/lib/interview.functions";
+import { createAnswer, processAnswer } from "@/lib/answer-pipeline.functions";
 import { InterviewProgress } from "@/components/interview/InterviewProgress";
 import { toast } from "sonner";
 

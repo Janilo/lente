@@ -2,7 +2,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Check, Loader2, X, Circle } from "lucide-react";
-import { getInterviewPipelineStatus } from "@/lib/interview.functions";
+import { getInterviewPipelineStatus } from "@/lib/interview-status.functions";
 
 type StepState = "pending" | "active" | "done" | "failed" | "disabled";
 

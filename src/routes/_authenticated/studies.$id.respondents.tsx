@@ -7,7 +7,7 @@ import {
   exportInterviewRawData,
   deleteRespondentData,
 } from "@/lib/respondents.functions";
-import { getInterviewDetail } from "@/lib/interview.functions";
+import { getInterviewDetail } from "@/lib/study-interviews.read";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/studies/$id/respondents")({
