@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { listStudyInterviewsTable } from "@/lib/interview.functions";
+import { listStudyInterviewsTable } from "@/lib/study-interviews.read";
 import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/_authenticated/studies/$id/interviews")({

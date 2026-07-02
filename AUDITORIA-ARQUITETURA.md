@@ -385,7 +385,7 @@ Mapear `AppError.status` no boundary (`start.ts` `errorMiddleware`, hoje só tra
 ## Checklist de verificação
 
 - [ ] **Autorização atrás de módulo** (`authz.ts`): grep `!== userId` em `src/lib` = 0 fora de `authz.ts` (F-A0).
-- [ ] **`interview.functions.ts` dividido**; nenhuma fatia > ~250 linhas; sem import cruzado `respondents → interview` (F-A1).
+- [x] **`interview.functions.ts` dividido** em 4 fatias (runner 264 · `answer-pipeline` 138 · `interview-status` 109 · `study-interviews.read` 234 linhas); sem import cruzado `respondents → interview` (F-A1).
 - [ ] **Runner de teste existe** (`vitest`) e `npm run test` passa (F-A2/F-A3).
 - [ ] **`decideNextStep` puro e testado** nos 5 ramos; não importa `supabaseAdmin` (F-A2).
 - [ ] **Erros tipados** (`AppError` + status) mapeados no boundary; controle de fluxo não usa `throw new Error("string")` em código novo (F-A3).
