@@ -163,15 +163,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
               name: "Lente",
               url: "https://lente.pereirasaraiva.com",
             },
-            {
-              "@type": "SoftwareApplication",
-              name: "Lente",
-              applicationCategory: "BusinessApplication",
-              operatingSystem: "Web",
-              description:
-                "Pesquisa qualitativa em vídeo com IA: entrevistas com follow-ups adaptativos, transcrição automática e síntese de insights.",
-              offers: { "@type": "Offer", price: "0", priceCurrency: "BRL" },
-            },
           ],
         }),
       },
