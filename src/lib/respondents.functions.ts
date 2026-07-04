@@ -4,7 +4,11 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { adminGetUserEmail, signedVideoUrl } from "./admin-ops.server";
 import { scoreAnswerInternal } from "@/lib/answer-quality";
-import { assertStudyOwner } from "./authz";
+import {
+  assertRowAnswerStudyOwner,
+  assertRowRespondentOrStudyOwner,
+  assertStudyOwner,
+} from "./authz";
 
 const BUCKET = "interview-videos";
 
@@ -226,9 +230,7 @@ export const deleteRespondentData = createServerFn({ method: "POST" })
         studies: { owner_id: string } | null;
       } | null;
     };
-    if (!iv) throw new Error("Entrevista não encontrada.");
-    if (iv.respondent_id !== userId && iv.studies?.owner_id !== userId)
-      throw new Error("Acesso negado.");
+    assertRowRespondentOrStudyOwner(iv, userId);
 
     // Remove storage objects
     const { data: list } = await supabaseAdmin.storage.from(BUCKET).list(iv.id);
@@ -259,7 +261,7 @@ export const rescoreAnswer = createServerFn({ method: "POST" })
         interviews: { study_id: string; studies: { owner_id: string } | null } | null;
       } | null;
     };
-    if (!ans || ans.interviews?.studies?.owner_id !== userId) throw new Error("Acesso negado.");
+    assertRowAnswerStudyOwner(ans, userId);
     await scoreAnswerInternal(data.answer_id);
     const { data: updated } = await supabaseAdmin
       .from("answers")

@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { aiChatUrl } from "./ai.server";
+import { NotFoundError } from "./errors";
 
 async function assertOwnership(supabase: any, userId: string, studyId: string) {
   const { data, error } = await supabase
@@ -10,7 +11,7 @@ async function assertOwnership(supabase: any, userId: string, studyId: string) {
     .eq("id", studyId)
     .eq("owner_id", userId)
     .single();
-  if (error || !data) throw new Error("Estudo não encontrado ou sem permissão");
+  if (error || !data) throw new NotFoundError("Estudo não encontrado ou sem permissão");
   return data;
 }
 

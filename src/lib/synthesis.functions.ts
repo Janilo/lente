@@ -4,6 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { aiChatUrl } from "./ai.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { signedVideoUrls } from "./admin-ops.server";
+import { assertRowOwner } from "./authz";
 
 async function assertOwner(study_id: string, userId: string) {
   const { data: s } = await supabaseAdmin
@@ -11,7 +12,7 @@ async function assertOwner(study_id: string, userId: string) {
     .select("id, owner_id, title, business_goal, context, target_audience")
     .eq("id", study_id)
     .maybeSingle();
-  if (!s || s.owner_id !== userId) throw new Error("Acesso negado.");
+  assertRowOwner(s, userId);
   return s;
 }
 

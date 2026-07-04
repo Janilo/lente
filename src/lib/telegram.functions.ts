@@ -4,6 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { getBotUsername, deriveTelegramWebhookSecret, tg } from "./telegram.server";
 import { ADMIN_EMAIL } from "./config";
+import { assertRowOwner } from "./authz";
 
 // URL pública do receptor de webhook do bot (produção).
 const TELEGRAM_WEBHOOK_URL = "https://lente.pereirasaraiva.com/api/public/telegram/webhook";
@@ -25,7 +26,7 @@ export const getTelegramShareLink = createServerFn({ method: "GET" })
       .select("id, owner_id, public_slug, status")
       .eq("id", data.study_id)
       .maybeSingle();
-    if (!study || study.owner_id !== userId) throw new Error("Acesso negado.");
+    assertRowOwner(study, userId);
 
     const now = Date.now();
     let username =
