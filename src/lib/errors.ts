@@ -3,9 +3,8 @@
 // strings. Messages are preserved from the previous inline `throw new Error("…")`
 // calls, so any existing message-based handling keeps working.
 //
-// Follow-up: map `AppError.status` in the request boundary (start.ts) so these
-// surface as the right HTTP status. Introducing the classes first (this file) is
-// safe on its own — an AppError behaves like a normal Error until then.
+// The request boundary (start.ts errorMiddleware) maps `AppError.status` to the
+// HTTP status of the response — a ForbiddenError surfaces as 403, not 500.
 export class AppError extends Error {
   constructor(
     message: string,

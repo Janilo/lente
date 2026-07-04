@@ -36,3 +36,50 @@ export async function assertStudyOwner(db: Db, studyId: string, userId: string) 
   if (!study || study.owner_id !== userId) throw new ForbiddenError();
   return study;
 }
+
+// ── Row variants ────────────────────────────────────────────────────────────
+// For handlers that already fetched the resource via a joined select (the row
+// carries fields the handler needs next): the fetch stays in the slice, the
+// ownership PREDICATE lives here. A missing row counts as denied — no
+// existence leak. Assertion signatures keep the caller's narrowing (`row` is
+// non-null after the call).
+
+/** The fetched row must be owned by `userId` (`row.owner_id`). */
+export function assertRowOwner<T extends { owner_id: string | null }>(
+  row: T | null | undefined,
+  userId: string,
+): asserts row is T {
+  if (!row || row.owner_id !== userId) throw new ForbiddenError();
+}
+
+/** The fetched interview-ish row must belong to a study owned by `userId` (`row.studies.owner_id`). */
+export function assertRowStudyOwner<T extends { studies: { owner_id: string } | null }>(
+  row: T | null | undefined,
+  userId: string,
+): asserts row is T {
+  if (!row || row.studies?.owner_id !== userId) throw new ForbiddenError();
+}
+
+/** The fetched answer-ish row must belong to the respondent `userId` (`row.interviews.respondent_id`). */
+export function assertRowInterviewRespondent<
+  T extends { interviews: { respondent_id: string } | null },
+>(row: T | null | undefined, userId: string): asserts row is T {
+  if (!row || row.interviews?.respondent_id !== userId) throw new ForbiddenError();
+}
+
+/** The fetched answer-ish row must belong to a study owned by `userId` (`row.interviews.studies.owner_id`). */
+export function assertRowAnswerStudyOwner<
+  T extends { interviews: { studies: { owner_id: string } | null } | null },
+>(row: T | null | undefined, userId: string): asserts row is T {
+  if (!row || row.interviews?.studies?.owner_id !== userId) throw new ForbiddenError();
+}
+
+/** The fetched interview row must belong to `userId` as respondent OR study owner. */
+export function assertRowRespondentOrStudyOwner<
+  T extends { respondent_id: string; studies: { owner_id: string } | null },
+>(row: T | null | undefined, userId: string): asserts row is T {
+  if (!row) throw new ForbiddenError();
+  if (row.respondent_id !== userId && row.studies?.owner_id !== userId) {
+    throw new ForbiddenError();
+  }
+}

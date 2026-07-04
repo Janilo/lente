@@ -6,7 +6,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { assertInterviewRespondent } from "./authz";
+import { assertInterviewRespondent, assertRowInterviewRespondent } from "./authz";
 import { scoreAnswerInternal } from "./answer-quality";
 import { enrichInterviewInternal } from "./interview-enrichment.functions";
 import { computeNextStep } from "./interview.functions";
@@ -66,7 +66,7 @@ export const processAnswer = createServerFn({ method: "POST" })
         interviews: { respondent_id: string } | null;
       } | null;
     };
-    if (!ans || ans.interviews?.respondent_id !== userId) throw new Error("Acesso negado.");
+    assertRowInterviewRespondent(ans, userId);
 
     await supabaseAdmin.from("answers").update({ status: "transcribing" }).eq("id", ans.id);
 

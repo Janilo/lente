@@ -100,10 +100,6 @@ dobrada.
 
 ## Pendências conhecidas (da auditoria)
 
-- **F-A0 (parcial)**: `authz.ts` existe e é usado, mas ~8 checagens `!== userId`
-  seguem inline nas fatias — migrar para os asserts.
-- **F-A3 (parcial)**: `errors.ts` (AppError com `status`) existe; falta o
-  boundary (`start.ts`) mapear `AppError.status` para o HTTP status.
 - **F-A4 Parte B**: trocar leituras do próprio usuário de `supabaseAdmin` para
   `context.supabase` exige teste de integração de RLS — adiado até existir esse
   ambiente.

@@ -6,6 +6,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { aiChatUrl } from "./ai.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { assertRowStudyOwner } from "./authz";
 
 const MODEL = "gemini-2.5-pro";
 
@@ -206,7 +207,7 @@ export const reprocessInterviewInsights = createServerFn({ method: "POST" })
       .select("id, studies:study_id(owner_id)")
       .eq("id", data.interview_id)
       .maybeSingle()) as { data: { id: string; studies: { owner_id: string } | null } | null };
-    if (!iv || iv.studies?.owner_id !== userId) throw new Error("Acesso negado.");
+    assertRowStudyOwner(iv, userId);
     await enrichInterviewInternal(data.interview_id);
     return { ok: true };
   });

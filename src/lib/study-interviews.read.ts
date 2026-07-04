@@ -6,7 +6,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { assertStudyOwner } from "./authz";
+import { assertRowStudyOwner, assertStudyOwner } from "./authz";
 import { signedVideoUrl } from "./admin-ops.server";
 
 // Researcher: list interviews for a study
@@ -75,7 +75,7 @@ export const getInterviewDetail = createServerFn({ method: "GET" })
       error: { message: string } | null;
     };
     if (ivErr) throw new Error(ivErr.message);
-    if (!iv || iv.studies?.owner_id !== userId) throw new Error("Acesso negado.");
+    assertRowStudyOwner(iv, userId);
 
     const { data: answers } = await supabaseAdmin
       .from("answers")
