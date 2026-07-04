@@ -8,6 +8,7 @@ import {
   downloadTelegramFile,
 } from "@/lib/telegram.server";
 import { computeNextStep } from "@/lib/interview.functions";
+import { enrichInterviewInternal } from "@/lib/interview-enrichment.functions";
 import { scoreAnswerInternal } from "@/lib/answer-quality";
 import { transcribeAudio } from "@/lib/stt.server";
 
@@ -130,7 +131,6 @@ async function advance(chat_id: number, interview_id: string) {
       "✅ <b>Entrevista concluída!</b> Muito obrigado pela sua participação.",
     );
     try {
-      const { enrichInterviewInternal } = await import("@/lib/interview-enrichment.functions");
       await enrichInterviewInternal(interview_id);
     } catch (e) {
       console.error("enrich failed", e);

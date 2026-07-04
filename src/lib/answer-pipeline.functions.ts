@@ -8,7 +8,9 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { assertInterviewRespondent } from "./authz";
 import { scoreAnswerInternal } from "./answer-quality";
+import { enrichInterviewInternal } from "./interview-enrichment.functions";
 import { computeNextStep } from "./interview.functions";
+import { transcribeAudio } from "./stt.server";
 
 const BUCKET = "interview-videos";
 
@@ -79,7 +81,6 @@ export const processAnswer = createServerFn({ method: "POST" })
     }
 
     try {
-      const { transcribeAudio } = await import("./stt.server");
       const { transcript, words } = await transcribeAudio(file);
 
       const cleaned = (transcript ?? "").trim();
@@ -128,7 +129,6 @@ export const processAnswer = createServerFn({ method: "POST" })
         .update({ status: "completed", finished_at: new Date().toISOString() })
         .eq("id", ans.interview_id);
       try {
-        const { enrichInterviewInternal } = await import("./interview-enrichment.functions");
         await enrichInterviewInternal(ans.interview_id);
       } catch (e) {
         console.error("enrich-on-complete failed", e);
