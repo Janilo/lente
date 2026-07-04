@@ -11,6 +11,7 @@ import { aiChatUrl } from "./ai.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { enrichInterviewInternal } from "./interview-enrichment.functions";
 import { assertStudyOwner } from "./authz";
+import { transcribeAudio } from "./stt.server";
 
 const BUCKET = "interview-videos";
 const ALLOWED_EXT = new Set(["mp4", "webm", "mov", "m4v", "mkv"]);
@@ -97,7 +98,6 @@ export const processUploadedInterview = createServerFn({ method: "POST" })
       throw new Error(`Falha ao baixar vídeo: ${dlErr?.message ?? "arquivo não encontrado"}`);
 
     // 2) STT
-    const { transcribeAudio } = await import("./stt.server");
     const stt = await transcribeAudio(file);
     const fullTranscript = (stt.transcript ?? "").trim();
     if (fullTranscript.length < 5) throw new Error("Nenhuma fala detectada no vídeo.");

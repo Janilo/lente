@@ -386,10 +386,10 @@ Mapear `AppError.status` no boundary (`start.ts` `errorMiddleware`, hoje só tra
 
 - [ ] **Autorização atrás de módulo** (`authz.ts`): grep `!== userId` em `src/lib` = 0 fora de `authz.ts` (F-A0).
 - [x] **`interview.functions.ts` dividido** em 4 fatias (runner 264 · `answer-pipeline` 138 · `interview-status` 109 · `study-interviews.read` 234 linhas); sem import cruzado `respondents → interview` (F-A1).
-- [ ] **Runner de teste existe** (`vitest`) e `npm run test` passa (F-A2/F-A3).
-- [ ] **`decideNextStep` puro e testado** nos 5 ramos; não importa `supabaseAdmin` (F-A2).
+- [x] **Runner de teste existe** (`vitest`, roda no CI via `pnpm run test`) e passa (F-A2/F-A3).
+- [x] **`decideNextStep` puro e testado** (`interview-decision.ts` sem I/O/`supabaseAdmin`; 7 casos em `interview-decision.test.ts`) (F-A2).
 - [ ] **Erros tipados** (`AppError` + status) mapeados no boundary; controle de fluxo não usa `throw new Error("string")` em código novo (F-A3).
 - [x] **`supabaseAdmin` contido (Parte A)**: `auth.admin` + Storage signed URLs concentrados em `admin-ops.server.ts` (helpers nomeados); só aparecem em 1 arquivo agora (F-A4). — [ ] **Parte B** (trocar leitura do próprio usuário para `context.supabase`) adiada até haver teste de RLS.
-- [ ] **`ARCHITECTURE.md` + `GLOSSARY.md`** presentes; regra de client e grão dos substantivos escritos (F-A5).
-- [ ] **Composição entre fatias padronizada** (import estático vs dinâmico documentado) (F-A6).
+- [x] **`ARCHITECTURE.md` + `GLOSSARY.md`** presentes; regra de client e grão dos substantivos escritos (F-A5).
+- [x] **Composição entre fatias padronizada** (F-A6 — regra escrita no `ARCHITECTURE.md` §3: estático entre módulos próprios, dinâmico só para mammoth/unpdf; stt/enrichment estáticos nos 3 call sites).
 - [ ] `npm run build` e typecheck passam após os refactors.

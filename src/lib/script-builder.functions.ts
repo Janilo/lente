@@ -165,6 +165,8 @@ export const parseQuestionsFromFile = createServerFn({ method: "POST" })
     const name = data.file_name.toLowerCase();
     let rawText = "";
 
+    // Import dinâmico aqui é a exceção da regra (ARCHITECTURE.md): parsers de
+    // terceiros pesados (mammoth/unpdf) carregados só no caminho raro de upload.
     if (name.endsWith(".docx")) {
       const mammoth = await import("mammoth");
       const result = await mammoth.extractRawText({ buffer });
