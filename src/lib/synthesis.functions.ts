@@ -1,13 +1,16 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { aiChatUrl } from "./ai.server";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { signedVideoUrls } from "./admin-ops.server";
 import { assertRowOwner } from "./authz";
 
-async function assertOwner(study_id: string, userId: string) {
-  const { data: s } = await supabaseAdmin
+// F-A4-B: toda a fatia opera com o client DO USUÁRIO — insights e
+// recommendations têm policy de dono para leitura E escrita, então o Postgres
+// autoriza. Service-role só em signedVideoUrls (admin-ops).
+async function assertOwner(supabase: SupabaseClient, study_id: string, userId: string) {
+  const { data: s } = await supabase
     .from("studies")
     .select("id, owner_id, title, business_goal, context, target_audience")
     .eq("id", study_id)
@@ -103,19 +106,20 @@ export const listSynthesis = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) => z.object({ study_id: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
-    const study = await assertOwner(data.study_id, context.userId);
+    const { supabase } = context;
+    const study = await assertOwner(supabase, data.study_id, context.userId);
     const [{ data: insights }, { data: recs }, { count: interviewCount }] = await Promise.all([
-      supabaseAdmin
+      supabase
         .from("insights")
         .select("id, theme, summary, evidence, created_at")
         .eq("study_id", data.study_id)
         .order("created_at", { ascending: false }),
-      supabaseAdmin
+      supabase
         .from("recommendations")
         .select("id, title, rationale, priority, supporting_insight_ids, created_at")
         .eq("study_id", data.study_id)
         .order("priority", { ascending: true, nullsFirst: false }),
-      supabaseAdmin
+      supabase
         .from("interviews")
         .select("id", { count: "exact", head: true })
         .eq("study_id", data.study_id),
@@ -161,16 +165,17 @@ export const generateSynthesis = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((i) => z.object({ study_id: z.string().uuid() }).parse(i))
   .handler(async ({ data, context }) => {
-    const study = await assertOwner(data.study_id, context.userId);
+    const { supabase } = context;
+    const study = await assertOwner(supabase, data.study_id, context.userId);
 
-    const { data: interviews } = await supabaseAdmin
+    const { data: interviews } = await supabase
       .from("interviews")
       .select("id, status")
       .eq("study_id", data.study_id);
     const ids = (interviews ?? []).map((i) => i.id);
     if (ids.length === 0) throw new Error("Nenhuma entrevista para sintetizar ainda.");
 
-    const { data: answers } = await supabaseAdmin
+    const { data: answers } = await supabase
       .from("answers")
       .select(
         "id, interview_id, question_text, transcript, is_followup, status, video_path, start_seconds, end_seconds, words_json",
@@ -343,8 +348,8 @@ Tarefa: extraia 4-8 INSIGHTS e 3-6 RECOMENDAÇÕES acionáveis. Para cada evidê
     }
 
     // Replace previous synthesis
-    await supabaseAdmin.from("recommendations").delete().eq("study_id", data.study_id);
-    await supabaseAdmin.from("insights").delete().eq("study_id", data.study_id);
+    await supabase.from("recommendations").delete().eq("study_id", data.study_id);
+    await supabase.from("insights").delete().eq("study_id", data.study_id);
 
     const insightsToInsert = (parsed.insights ?? []).map((ins) => {
       const enrichedEvidence = (ins.evidence ?? []).map((ev) => {
@@ -382,7 +387,7 @@ Tarefa: extraia 4-8 INSIGHTS e 3-6 RECOMENDAÇÕES acionáveis. Para cada evidê
       };
     });
 
-    const { data: insertedInsights, error: iErr } = await supabaseAdmin
+    const { data: insertedInsights, error: iErr } = await supabase
       .from("insights")
       .insert(insightsToInsert)
       .select("id");
@@ -399,7 +404,7 @@ Tarefa: extraia 4-8 INSIGHTS e 3-6 RECOMENDAÇÕES acionáveis. Para cada evidê
         .filter((x): x is string => !!x),
     }));
     if (recsToInsert.length > 0) {
-      const { error: rErr } = await supabaseAdmin.from("recommendations").insert(recsToInsert);
+      const { error: rErr } = await supabase.from("recommendations").insert(recsToInsert);
       if (rErr) throw new Error(rErr.message);
     }
 

@@ -19,6 +19,9 @@ type EnrichmentResult = {
   answer_summaries: { question_id: string; summary: string }[];
 };
 
+// Passo interno de pipeline: roda também SEM usuário (webhook do Telegram,
+// enrich-on-complete) e escreve interview_insights, cuja policy é só do dono
+// do estudo — por isso opera inteiro em service-role (exceção do F-A4-B).
 export async function enrichInterviewInternal(interview_id: string): Promise<void> {
   const apiKey = process.env.AI_API_KEY;
   if (!apiKey) {
@@ -201,8 +204,8 @@ export const reprocessInterviewInsights = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ interview_id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
-    const { userId } = context;
-    const { data: iv } = (await supabaseAdmin
+    const { supabase, userId } = context;
+    const { data: iv } = (await supabase
       .from("interviews")
       .select("id, studies:study_id(owner_id)")
       .eq("id", data.interview_id)

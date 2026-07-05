@@ -25,7 +25,7 @@ export const listStudyInterviews = createServerFn({ method: "GET" })
     const ids = (interviews ?? []).map((i) => i.id);
     let counts: Record<string, { total: number; ready: number }> = {};
     if (ids.length > 0) {
-      const { data: ans } = await supabaseAdmin
+      const { data: ans } = await supabase
         .from("answers")
         .select("interview_id, status")
         .in("interview_id", ids);
@@ -77,7 +77,7 @@ export const getInterviewDetail = createServerFn({ method: "GET" })
     if (ivErr) throw new Error(ivErr.message);
     assertRowStudyOwner(iv, userId);
 
-    const { data: answers } = await supabaseAdmin
+    const { data: answers } = await supabase
       .from("answers")
       .select(
         "id, question_id, question_text, transcript, is_followup, parent_answer_id, status, error_message, duration_seconds, created_at, video_path, start_seconds, end_seconds",
@@ -110,16 +110,16 @@ export const listStudyInterviewsTable = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ study_id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
-    const { userId } = context;
-    const study = await assertStudyOwner(supabaseAdmin, data.study_id, userId);
+    const { supabase, userId } = context;
+    const study = await assertStudyOwner(supabase, data.study_id, userId);
 
-    const { data: questions } = await supabaseAdmin
+    const { data: questions } = await supabase
       .from("questions")
       .select("id, text, position")
       .eq("study_id", data.study_id)
       .order("position");
 
-    const { data: interviews } = await supabaseAdmin
+    const { data: interviews } = await supabase
       .from("interviews")
       .select("id, status, started_at, finished_at, respondent_id, source, external_respondent")
       .eq("study_id", data.study_id)
@@ -132,7 +132,7 @@ export const listStudyInterviewsTable = createServerFn({ method: "GET" })
 
     const [{ data: answers }, { data: insights }, { data: profiles }] = await Promise.all([
       ids.length
-        ? supabaseAdmin
+        ? supabase
             .from("answers")
             .select(
               "interview_id, question_id, status, transcript, duration_seconds, quality_score",
@@ -149,7 +149,7 @@ export const listStudyInterviewsTable = createServerFn({ method: "GET" })
             }[],
           }),
       ids.length
-        ? supabaseAdmin
+        ? supabase
             .from("interview_insights")
             .select(
               "interview_id, quality, segments, tags, bullet_summary, tagline, answer_summaries",
@@ -166,6 +166,8 @@ export const listStudyInterviewsTable = createServerFn({ method: "GET" })
               answer_summaries: { question_id: string; summary: string }[];
             }[],
           }),
+      // profiles dos respondentes: leitura cross-usuário do pesquisador — a RLS
+      // de profiles é dono-ou-admin, então fica no service-role de propósito.
       respondentIds.length
         ? supabaseAdmin
             .from("profiles")

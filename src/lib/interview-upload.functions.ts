@@ -39,12 +39,15 @@ export const createUploadedInterview = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { userId } = context;
+    const { supabase, userId } = context;
     const ext = data.video_ext.toLowerCase().replace(/^\./, "");
     if (!ALLOWED_EXT.has(ext)) throw new Error(`Formato não suportado: ${ext}`);
 
-    await assertStudyOwner(supabaseAdmin, data.study_id, userId);
+    await assertStudyOwner(supabase, data.study_id, userId);
 
+    // O insert fica em service-role: não existe policy de insert de interview
+    // para o dono (só para respondente em estudo publicado), e upload pode
+    // mirar estudo em rascunho — é um poder do pesquisador via serverFn.
     const { data: created, error } = await supabaseAdmin
       .from("interviews")
       .insert({
@@ -73,10 +76,10 @@ export const processUploadedInterview = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { userId } = context;
+    const { supabase, userId } = context;
     const ext = data.video_ext.toLowerCase().replace(/^\./, "");
 
-    const { data: iv } = (await supabaseAdmin
+    const { data: iv } = (await supabase
       .from("interviews")
       .select("id, study_id, source, studies:study_id(owner_id)")
       .eq("id", data.interview_id)

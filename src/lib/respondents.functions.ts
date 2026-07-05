@@ -17,16 +17,16 @@ export const listStudyRespondents = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ study_id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
-    const { userId } = context;
-    const study = await assertStudyOwner(supabaseAdmin, data.study_id, userId);
+    const { supabase, userId } = context;
+    const study = await assertStudyOwner(supabase, data.study_id, userId);
 
-    const { data: qCount } = await supabaseAdmin
+    const { data: qCount } = await supabase
       .from("questions")
       .select("id", { count: "exact" })
       .eq("study_id", data.study_id);
     const totalQuestions = qCount?.length ?? 0;
 
-    const { data: interviews } = await supabaseAdmin
+    const { data: interviews } = await supabase
       .from("interviews")
       .select("id, respondent_id, status, started_at, finished_at")
       .eq("study_id", data.study_id)
@@ -37,7 +37,8 @@ export const listStudyRespondents = createServerFn({ method: "GET" })
       new Set(ivs.map((i) => i.respondent_id).filter((x): x is string => !!x)),
     );
 
-    // Profiles
+    // Profiles dos respondentes: cross-usuário (RLS de profiles é dono-ou-admin)
+    // — service-role de propósito, como o e-mail logo abaixo.
     const { data: profiles } = userIds.length
       ? await supabaseAdmin.from("profiles").select("id, full_name, created_at").in("id", userIds)
       : { data: [] as { id: string; full_name: string | null; created_at: string }[] };
@@ -52,7 +53,7 @@ export const listStudyRespondents = createServerFn({ method: "GET" })
 
     // Answers aggregates
     const { data: ans } = ivIds.length
-      ? await supabaseAdmin
+      ? await supabase
           .from("answers")
           .select("interview_id, status, quality_score, is_followup")
           .in("interview_id", ivIds)
@@ -75,7 +76,7 @@ export const listStudyRespondents = createServerFn({ method: "GET" })
 
     // Consents
     const { data: consents } = ivIds.length
-      ? await supabaseAdmin
+      ? await supabase
           .from("consents")
           .select("interview_id, consent_version, accepted_at")
           .in("interview_id", ivIds)
@@ -116,8 +117,8 @@ export const exportInterviewRawData = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ interview_id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
-    const { userId } = context;
-    const { data: iv } = (await supabaseAdmin
+    const { supabase, userId } = context;
+    const { data: iv } = (await supabase
       .from("interviews")
       .select(
         "id, study_id, respondent_id, status, started_at, finished_at, studies:study_id(id, title, owner_id, business_goal, context, target_audience)",
@@ -141,20 +142,22 @@ export const exportInterviewRawData = createServerFn({ method: "POST" })
         } | null;
       } | null;
     };
-    if (!iv) throw new Error("Entrevista não encontrada.");
+    assertRowRespondentOrStudyOwner(iv, userId);
     const isOwner = iv.studies?.owner_id === userId;
-    const isRespondent = iv.respondent_id === userId;
-    if (!isOwner && !isRespondent) throw new Error("Acesso negado.");
 
-    const [{ data: questions }, { data: answers }, { data: consent }, { data: profile }] =
+    // questions, o profile do respondente e os metadados do estudo ficam em
+    // service-role: o export serve os DOIS papéis, e a RLS não dá questions
+    // nem studies ao respondente (decisão F-RLS-2), nem o profile alheio ao
+    // dono do estudo.
+    const [{ data: questions }, { data: answers }, { data: consent }, { data: profile }, study] =
       await Promise.all([
         supabaseAdmin
           .from("questions")
           .select("id, position, text, intent")
           .eq("study_id", iv.study_id)
           .order("position"),
-        supabaseAdmin.from("answers").select("*").eq("interview_id", iv.id).order("created_at"),
-        supabaseAdmin
+        supabase.from("answers").select("*").eq("interview_id", iv.id).order("created_at"),
+        supabase
           .from("consents")
           .select("consent_version, accepted_at, ip_address, user_agent")
           .eq("interview_id", iv.id)
@@ -164,6 +167,12 @@ export const exportInterviewRawData = createServerFn({ method: "POST" })
           .select("full_name, created_at")
           .eq("id", iv.respondent_id)
           .maybeSingle(),
+        supabaseAdmin
+          .from("studies")
+          .select("id, title, business_goal, context, target_audience")
+          .eq("id", iv.study_id)
+          .maybeSingle()
+          .then((r) => r.data),
       ]);
 
     const respondentEmail = await adminGetUserEmail(iv.respondent_id);
@@ -181,13 +190,13 @@ export const exportInterviewRawData = createServerFn({ method: "POST" })
 
     const studyForCaller = isOwner
       ? {
-          id: iv.studies?.id,
-          title: iv.studies?.title,
-          business_goal: iv.studies?.business_goal,
-          context: iv.studies?.context,
-          target_audience: iv.studies?.target_audience,
+          id: study?.id,
+          title: study?.title,
+          business_goal: study?.business_goal,
+          context: study?.context,
+          target_audience: study?.target_audience,
         }
-      : { id: iv.studies?.id, title: iv.studies?.title };
+      : { id: study?.id, title: study?.title };
 
     return {
       exported_at: new Date().toISOString(),
@@ -217,8 +226,8 @@ export const deleteRespondentData = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ interview_id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
-    const { userId } = context;
-    const { data: iv } = (await supabaseAdmin
+    const { supabase, userId } = context;
+    const { data: iv } = (await supabase
       .from("interviews")
       .select("id, respondent_id, study_id, studies:study_id(owner_id)")
       .eq("id", data.interview_id)
@@ -232,12 +241,13 @@ export const deleteRespondentData = createServerFn({ method: "POST" })
     };
     assertRowRespondentOrStudyOwner(iv, userId);
 
-    // Remove storage objects
+    // O apagão em si é poder do service-role de propósito: consents é
+    // append-only para usuários (não há policy de DELETE — via RLS o apagão
+    // deixaria o consentimento órfão) e o storage segue o padrão admin-ops.
     const { data: list } = await supabaseAdmin.storage.from(BUCKET).list(iv.id);
     if (list && list.length > 0) {
       await supabaseAdmin.storage.from(BUCKET).remove(list.map((f) => `${iv.id}/${f.name}`));
     }
-    // Delete db rows (RLS would also allow, but admin client keeps it simple)
     await supabaseAdmin.from("answers").delete().eq("interview_id", iv.id);
     await supabaseAdmin.from("consents").delete().eq("interview_id", iv.id);
     await supabaseAdmin.from("interviews").delete().eq("id", iv.id);
@@ -249,8 +259,8 @@ export const rescoreAnswer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ answer_id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
-    const { userId } = context;
-    const { data: ans } = (await supabaseAdmin
+    const { supabase, userId } = context;
+    const { data: ans } = (await supabase
       .from("answers")
       .select("id, interview_id, interviews:interview_id(study_id, studies:study_id(owner_id))")
       .eq("id", data.answer_id)
@@ -263,7 +273,7 @@ export const rescoreAnswer = createServerFn({ method: "POST" })
     };
     assertRowAnswerStudyOwner(ans, userId);
     await scoreAnswerInternal(data.answer_id);
-    const { data: updated } = await supabaseAdmin
+    const { data: updated } = await supabase
       .from("answers")
       .select("quality_score, quality_reasoning")
       .eq("id", data.answer_id)
@@ -272,6 +282,8 @@ export const rescoreAnswer = createServerFn({ method: "POST" })
   });
 
 // Respondent: list own interviews (for /my-privacy)
+// Service-role de propósito: o respondente lê as próprias interviews via RLS,
+// mas o TÍTULO do estudo (embed de studies) a RLS não dá — e a tela precisa.
 export const listMyInterviews = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
