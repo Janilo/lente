@@ -112,7 +112,7 @@ Esses mesmos termos reaparecem literalmente nas fatias e nas rotas:
 1. **`respondent` no singular/plural.** A tabela de perfil de respondente é **singular** `respondent_profile` (migrations), mas as fatias usam plural: `respondents.functions.ts`, `respondent-pool.functions.ts`. A rota admin usa PT-BR `admin.respondentes.$id.tsx`, e a rota de owner usa inglês `studies.$id.respondents.tsx`. É legível, mas o mesmo conceito ("respondente") aparece em três grafias (`respondent_profile`, `respondents`, `respondentes`). Vale fixar: tabela e fatia no mesmo número gramatical.
 2. **`insights` tem dois sentidos.** Existe `insights` (nível de estudo, `interview.functions.ts:500`) e `interview_insights` (nível de entrevista, `:597`). São entidades distintas de propósito, mas o termo nu "insight" é sobrecarregado; um glossário evita que a IA (ou um humano) misture os dois ao gerar código novo.
 
-**Recomendação (P2, F-A5 abaixo):** um `GLOSSARY.md` curto — 20 linhas mapeando cada substantivo ao seu grão (estudo vs entrevista vs resposta vs respondente) e fixando singular/plural — dá à IA a "linguagem ubíqua" por escrito, que é justamente o artefato que o Pocock defende para o estrategista deixar ao tático.
+**Recomendação (P2, F-A5 abaixo):** um `GLOSSARIO.md` curto — 20 linhas mapeando cada substantivo ao seu grão (estudo vs entrevista vs resposta vs respondente) e fixando singular/plural — dá à IA a "linguagem ubíqua" por escrito, que é justamente o artefato que o Pocock defende para o estrategista deixar ao tático.
 
 ---
 
@@ -361,7 +361,7 @@ Mapear `AppError.status` no boundary (`start.ts` `errorMiddleware`, hoje só tra
 **Arquivos:** repo sem `README.md`; `AUDITORIA.md` é só DS; infra crítica marcada "auto-generated / Do not edit" (`client.server.ts:1`, `auth-middleware.ts:1`).
 **Sintoma:** o mapa dos módulos/fatias e o glossário do domínio existem só na cabeça dos autores — exatamente o que o Pocock diz para materializar, ainda mais quando a IA gera código novo contra esse mapa.
 **Princípio ferido:** system design awareness (5); linguagem ubíqua (1).
-**Correção:** um `ARCHITECTURE.md` curto com (a) o diagrama de camadas desta auditoria; (b) a regra de fatia (`*.functions.ts` = fatia; `*.server.ts` = adapter); (c) a regra de `supabaseAdmin` vs `context.supabase` (F-A4); (d) quais arquivos são gerados e como; e um `GLOSSARY.md` de 20 linhas fixando grão e número gramatical dos substantivos (estudo/entrevista/resposta/respondente/insight-de-estudo vs insight-de-entrevista — §1).
+**Correção:** um `ARCHITECTURE.md` curto com (a) o diagrama de camadas desta auditoria; (b) a regra de fatia (`*.functions.ts` = fatia; `*.server.ts` = adapter); (c) a regra de `supabaseAdmin` vs `context.supabase` (F-A4); (d) quais arquivos são gerados e como; e um `GLOSSARIO.md` de 20 linhas fixando grão e número gramatical dos substantivos (estudo/entrevista/resposta/respondente/insight-de-estudo vs insight-de-entrevista — §1).
 **Aceite:** um dev (ou a IA) novo consegue, só lendo os dois arquivos, dizer onde adicionar um endpoint, qual client usar e como nomear a entidade.
 
 ---
@@ -397,6 +397,6 @@ Mapear `AppError.status` no boundary (`start.ts` `errorMiddleware`, hoje só tra
 - [x] **`decideNextStep` puro e testado** (`interview-decision.ts` sem I/O/`supabaseAdmin`; 7 casos em `interview-decision.test.ts`) (F-A2).
 - [x] **Erros tipados** (`AppError` + status) mapeados no boundary (`start.ts` responde com `AppError.status`); as checagens de acesso lançam `ForbiddenError` via `authz.ts` (F-A3).
 - [x] **`supabaseAdmin` contido (Parte A)**: `auth.admin` + Storage signed URLs concentrados em `admin-ops.server.ts` (helpers nomeados); só aparecem em 1 arquivo agora (F-A4). — [ ] **Parte B** (trocar leitura do próprio usuário para `context.supabase`) adiada até haver teste de RLS.
-- [x] **`ARCHITECTURE.md` + `GLOSSARY.md`** presentes; regra de client e grão dos substantivos escritos (F-A5).
+- [x] **`ARCHITECTURE.md` + `GLOSSARIO.md`** presentes; regra de client e grão dos substantivos escritos (F-A5).
 - [x] **Composição entre fatias padronizada** (F-A6 — regra escrita no `ARCHITECTURE.md` §3: estático entre módulos próprios, dinâmico só para mammoth/unpdf; stt/enrichment estáticos nos 3 call sites).
 - [ ] `npm run build` e typecheck passam após os refactors.
