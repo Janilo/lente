@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:rls": "vitest run --config supabase/tests/vitest.config.ts"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.25.5",
