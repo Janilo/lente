@@ -121,6 +121,12 @@ pnpm test:rls      # suíte supabase/tests/*.rls.ts (vitest, config própria)
 - **`supabase/seed.sql`** cria as personas (admin, ana/bruno pesquisadores,
   rita/rafael respondentes — senha `lente-rls-test`) e um cenário mínimo com
   dados cruzados entre donos. UUIDs fixos exportados em `supabase/tests/stack.ts`.
+- **Roles são concedidas, nunca automáticas** (F-SEC-1, migration
+  `20260705090500`): o cadastro cria só o profile. Para promover um
+  pesquisador, o admin roda
+  `insert into public.user_roles (user_id, role) values ('<user_id>', 'researcher');`
+  — e a policy "Researcher can view all respondent profiles" passa a valer
+  para ele. Respondente não precisa de role.
 - **A suíte prova o que cada papel consegue ler/escrever** — anon, respondente,
   pesquisador, dono, admin — tabela a tabela, mais storage
   (`interview-videos`), a RPC `delete_respondent_data` e a view
@@ -131,12 +137,6 @@ pnpm test:rls      # suíte supabase/tests/*.rls.ts (vitest, config própria)
 
 ## Pendências conhecidas (da auditoria)
 
-- **F-SEC-1 (achado da suíte de RLS)**: o trigger `handle_new_user` dá role
-  `researcher` a TODO usuário novo; com a policy "Researcher can view all
-  respondent profiles", qualquer conta recém-criada lê a PII de todos os
-  respondentes. O teste "F-SEC-1" em `supabase/tests/pii-roles.rls.ts`
-  documenta o comportamento. Correção proposta (migration própria + deploy na
-  produção): `handle_new_user` parar de atribuir `researcher` por padrão.
 - **F-RLS-2 (achado da suíte de RLS)**: as policies "de estudo publicado"
   (select de questions/screener para anon; insert de interview pelo
   respondente) fazem `EXISTS` em `studies` — mas subquery de policy respeita a

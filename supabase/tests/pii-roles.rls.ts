@@ -6,19 +6,18 @@ import { FIX, USERS, anonClient, localStack, signIn } from "./stack";
 // profiles, compensation_log, telegram_sessions, app_settings,
 // cta_click_events e a view respondent_stats (security_invoker).
 //
-// ─── ACHADO F-SEC-1 (comportamento REAL da produção, provado aqui) ─────────
-// O trigger handle_new_user dá role 'researcher' a TODO usuário novo — também
-// a quem se cadastra como respondente — e nada a remove. Combinado com a
+// ─── F-SEC-1 (CORRIGIDO pela migration 20260705090500) ─────────────────────
+// O trigger handle_new_user dava role 'researcher' a TODO usuário novo; com a
 // policy "Researcher can view all respondent profiles", qualquer conta
-// recém-criada lê a tabela inteira de PII de respondentes (nome, e-mail,
-// telefone, faixa de renda). As personas do seed modelam os dois estados:
-//   rita   = como o cadastro deixa hoje (researcher automática) → prova o vazamento
-//   rafael = estado pretendido (só 'respondent') → prova que as policies,
-//            com a role certa, isolam corretamente
-// A correção (migration futura, fora deste PR): handle_new_user parar de
-// atribuir 'researcher' por padrão, atribuindo-a só no fluxo de pesquisador.
-// Quando isso acontecer, o teste "F-SEC-1" abaixo deve passar a falhar — é
-// deliberado: inverta o assert junto com a correção.
+// recém-criada lia a PII inteira de respondentes. Desde a correção, o cadastro
+// não concede role nenhuma — 'researcher' é privilégio dado pelo admin. As
+// personas do seed modelam isso:
+//   rita   = cadastro cru (nenhuma role) → o teste F-SEC-1 prova que ela NÃO
+//            lê PII alheia
+//   rafael = respondente com role 'respondent' concedida → prova que essa
+//            role não abre nada indevido
+//   ana    = pesquisadora com 'researcher' concedida → o acesso amplo é dela,
+//            por concessão, não do cadastro
 // ────────────────────────────────────────────────────────────────────────────
 
 const env = localStack();
@@ -44,17 +43,15 @@ d("PII, papéis e áreas de admin", () => {
     ]);
   });
 
-  it("F-SEC-1: conta recém-cadastrada (rita) lê a PII de TODOS os respondentes", async () => {
+  it("F-SEC-1 corrigido: conta recém-cadastrada (rita) NÃO lê PII alheia — só o próprio perfil", async () => {
     const { data, error } = await rita
       .from("respondent_profile")
       .select("user_id, email, phone, income_range");
     expect(error).toBeNull();
-    // Rita deveria ver só o próprio perfil; vê os dois — inclusive telefone e
-    // renda do Rafael. Este assert documenta o estado atual da produção.
-    expect(data).toHaveLength(2);
-    const doRafael = data?.find((r) => r.user_id === USERS.rafael.id);
-    expect(doRafael?.phone).toBe("+55 21 91234-0002");
-    expect(doRafael?.income_range).toBe("10k-20k");
+    // Antes da migration 20260705090500 o cadastro dava 'researcher' e este
+    // select devolvia TODOS os perfis (telefone e renda do rafael inclusos).
+    expect(data).toHaveLength(1);
+    expect(data?.[0].user_id).toBe(USERS.rita.id);
   });
 
   it("estado pretendido (rafael, só role respondent): lê apenas o próprio perfil", async () => {
@@ -92,13 +89,13 @@ d("PII, papéis e áreas de admin", () => {
     expect((await rafael.from("respondent_tags").select("tag_value_id")).data).toEqual([]);
   });
 
-  it("user_roles: cada um vê só as próprias — e a da rita é 'researcher' (raiz do F-SEC-1)", async () => {
+  it("user_roles: cada um vê só as próprias — e cadastro cru (rita) não tem role nenhuma", async () => {
     const daRita = await rita.from("user_roles").select("role");
-    expect(daRita.data?.map((r) => r.role)).toEqual(["researcher"]);
+    expect(daRita.data).toEqual([]);
     const doRafael = await rafael.from("user_roles").select("role");
     expect(doRafael.data?.map((r) => r.role)).toEqual(["respondent"]);
-    const daAna = await ana.from("user_roles").select("user_id");
-    expect(daAna.data?.map((r) => r.user_id)).toEqual([USERS.ana.id]);
+    const daAna = await ana.from("user_roles").select("user_id, role");
+    expect(daAna.data).toEqual([{ user_id: USERS.ana.id, role: "researcher" }]);
   });
 
   it("profiles: usuário vê o próprio; admin vê todos", async () => {
@@ -162,6 +159,7 @@ d("PII, papéis e áreas de admin", () => {
     const daAna = await ana.from("cta_click_events").select("id");
     expect(daAna.data?.length).toBeGreaterThanOrEqual(1);
     expect((await rafael.from("cta_click_events").select("id")).data).toEqual([]);
+    expect((await rita.from("cta_click_events").select("id")).data).toEqual([]);
   });
 
   it("respondent_stats (security_invoker) não vaza métricas: cada um computa só o que pode ver", async () => {
@@ -171,12 +169,11 @@ d("PII, papéis e áreas de admin", () => {
     expect(doRafael.data?.[0].user_id).toBe(USERS.rafael.id);
     expect(doRafael.data?.[0].interviews_count).toBe(1);
 
-    // Rita (researcher automática) vê os DOIS perfis (F-SEC-1), mas as
-    // entrevistas do Rafael continuam invisíveis: a linha dele zera.
+    // Rita (cadastro cru, sem role): só a própria linha, com a própria entrevista.
     const daRita = await rita.from("respondent_stats").select("*");
-    expect(daRita.data).toHaveLength(2);
-    const rafaelViaRita = daRita.data?.find((r) => r.user_id === USERS.rafael.id);
-    expect(rafaelViaRita?.interviews_count).toBe(0);
+    expect(daRita.data).toHaveLength(1);
+    expect(daRita.data?.[0].user_id).toBe(USERS.rita.id);
+    expect(daRita.data?.[0].interviews_count).toBe(1);
 
     // Ana vê a linha da Rita computada com a entrevista do Estudo A.
     const daAna = await ana.from("respondent_stats").select("*");

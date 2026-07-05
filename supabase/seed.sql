@@ -4,17 +4,17 @@
 -- Roda SÓ na stack local / CI (supabase start ou db reset). Nunca na produção.
 -- Senha de todas as contas de teste: lente-rls-test
 --
--- Personas (UUIDs fixos — os testes importam de supabase/tests/stack.ts):
+-- Personas (UUIDs fixos — os testes importam de supabase/tests/stack.ts).
+-- Desde o F-SEC-1 (migration 20260705090500) o cadastro NÃO concede role
+-- nenhuma; 'researcher' é concedida pelo admin, e é isso que este seed imita.
 --   admin  janilo@pereirasaraiva.com  is_admin() = true (e-mail hardcoded na função)
---   ana    ana@lente.test             pesquisadora, can_publish = true, dona do Estudo A
---   bruno  bruno@lente.test           pesquisador, can_publish = false, dono dos Estudos B1/B2
---   rita   rita@lente.test            respondente COMO O CADASTRO REAL DEIXA: o trigger
---                                     handle_new_user dá role 'researcher' a todo usuário
---                                     novo e nada a remove. Esta persona prova o achado
---                                     F-SEC-1 (lê PII de todos os respondentes).
---   rafael rafael@lente.test          respondente no estado PRETENDIDO: role 'researcher'
---                                     removida e 'respondent' atribuída. Testa as policies
---                                     como foram desenhadas.
+--   ana    ana@lente.test             pesquisadora (role concedida), can_publish = true, dona do Estudo A
+--   bruno  bruno@lente.test           pesquisador (role concedida), can_publish = false, dono dos Estudos B1/B2
+--   rita   rita@lente.test            respondente COMO O CADASTRO DEIXA: nenhuma role.
+--                                     Persona do teste F-SEC-1 (não pode ler PII alheia).
+--   rafael rafael@lente.test          respondente com a role 'respondent' concedida —
+--                                     nenhuma policy depende dela; existe para provar
+--                                     que ela não abre nada indevido.
 -- ============================================================================
 
 -- ----------------------------------------------------------------------------
@@ -69,12 +69,13 @@ where u.email in (
 -- ----------------------------------------------------------------------------
 -- Roles e permissões
 -- ----------------------------------------------------------------------------
--- rafael: estado pretendido de respondente (o cadastro real deixaria 'researcher';
--- rita fica exatamente como o trigger deixa, de propósito — ver F-SEC-1).
-delete from public.user_roles
-where user_id = 'd4d4d4d4-0000-4000-8000-000000000004' and role = 'researcher';
-insert into public.user_roles (user_id, role)
-values ('d4d4d4d4-0000-4000-8000-000000000004', 'respondent');
+-- O cadastro não dá role nenhuma (F-SEC-1); a concessão é explícita, como o
+-- admin faz na produção. Rita fica de fora de propósito: cadastro cru.
+insert into public.user_roles (user_id, role) values
+  ('00000000-0000-4000-8000-00000000ad01', 'researcher'),
+  ('a1a1a1a1-0000-4000-8000-000000000001', 'researcher'),
+  ('b2b2b2b2-0000-4000-8000-000000000002', 'researcher'),
+  ('d4d4d4d4-0000-4000-8000-000000000004', 'respondent');
 
 -- can_publish de ana e admin: o trigger protect_can_publish exige is_admin()
 -- (auth.uid() é null no seed), então desabilita-o em volta do update.
