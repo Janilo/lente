@@ -5,6 +5,13 @@
 > Escopo: arquitetura (módulos, fatias, interfaces, testes). **NÃO** é a auditoria de design system — essa é `AUDITORIA.md`.
 > Método: cada afirmação cita `arquivo:linha` real. Números de linha conferidos na leitura; se um trecho tiver se movido, localize pela citação.
 
+> **⚠️ Status (jul/2026) — este doc é um snapshot e alguns achados já foram resolvidos.** Verificados como resolvidos:
+> - **F-A0** (authz de recurso duplicada, sem módulo) — vive em `src/lib/authz.ts` (asserts de posse; o caller passa o próprio client p/ preservar a escolha RLS-vs-service-role).
+> - **F-A4** (superfície do `supabaseAdmin`) — concentrada em `src/lib/admin-ops.server.ts` (o único lugar com `auth.admin`/storage).
+> - **F-A3** (erros tipados) — `errors.ts` agora é o módulo canônico, idêntico aos repos irmãos.
+>
+> Padronização cross-repo (P1): `errors.ts` canônico + `client.server.ts` lançando `ConfigError`. Os demais achados abaixo **não foram re-auditados** nesta passada.
+
 ---
 
 ## Sumário executivo
