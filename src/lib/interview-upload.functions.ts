@@ -12,7 +12,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { enrichInterviewInternal } from "./interview-enrichment.functions";
 import { assertRowStudyOwner, assertStudyOwner } from "./authz";
 import { transcribeAudio } from "./stt.server";
-import { DomainError } from "./errors";
+import { ValidationError } from "./errors";
 
 const BUCKET = "interview-videos";
 const ALLOWED_EXT = new Set(["mp4", "webm", "mov", "m4v", "mkv"]);
@@ -90,7 +90,7 @@ export const processUploadedInterview = createServerFn({ method: "POST" })
     };
     assertRowStudyOwner(iv, userId);
     if (iv.source !== "upload")
-      throw new DomainError("Esta entrevista não foi enviada por upload.");
+      throw new ValidationError("Esta entrevista não foi enviada por upload.");
 
     const path = `${iv.id}/full.${ext}`;
 
