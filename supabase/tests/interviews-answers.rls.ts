@@ -64,17 +64,34 @@ d("entrevistas, respostas e vídeos", () => {
     expect(alheia.error?.code).toBe("42501");
   });
 
-  it("F-RLS-2 (escrita): respondente não cria entrevista via API — o EXISTS de studies anula o with check", async () => {
-    // "Respondent can insert own interview" exige EXISTS em studies published,
-    // mas o respondente não enxerga studies (RLS aninhada): o with check nunca
-    // passa. Criar entrevista é, na prática, papel do serverFn com admin.
+  it("F-RLS-2 resolvido: respondente cria entrevista em estudo publicado; rascunho e personificação, não", async () => {
+    // A policy fazia EXISTS direto em studies e era letra morta (subquery de
+    // policy respeita a RLS de studies de quem consulta) — o startInterview do
+    // runner, que insere com o client do usuário, ficava quebrado para
+    // respondente real. Desde a migration 20260705142000 o "publicado" vem de
+    // study_is_published() (SECURITY DEFINER) e funciona como desenhado.
     const id = "22222222-0000-4000-8000-000000000098";
-    const tentativa = await rafael.from("interviews").insert({
+    const publicado = await rafael.from("interviews").insert({
       id,
       study_id: FIX.studyB2,
       respondent_id: USERS.rafael.id,
     });
-    expect(tentativa.error?.code).toBe("42501");
+    expect(publicado.error).toBeNull();
+
+    const rascunho = await rafael.from("interviews").insert({
+      id: "22222222-0000-4000-8000-000000000097",
+      study_id: FIX.studyB1,
+      respondent_id: USERS.rafael.id,
+    });
+    expect(rascunho.error?.code).toBe("42501");
+
+    const personificacao = await rafael.from("interviews").insert({
+      id: "22222222-0000-4000-8000-000000000096",
+      study_id: FIX.studyB2,
+      respondent_id: USERS.rita.id,
+    });
+    expect(personificacao.error?.code).toBe("42501");
+
     await service.from("interviews").delete().eq("id", id);
   });
 

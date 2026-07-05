@@ -34,15 +34,13 @@ d("studies e conteúdo do pesquisador", () => {
     expect(data).toEqual([]);
   });
 
-  it("F-RLS-2: as policies 'de estudo publicado' são letra morta — a RLS aninhada de studies as anula", async () => {
-    // "View questions of published studies" (to anon, authenticated) faz
-    // EXISTS em studies; mas subquery de policy respeita a RLS de studies
-    // para QUEM CONSULTA — e studies não tem policy de select para anon nem
-    // para respondente. O EXISTS nunca encontra nada: mesmo com o estudo
-    // publicado, a resposta é []. O fluxo público real (r_.$slug) resolve via
-    // serverFn com supabaseAdmin, por isso o app funciona. Este teste fixa o
-    // comportamento REAL; a correção (função SECURITY DEFINER nas policies, ou
-    // removê-las por honestidade) é decisão à parte — ver ARCHITECTURE.md.
+  it("F-RLS-2 resolvido: perguntas e screener não têm leitura pública via API — o runner lê via serverFn", async () => {
+    // As policies "View questions/screener of published studies" eram letra
+    // morta (EXISTS sob a RLS de studies de quem consulta) e NADA as usava —
+    // o runner e a página pública leem perguntas via serverFn com
+    // service-role. Foram removidas pela migration 20260705142000. Se um dia
+    // o runner ler perguntas com o client do usuário, a policy volta usando
+    // study_is_published().
     const published = await anon.from("questions").select("id").eq("study_id", FIX.studyA);
     expect(published.error).toBeNull();
     expect(published.data).toEqual([]);
