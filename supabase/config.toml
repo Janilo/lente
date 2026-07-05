@@ -1,1 +1,10 @@
-project_id = "kropjhloiqsphnnhwyuv"
+# Stack local do Supabase (supabase start / db reset) — usada pela suíte de RLS
+# (supabase/tests/) e pelo job `rls` do CI.
+#
+# project_id = ref do projeto de PRODUÇÃO atual (nuolncddavudliabqsdx). O valor
+# antigo (kropjhloiqsphnnhwyuv) era o projeto da era Lovable, apagado em 28/06/2026.
+project_id = "nuolncddavudliabqsdx"
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]

@@ -8,7 +8,8 @@
 
 TanStack Start (React 19) + Vite · Cloudflare Workers · Supabase (Postgres/RLS,
 Storage, Auth) · adapters de IA/STT/HubSpot/Telegram · vitest + eslint (CI roda
-`pnpm run lint` e `pnpm run test` em todo PR).
+`pnpm run lint` e `pnpm run test` em todo PR, mais o job `rls`: stack local do
+Supabase + `pnpm test:rls`).
 
 ## O mapa
 
@@ -29,8 +30,12 @@ src/
 │
 ├─ integrations/supabase/          client (RLS) · client.server (service-role) · auth-middleware · types
 ├─ components/{ui,brand,interview,study}
-├─ server.ts / start.ts            entry do Worker + middlewares globais
-└─ supabase/migrations/*.sql       schema — fonte da verdade da linguagem ubíqua
+└─ server.ts / start.ts            entry do Worker + middlewares globais
+
+supabase/
+├─ migrations/20260628151355_…sql  ESPELHO da produção — fonte da verdade da linguagem ubíqua
+├─ seed.sql                        personas e fixtures da suíte de RLS (só stack local)
+└─ tests/*.rls.ts                  testes de integração de RLS (pnpm test:rls)
 ```
 
 Camadas, de fora para dentro:
@@ -98,8 +103,40 @@ mais; esses arquivos são **código nosso** e mudam por PR normal como qualquer
 infra — mas são fundação de segurança: mudanças ali pedem revisão com atenção
 dobrada.
 
+## Banco local e testes de RLS
+
+As policies de RLS são a fronteira de segurança real do produto (PII de
+respondente, LGPD) — e são testadas de verdade, não por leitura de código:
+
+```sh
+supabase start     # Postgres+Auth+PostgREST+Storage locais; aplica migration + seed
+pnpm test:rls      # suíte supabase/tests/*.rls.ts (vitest, config própria)
+```
+
+- **A migration `20260628151355_lente_initial_schema.sql` é um ESPELHO da
+  produção** (extraído do catálogo em 05/07/2026) e usa a mesma version da
+  migration remota — nunca roda contra a produção. As 18 migrations da era
+  Lovable descreviam o projeto antigo (apagado) e foram removidas. Mudou o
+  schema na produção? Regenere o espelho e ajuste a suíte no mesmo PR.
+- **`supabase/seed.sql`** cria as personas (admin, ana/bruno pesquisadores,
+  rita/rafael respondentes — senha `lente-rls-test`) e um cenário mínimo com
+  dados cruzados entre donos. UUIDs fixos exportados em `supabase/tests/stack.ts`.
+- **A suíte prova o que cada papel consegue ler/escrever** — anon, respondente,
+  pesquisador, dono, admin — tabela a tabela, mais storage
+  (`interview-videos`), a RPC `delete_respondent_data` e a view
+  `respondent_stats` (security_invoker). Sem Docker, `pnpm test` (unidade)
+  continua verde: a suíte RLS só roda via `pnpm test:rls`; no CI o job `rls`
+  exige a stack (`REQUIRE_RLS_STACK=1`).
+- Policy nova ou alterada ⇒ teste novo na suíte, no mesmo PR.
+
 ## Pendências conhecidas (da auditoria)
 
+- **F-SEC-1 (achado da suíte de RLS)**: o trigger `handle_new_user` dá role
+  `researcher` a TODO usuário novo; com a policy "Researcher can view all
+  respondent profiles", qualquer conta recém-criada lê a PII de todos os
+  respondentes. O teste "F-SEC-1" em `supabase/tests/pii-roles.rls.ts`
+  documenta o comportamento. Correção proposta (migration própria + deploy na
+  produção): `handle_new_user` parar de atribuir `researcher` por padrão.
 - **F-A4 Parte B**: trocar leituras do próprio usuário de `supabaseAdmin` para
-  `context.supabase` exige teste de integração de RLS — adiado até existir esse
-  ambiente.
+  `context.supabase`. A rede de segurança que faltava (esta suíte de RLS)
+  existe agora — desbloqueado.

@@ -20,3 +20,26 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm run lint
       - run: pnpm run test
+
+  # Testes de integração de RLS: sobe a stack local do Supabase (a migration
+  # 20260628151355 é o espelho da produção + supabase/seed.sql) e prova o que
+  # cada papel — anon, respondente, pesquisador, admin — consegue ler/escrever.
+  rls:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: supabase start
+      - run: pnpm run test:rls
+        env:
+          REQUIRE_RLS_STACK: "1"
