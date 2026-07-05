@@ -64,6 +64,20 @@ d("entrevistas, respostas e vídeos", () => {
     expect(alheia.error?.code).toBe("42501");
   });
 
+  it("F-RLS-2 (escrita): respondente não cria entrevista via API — o EXISTS de studies anula o with check", async () => {
+    // "Respondent can insert own interview" exige EXISTS em studies published,
+    // mas o respondente não enxerga studies (RLS aninhada): o with check nunca
+    // passa. Criar entrevista é, na prática, papel do serverFn com admin.
+    const id = "22222222-0000-4000-8000-000000000098";
+    const tentativa = await rafael.from("interviews").insert({
+      id,
+      study_id: FIX.studyB2,
+      respondent_id: USERS.rafael.id,
+    });
+    expect(tentativa.error?.code).toBe("42501");
+    await service.from("interviews").delete().eq("id", id);
+  });
+
   it("consents: respondente vê os próprios, dono do estudo vê os do estudo, e ninguém assina pelo outro", async () => {
     expect((await rita.from("consents").select("id")).data).toHaveLength(1);
     expect((await ana.from("consents").select("id")).data).toHaveLength(1);

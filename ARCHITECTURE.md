@@ -137,6 +137,14 @@ pnpm test:rls      # suíte supabase/tests/*.rls.ts (vitest, config própria)
   respondentes. O teste "F-SEC-1" em `supabase/tests/pii-roles.rls.ts`
   documenta o comportamento. Correção proposta (migration própria + deploy na
   produção): `handle_new_user` parar de atribuir `researcher` por padrão.
+- **F-RLS-2 (achado da suíte de RLS)**: as policies "de estudo publicado"
+  (select de questions/screener para anon; insert de interview pelo
+  respondente) fazem `EXISTS` em `studies` — mas subquery de policy respeita a
+  RLS de `studies` de quem consulta, que não tem policy para anon/respondente.
+  Resultado: são **letra morta**; todo o fluxo público depende de serverFn +
+  `supabaseAdmin` (os testes "F-RLS-2" fixam isso). Corrigir = usar função
+  `SECURITY DEFINER` (ex.: `study_is_published(uuid)`) nessas policies — ou
+  removê-las, assumindo o serverFn como único caminho público.
 - **F-A4 Parte B**: trocar leituras do próprio usuário de `supabaseAdmin` para
   `context.supabase`. A rede de segurança que faltava (esta suíte de RLS)
   existe agora — desbloqueado.
