@@ -96,7 +96,8 @@ d("studies e conteúdo do pesquisador", () => {
   it("insights e recommendations são do dono do estudo — role researcher não abre nada", async () => {
     expect((await ana.from("insights").select("id")).data).toHaveLength(1);
     expect((await bruno.from("insights").select("id")).data).toEqual([]);
-    // Rita tem role researcher (dada pelo trigger de cadastro), e mesmo assim: zero.
+    // Bruno TEM a role researcher e mesmo assim não lê insight alheio: o
+    // acesso é por dono do estudo, não por role. Rita (sem role) idem.
     expect((await rita.from("insights").select("id")).data).toEqual([]);
     expect((await ana.from("recommendations").select("id")).data).toHaveLength(1);
     expect((await bruno.from("recommendations").select("id")).data).toEqual([]);
