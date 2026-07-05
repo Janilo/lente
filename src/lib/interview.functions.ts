@@ -13,7 +13,8 @@ import { decideNextStep, type DecisionAnswer, type DecisionQuestion } from "./in
 import { assertInterviewRespondent } from "./authz";
 import { adminGetUserContact } from "./admin-ops.server";
 
-// Public: get study by slug (anon allowed via RLS for published)
+// Público: resolve o slug via service-role, filtrando publicado — anon não lê
+// studies pela API (decisão F-RLS-2; ver ARCHITECTURE.md).
 export const getStudyBySlug = createServerFn({ method: "GET" })
   .inputValidator((input) => z.object({ slug: z.string().min(1).max(100) }).parse(input))
   .handler(async ({ data }) => {

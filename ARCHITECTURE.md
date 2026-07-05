@@ -80,6 +80,11 @@ FATIA  src/lib/<nome>.functions.ts
   pelas fatias.
 - Não misture os dois clients para a MESMA tabela num handler sem comentário
   justificando.
+- **Policy que precisa de "estudo publicado" usa `study_is_published(uuid)`**
+  (SECURITY DEFINER — F-RLS-2): `EXISTS` direto em `studies` roda sob a RLS de
+  quem consulta (anon/respondente não enxergam studies) e vira letra morta.
+  Leitura pública de perguntas/screener não existe via API — o runner e a
+  página do slug leem via serverFn com service-role, por decisão.
 
 ### 3 · Composição entre fatias: import estático; dinâmico é exceção (F-A6)
 
@@ -137,14 +142,6 @@ pnpm test:rls      # suíte supabase/tests/*.rls.ts (vitest, config própria)
 
 ## Pendências conhecidas (da auditoria)
 
-- **F-RLS-2 (achado da suíte de RLS)**: as policies "de estudo publicado"
-  (select de questions/screener para anon; insert de interview pelo
-  respondente) fazem `EXISTS` em `studies` — mas subquery de policy respeita a
-  RLS de `studies` de quem consulta, que não tem policy para anon/respondente.
-  Resultado: são **letra morta**; todo o fluxo público depende de serverFn +
-  `supabaseAdmin` (os testes "F-RLS-2" fixam isso). Corrigir = usar função
-  `SECURITY DEFINER` (ex.: `study_is_published(uuid)`) nessas policies — ou
-  removê-las, assumindo o serverFn como único caminho público.
 - **F-A4 Parte B**: trocar leituras do próprio usuário de `supabaseAdmin` para
   `context.supabase`. A rede de segurança que faltava (esta suíte de RLS)
   existe agora — desbloqueado.
