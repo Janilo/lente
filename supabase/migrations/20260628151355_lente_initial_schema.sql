@@ -775,3 +775,17 @@ create policy "Study owner can upload interview videos" on storage.objects for i
    FROM (interviews i
      JOIN studies s ON ((s.id = i.study_id)))
   WHERE (((i.id)::text = (storage.foldername(objects.name))[1]) AND (s.owner_id = auth.uid()))))));
+
+-- ---------------------------------------------------------------------------
+-- Grants (como na produção: os papéis da API têm privilégio pleno de tabela em
+-- public — quem restringe é a RLS). No hosted isso vem dos default privileges
+-- do dashboard; na stack local o runner de migrations não os tem, então o
+-- espelho declara explicitamente.
+-- ---------------------------------------------------------------------------
+grant usage on schema public to anon, authenticated, service_role;
+grant all on all tables in schema public to anon, authenticated, service_role;
+grant all on all sequences in schema public to anon, authenticated, service_role;
+grant all on all functions in schema public to anon, authenticated, service_role;
+alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
+alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
+alter default privileges in schema public grant all on functions to anon, authenticated, service_role;
