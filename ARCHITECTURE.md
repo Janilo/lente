@@ -70,14 +70,18 @@ FATIA  src/lib/<nome>.functions.ts
 
 ### 2 · Qual client de dados usar
 
-- **`context.supabase`** (do usuário, respeita RLS) — preferir para leitura e
-  escrita do próprio usuário. O Postgres autoriza.
+- **`context.supabase`** (do usuário, respeita RLS) — **é o padrão dos
+  handlers** (F-A4-B aplicado): fetch de autorização, leituras e escritas
+  cobertas por policy vão pelo client do usuário. O Postgres autoriza, e a
+  suíte `supabase/tests/` prova cada policy.
 - **`supabaseAdmin`** (service-role, bypassa RLS) — **só** para o que a RLS não
-  cobre: Storage assinado, `auth.admin`, agregações cross-usuário do
-  pesquisador, pipelines internos (STT/enrichment). Poderes perigosos ficam
-  atrás de funções nomeadas em `admin-ops.server.ts` (`signedVideoUrl`,
-  `adminGetUserEmail`, …) — não espalhe `supabaseAdmin.storage`/`.auth.admin`
-  pelas fatias.
+  cobre, sempre com comentário no ponto de uso. O resíduo mapeado: pipelines
+  que rodam sem usuário (STT/score/enrichment, webhook do Telegram), Storage
+  assinado e `auth.admin` (via `admin-ops.server.ts`), leituras cross-usuário
+  do pesquisador (`profiles`/e-mail de respondentes, diretório de
+  respondentes), metadados de estudo para o respondente (título em
+  `/my-privacy`, config no painel de status, questions no export — decisão
+  F-RLS-2) e o apagão LGPD (`consents` é append-only para usuários).
 - Não misture os dois clients para a MESMA tabela num handler sem comentário
   justificando.
 - **Policy que precisa de "estudo publicado" usa `study_is_published(uuid)`**
@@ -142,6 +146,7 @@ pnpm test:rls      # suíte supabase/tests/*.rls.ts (vitest, config própria)
 
 ## Pendências conhecidas (da auditoria)
 
-- **F-A4 Parte B**: trocar leituras do próprio usuário de `supabaseAdmin` para
-  `context.supabase`. A rede de segurança que faltava (esta suíte de RLS)
-  existe agora — desbloqueado.
+- Nenhuma. O último item (F-A4 Parte B) foi aplicado em jul/2026: as fatias
+  operam com o client do usuário onde a RLS cobre, e todo uso remanescente de
+  `supabaseAdmin` carrega um comentário justificando (mapa do resíduo na regra
+  2 acima).
