@@ -1,7 +1,7 @@
 # Arquitetura do Lente
 
 > O mapa vivo (item F-A5 da `AUDITORIA-ARQUITETURA.md`). Lendo este arquivo e o
-> [`GLOSSARY.md`](./GLOSSARY.md), um dev (ou uma IA) novo deve saber: onde
+> [`GLOSSARIO.md`](./GLOSSARIO.md), um dev (ou uma IA) novo deve saber: onde
 > adicionar um endpoint, qual client de dados usar e como nomear a entidade.
 
 ## Stack
