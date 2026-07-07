@@ -30,5 +30,9 @@ jobs:
             exit 1
           fi
           echo "Pinging $url/rest/v1/"
-          code=$(curl -sS -m 30 -o /dev/null -w "%{http_code}" "$url/rest/v1/" -H "apikey: $key")
-          echo "-> HTTP $code (any HTTP response counts as project activity)"
+          # apikey passes the Kong gateway; Authorization: Bearer authenticates as
+          # the anon role so PostgREST answers 200 (we actually touch the DB layer,
+          # which is what pauses — a bare apikey is rejected at Kong with 401).
+          code=$(curl -sS -m 30 -o /dev/null -w "%{http_code}" "$url/rest/v1/" \
+            -H "apikey: $key" -H "Authorization: Bearer $key")
+          echo "-> HTTP $code (expected 200; any HTTP response counts as activity)"
