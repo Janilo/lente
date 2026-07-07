@@ -1,0 +1,33 @@
+name: keepalive
+
+# Supabase free-tier projects auto-pause after ~7 days of inactivity. This job
+# pings the project's REST API twice a week to keep it active. The URL and anon
+# (publishable) key are read from wrangler.jsonc — both are public values that
+# already ship to the browser, so no repository secret is needed.
+#
+# Scheduled workflows only run from the default branch, so this takes effect
+# once merged to main. Use "Run workflow" (workflow_dispatch) to test it.
+
+on:
+  schedule:
+    - cron: "17 6 * * 1,4" # 06:17 UTC, Mon & Thu (gap <= ~3 days, well under 7)
+  workflow_dispatch: {}
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ping Supabase REST API to generate activity
+        run: |
+          url=$(grep -oE '"SUPABASE_URL": *"[^"]+"' wrangler.jsonc | sed -E 's/^.*"SUPABASE_URL": *"//; s/"$//')
+          key=$(grep -oE '"SUPABASE_PUBLISHABLE_KEY": *"[^"]+"' wrangler.jsonc | sed -E 's/^.*"SUPABASE_PUBLISHABLE_KEY": *"//; s/"$//')
+          if [ -z "$url" ] || [ -z "$key" ]; then
+            echo "::error::Could not read SUPABASE_URL / SUPABASE_PUBLISHABLE_KEY from wrangler.jsonc"
+            exit 1
+          fi
+          echo "Pinging $url/rest/v1/"
+          code=$(curl -sS -m 30 -o /dev/null -w "%{http_code}" "$url/rest/v1/" -H "apikey: $key")
+          echo "-> HTTP $code (any HTTP response counts as project activity)"
