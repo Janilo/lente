@@ -30,9 +30,14 @@ jobs:
             exit 1
           fi
           echo "Pinging $url/rest/v1/"
-          # apikey passes the Kong gateway; Authorization: Bearer authenticates as
-          # the anon role so PostgREST answers 200 (we actually touch the DB layer,
-          # which is what pauses — a bare apikey is rejected at Kong with 401).
-          code=$(curl -sS -m 30 -o /dev/null -w "%{http_code}" "$url/rest/v1/" \
-            -H "apikey: $key" -H "Authorization: Bearer $key")
-          echo "-> HTTP $code (expected 200; any HTTP response counts as activity)"
+          # The bare REST root answers 401 (the anon role has no grant there), and
+          # that is fine: the request still reaches the project's API gateway and is
+          # recorded in its edge logs — which is exactly what resets the 7-day
+          # inactivity timer. `|| true` keeps `set -e` from aborting so we can react
+          # to the code ourselves. "000" means curl got no HTTP response at all.
+          code=$(curl -sS -m 30 -o /dev/null -w "%{http_code}" "$url/rest/v1/" -H "apikey: $key" || true)
+          echo "-> HTTP $code (any HTTP response = activity; 401 is expected here)"
+          if [ -z "$code" ] || [ "$code" = "000" ]; then
+            echo "::error::No HTTP response from $url — project may be unreachable"
+            exit 1
+          fi
