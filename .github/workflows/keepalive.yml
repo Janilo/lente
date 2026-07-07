@@ -13,7 +13,8 @@ on:
     - cron: "17 6 * * 1,4" # 06:17 UTC, Mon & Thu (gap <= ~3 days, well under 7)
   workflow_dispatch: {}
 
-permissions: {}
+permissions:
+  contents: read # checkout precisa ler o repo privado
 
 jobs:
   ping:
