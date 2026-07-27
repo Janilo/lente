@@ -1,5 +1,5 @@
 // Typed domain errors — canonical module, kept identical across the apps
-// (site / lente / prisma / cascata). Business and server code throws these
+// (site / lente / prisma / cascata / farol). Business and server code throws these
 // instead of a bare `throw new Error("string")`, so the request boundary and
 // the client can tell 401 / 403 / 404 / 422 apart from a generic 500 by TYPE,
 // and so `message` is known to be safe to show the user.
@@ -14,8 +14,9 @@
 // Invariant: `message` IS the user-facing message. Internal detail (SQL error,
 // missing env var, stack) goes to console.error at the throw site, never here.
 //
-// App-specific error codes/subclasses (e.g. cascata's share-link codes) build
-// on top of this module; the base AppError + helpers below are the shared part.
+// App-specific error codes/subclasses build on top of this module: each product
+// pins its own closed set of codes in a sibling error-codes.ts. The base
+// AppError + helpers below are the shared part.
 
 export class AppError extends Error {
   /** Own enumerable marker that survives the serverFn serialization boundary. */
