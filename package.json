@@ -98,5 +98,6 @@
     "overrides": {
       "entities": "4.5.0"
     }
-  }
+  },
+  "packageManager": "pnpm@10.18.0"
 }
