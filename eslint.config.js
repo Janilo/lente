@@ -6,7 +6,11 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist", ".output", ".vinxi"] },
+  // `.claude` guarda os worktrees que as sessões de agente criam DENTRO do repo.
+  // Sem ignorá-lo, `eslint .` varre uma cópia inteira do projeto e o trabalho em
+  // andamento de outra sessão passa a reprovar o lint desta. Medido no `farol`
+  // em 03/ago/2026: o contador saltou de 6 para 12 sem nenhuma mudança de código.
+  { ignores: ["dist", ".output", ".vinxi", ".claude"] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
